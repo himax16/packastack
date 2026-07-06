@@ -9,4 +9,14 @@ logs/
 .venv/
 **/*.pyc
 **/__pycache__/*
+
+# LLM Temporary Files
 .desloppify/
+plans/
+
+# Symlinks
+cache
+config.yaml
+
+# IDE Settings
+.vscode/
