@@ -65,7 +65,7 @@ def render_html(report: TypeSelectionReport, output_path: Path) -> Path:
 
     # Build summary cards
     total = len(report.packages)
-    retired_count = getattr(report, 'count_retired', 0)
+    retired_count = getattr(report, "count_retired", 0)
     summary_html = f"""
     <div class="summary-cards">
         <div class="card">
@@ -91,29 +91,43 @@ def render_html(report: TypeSelectionReport, output_path: Path) -> Path:
     reason_rows = []
     for reason, count in sorted(report.counts_by_reason.items(), key=lambda x: -x[1]):
         reason_rows.append(f"<tr><td>{esc(reason)}</td><td>{count}</td></tr>")
-    reason_table = f"""
+    reason_table = (
+        f"""
     <table class="breakdown-table">
         <thead><tr><th>Reason Code</th><th>Count</th></tr></thead>
-        <tbody>{''.join(reason_rows)}</tbody>
+        <tbody>{"".join(reason_rows)}</tbody>
     </table>
-    """ if reason_rows else "<p>No data</p>"
+    """
+        if reason_rows
+        else "<p>No data</p>"
+    )
 
     # Build cycle stage breakdown
     stage_rows = []
     for stage, count in sorted(report.counts_by_stage.items(), key=lambda x: -x[1]):
         stage_rows.append(f"<tr><td>{esc(stage)}</td><td>{count}</td></tr>")
-    stage_table = f"""
+    stage_table = (
+        f"""
     <table class="breakdown-table">
         <thead><tr><th>Cycle Stage</th><th>Count</th></tr></thead>
-        <tbody>{''.join(stage_rows)}</tbody>
+        <tbody>{"".join(stage_rows)}</tbody>
     </table>
-    """ if stage_rows else "<p>No data</p>"
+    """
+        if stage_rows
+        else "<p>No data</p>"
+    )
 
     # New/defunct packages section
     new_defunct_html = ""
     if report.new_packages or report.defunct_packages:
-        new_list = ", ".join(esc(p) for p in report.new_packages) if report.new_packages else "None"
-        defunct_list = ", ".join(esc(p) for p in report.defunct_packages) if report.defunct_packages else "None"
+        new_list = (
+            ", ".join(esc(p) for p in report.new_packages) if report.new_packages else "None"
+        )
+        defunct_list = (
+            ", ".join(esc(p) for p in report.defunct_packages)
+            if report.defunct_packages
+            else "None"
+        )
         new_defunct_html = f"""
         <div class="alert-section">
             <h3>⚠️ Package Status Changes</h3>
@@ -129,8 +143,16 @@ def render_html(report: TypeSelectionReport, output_path: Path) -> Path:
     # Cross-reference warnings section
     crossref_html = ""
     if report.missing_upstream or report.missing_packaging:
-        missing_upstream_list = ", ".join(esc(p) for p in report.missing_upstream) if report.missing_upstream else "None"
-        missing_packaging_list = ", ".join(esc(p) for p in report.missing_packaging) if report.missing_packaging else "None"
+        missing_upstream_list = (
+            ", ".join(esc(p) for p in report.missing_upstream)
+            if report.missing_upstream
+            else "None"
+        )
+        missing_packaging_list = (
+            ", ".join(esc(p) for p in report.missing_packaging)
+            if report.missing_packaging
+            else "None"
+        )
         crossref_html = f"""
         <div class="alert-section">
             <h3>⚠️ Cross-Reference Warnings</h3>
@@ -145,11 +167,15 @@ def render_html(report: TypeSelectionReport, output_path: Path) -> Path:
 
     # Retired packages section
     retired_html = ""
-    retired_packages = getattr(report, 'retired_packages', set())
-    needs_mapping = getattr(report, 'needs_upstream_mapping', set())
+    retired_packages = getattr(report, "retired_packages", set())
+    needs_mapping = getattr(report, "needs_upstream_mapping", set())
     if retired_packages or needs_mapping:
-        retired_list = ", ".join(esc(p) for p in sorted(retired_packages)) if retired_packages else "None"
-        mapping_list = ", ".join(esc(p) for p in sorted(needs_mapping)) if needs_mapping else "None"
+        retired_list = (
+            ", ".join(esc(p) for p in sorted(retired_packages)) if retired_packages else "None"
+        )
+        mapping_list = (
+            ", ".join(esc(p) for p in sorted(needs_mapping)) if needs_mapping else "None"
+        )
         retired_html = f"""
         <div class="alert-section">
             <h3>🚫 Retired Projects</h3>
@@ -184,14 +210,20 @@ def render_html(report: TypeSelectionReport, output_path: Path) -> Path:
         upstream_ver = esc(pkg.latest_version) or "-"
 
         if pkg.upstream_resolution:
-            authority = esc(pkg.upstream_resolution.authority.value) if hasattr(pkg.upstream_resolution.authority, 'value') else esc(str(pkg.upstream_resolution.authority))
+            authority = (
+                esc(pkg.upstream_resolution.authority.value)
+                if hasattr(pkg.upstream_resolution.authority, "value")
+                else esc(str(pkg.upstream_resolution.authority))
+            )
             if pkg.upstream_resolution.upstream_version:
                 upstream_ver = esc(pkg.upstream_resolution.upstream_version)
 
         if pkg.watch_info:
             watch_status = "✓" if pkg.watch_info.parsed else "✗"
             if pkg.watch_info.uscan_attempted:
-                uscan_status = esc(pkg.watch_info.uscan_status) if pkg.watch_info.uscan_status else "-"
+                uscan_status = (
+                    esc(pkg.watch_info.uscan_status) if pkg.watch_info.uscan_status else "-"
+                )
                 if pkg.watch_info.newer_available:
                     uscan_status += ' <span class="badge badge-new">NEW</span>'
 
@@ -256,7 +288,7 @@ def render_html(report: TypeSelectionReport, output_path: Path) -> Path:
             </tr>
         </thead>
         <tbody>
-            {''.join(table_rows)}
+            {"".join(table_rows)}
         </tbody>
     </table>
     """
@@ -487,13 +519,15 @@ def render_console_table(report: TypeSelectionReport, explain: bool = False) -> 
     ]
 
     if explain:
-        cols.extend([
-            ("authority", 10),
-            ("watch", 6),
-            ("uscan", 10),
-            ("up_ver", 12),
-            ("reason_human", 35),
-        ])
+        cols.extend(
+            [
+                ("authority", 10),
+                ("watch", 6),
+                ("uscan", 10),
+                ("up_ver", 12),
+                ("reason_human", 35),
+            ]
+        )
 
     # Header
     header = " | ".join(name.ljust(width) for name, width in cols)
@@ -519,22 +553,30 @@ def render_console_table(report: TypeSelectionReport, explain: bool = False) -> 
             up_ver = pkg.latest_version[:12] if pkg.latest_version else "-"
 
             if pkg.upstream_resolution:
-                authority = pkg.upstream_resolution.authority.value[:10] if hasattr(pkg.upstream_resolution.authority, 'value') else str(pkg.upstream_resolution.authority)[:10]
+                authority = (
+                    pkg.upstream_resolution.authority.value[:10]
+                    if hasattr(pkg.upstream_resolution.authority, "value")
+                    else str(pkg.upstream_resolution.authority)[:10]
+                )
                 if pkg.upstream_resolution.upstream_version:
                     up_ver = pkg.upstream_resolution.upstream_version[:12]
 
             if pkg.watch_info:
                 watch = "yes" if pkg.watch_info.parsed else "no"
                 if pkg.watch_info.uscan_attempted:
-                    uscan = pkg.watch_info.uscan_status[:10] if pkg.watch_info.uscan_status else "-"
+                    uscan = (
+                        pkg.watch_info.uscan_status[:10] if pkg.watch_info.uscan_status else "-"
+                    )
 
-            row_data.extend([
-                authority,
-                watch,
-                uscan,
-                up_ver,
-                (pkg.reason_human or "-")[:35],
-            ])
+            row_data.extend(
+                [
+                    authority,
+                    watch,
+                    uscan,
+                    up_ver,
+                    (pkg.reason_human or "-")[:35],
+                ]
+            )
 
         row = " | ".join(
             data.ljust(width) for data, (_, width) in zip(row_data, cols, strict=False)
@@ -563,7 +605,9 @@ def render_compact_summary(report: TypeSelectionReport) -> str:
     # Show a few examples
     examples = report.packages[:5]
     for pkg in examples:
-        lines.append(f"[plan]   {pkg.source_package}: {pkg.chosen_type.value} ({pkg.reason_code.value})")
+        lines.append(
+            f"[plan]   {pkg.source_package}: {pkg.chosen_type.value} ({pkg.reason_code.value})"
+        )
 
     if len(report.packages) > 5:
         lines.append(f"[plan]   ... ({len(report.packages) - 5} more packages)")
@@ -577,7 +621,9 @@ def render_compact_summary(report: TypeSelectionReport) -> str:
             lines.append(f"[plan]     ... and {len(report.new_packages) - 3} more")
 
     if report.defunct_packages:
-        lines.append(f"[plan] ⚠️  Defunct packages (in releases but not local): {len(report.defunct_packages)}")
+        lines.append(
+            f"[plan] ⚠️  Defunct packages (in releases but not local): {len(report.defunct_packages)}"
+        )
         for pkg in report.defunct_packages[:3]:
             lines.append(f"[plan]     - {pkg}")
         if len(report.defunct_packages) > 3:

@@ -22,7 +22,9 @@ def _status_cell(status: dict[str, Any]) -> str:
     reason = status.get("reason", "")
     satisfied = status.get("satisfied")
 
-    badge = _badge("ok" if satisfied else reason or "missing", "#1f7a8c" if satisfied else "#c44536")
+    badge = _badge(
+        "ok" if satisfied else reason or "missing", "#1f7a8c" if satisfied else "#c44536"
+    )
     comp_badge = _badge(comp or "unknown", "#6c757d")
     return f"{version}<br>{comp_badge}<br>{badge}"
 
@@ -80,14 +82,14 @@ th {{ background: #eef2f7; }}
 <body>
 <header>
   <h2>Dependency Satisfaction</h2>
-  <div class='small'>Target source: {report.get('target', {}).get('source_package', '')}</div>
-  <div class='small'>Ubuntu series: {report.get('ubuntu_series')} &nbsp;|&nbsp; Current LTS: {report.get('current_lts')}</div>
+  <div class='small'>Target source: {report.get("target", {}).get("source_package", "")}</div>
+  <div class='small'>Ubuntu series: {report.get("ubuntu_series")} &nbsp;|&nbsp; Current LTS: {report.get("current_lts")}</div>
 </header>
 <div class='cards'>
-  {card('Build deps (dev)', f"{summary.get('build_deps_dev_satisfied', 0)}/{summary.get('build_deps_total', 0)}")}
-  {card('Build deps (current LTS)', f"{summary.get('build_deps_current_lts_satisfied', 0)}/{summary.get('build_deps_total', 0)}")}
-  {card('Cloud-archive required', summary.get('cloud_archive_required_count', 0))}
-  {card('MIR warnings', summary.get('mir_warning_count', 0))}
+  {card("Build deps (dev)", f"{summary.get('build_deps_dev_satisfied', 0)}/{summary.get('build_deps_total', 0)}")}
+  {card("Build deps (current LTS)", f"{summary.get('build_deps_current_lts_satisfied', 0)}/{summary.get('build_deps_total', 0)}")}
+  {card("Cloud-archive required", summary.get("cloud_archive_required_count", 0))}
+  {card("MIR warnings", summary.get("mir_warning_count", 0))}
 </div>
 <section>
   <h3>Build Dependencies</h3>
@@ -103,7 +105,7 @@ th {{ background: #eef2f7; }}
       </tr>
     </thead>
     <tbody>
-      {table_rows('build')}
+      {table_rows("build")}
     </tbody>
   </table>
 </section>
@@ -121,7 +123,7 @@ th {{ background: #eef2f7; }}
       </tr>
     </thead>
     <tbody>
-      {table_rows('runtime')}
+      {table_rows("runtime")}
     </tbody>
   </table>
 </section>
@@ -131,7 +133,9 @@ th {{ background: #eef2f7; }}
     return html
 
 
-def write_dependency_satisfaction_reports(report: dict[str, Any], reports_dir: Path) -> dict[str, Path]:
+def write_dependency_satisfaction_reports(
+    report: dict[str, Any], reports_dir: Path
+) -> dict[str, Path]:
     reports_dir.mkdir(parents=True, exist_ok=True)
     json_text = json.dumps(report, indent=2)
     html_text = render_dependency_satisfaction_html(report)

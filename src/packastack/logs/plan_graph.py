@@ -115,8 +115,7 @@ class PlanGraph:
         """Convert to dictionary for JSON serialization."""
         # Convert waves dict to sorted list for JSON
         waves_list = [
-            {"wave": wave_num, "packages": nodes}
-            for wave_num, nodes in sorted(self.waves.items())
+            {"wave": wave_num, "packages": nodes} for wave_num, nodes in sorted(self.waves.items())
         ]
 
         return {
@@ -380,11 +379,13 @@ def render_waves(
             # Wrap into multiple lines
             lines.append(f"  Wave {wave_num} ({count}):")
             for i in range(0, count, max_wave_packages):
-                chunk = nodes[i:i+max_wave_packages]
+                chunk = nodes[i : i + max_wave_packages]
                 lines.append(f"    {', '.join(_annotate(n) for n in chunk)}")
 
     lines.append("")
-    lines.append(f"Total: {len(waves)} waves, {total_packages} packages, {graph.edge_count} dependencies")
+    lines.append(
+        f"Total: {len(waves)} waves, {total_packages} packages, {graph.edge_count} dependencies"
+    )
 
     return "\n".join(lines)
 
@@ -519,9 +520,9 @@ def render_dot(
             included.update(node.dependencies[:5])  # Limit deps per node
 
     lines = ["digraph packastack_plan {"]
-    lines.append('    rankdir=LR;')
-    lines.append('    node [shape=box, style=filled];')
-    lines.append('')
+    lines.append("    rankdir=LR;")
+    lines.append("    node [shape=box, style=filled];")
+    lines.append("")
 
     # Color mapping for build types
     type_colors = {
@@ -545,7 +546,7 @@ def render_dot(
             label += f"\\nwave {node.wave}"
         lines.append(f'    "{node.id}" [label="{label}", fillcolor="{color}", style="{style}"];')
 
-    lines.append('')
+    lines.append("")
 
     # Add rank constraints based on waves
     if graph.waves:
@@ -554,14 +555,14 @@ def render_dot(
             if len(nodes_in_wave) > 1:
                 node_list = '"; "'.join(nodes_in_wave)
                 lines.append(f'    {{ rank=same; "{node_list}"; }}')
-        lines.append('')
+        lines.append("")
 
     # Edge definitions (dependency -> dependent)
     for edge in graph.edges:
         lines.append(f'    "{edge.to_node}" -> "{edge.from_node}";')  # Reverse for build order
 
-    lines.append('}')
-    return '\n'.join(lines)
+    lines.append("}")
+    return "\n".join(lines)
 
 
 def render_ascii(
@@ -589,7 +590,9 @@ def render_ascii(
     lines: list[str] = []
 
     # Header
-    lines.append(f"Build Order Graph: {graph.node_count} packages, {graph.edge_count} dependencies")
+    lines.append(
+        f"Build Order Graph: {graph.node_count} packages, {graph.edge_count} dependencies"
+    )
     lines.append(f"Target: {graph.target} / Ubuntu: {graph.ubuntu_series}")
     lines.append("")
 
@@ -664,12 +667,14 @@ def render_ascii(
 
     if truncated:
         lines.append("")
-        lines.append(f"⚠️  Output truncated to {max_nodes} nodes. Use --graph-focus or see HTML report for full graph.")
+        lines.append(
+            f"⚠️  Output truncated to {max_nodes} nodes. Use --graph-focus or see HTML report for full graph."
+        )
 
     lines.append("")
     lines.append("Legend: [R]=Release [S]=Snapshot")
 
-    return '\n'.join(lines)
+    return "\n".join(lines)
 
 
 def render_html(graph: PlanGraph) -> str:
@@ -689,22 +694,21 @@ def render_html(graph: PlanGraph) -> str:
     simplified = graph.node_count > 400
 
     # Generate node data for JavaScript
-    nodes_json = json.dumps([
-        {
-            "id": n.id,
-            "type": n.build_type,
-            "status": n.status,
-            "order": n.order,
-            "deps": n.dependencies,
-            "dependents": n.dependents,
-        }
-        for n in graph.nodes.values()
-    ])
+    nodes_json = json.dumps(
+        [
+            {
+                "id": n.id,
+                "type": n.build_type,
+                "status": n.status,
+                "order": n.order,
+                "deps": n.dependencies,
+                "dependents": n.dependents,
+            }
+            for n in graph.nodes.values()
+        ]
+    )
 
-    edges_json = json.dumps([
-        {"from": e.from_node, "to": e.to_node}
-        for e in graph.edges
-    ])
+    edges_json = json.dumps([{"from": e.from_node, "to": e.to_node} for e in graph.edges])
 
     topo_json = json.dumps(graph.topo_order)
 
@@ -723,7 +727,10 @@ def render_html(graph: PlanGraph) -> str:
             continue
         deps_html = ""
         if node.dependencies:
-            deps = [f'<span class="dep-link" data-pkg="{esc(d)}">{esc(d)}</span>' for d in sorted(node.dependencies)[:5]]
+            deps = [
+                f'<span class="dep-link" data-pkg="{esc(d)}">{esc(d)}</span>'
+                for d in sorted(node.dependencies)[:5]
+            ]
             deps_html = ", ".join(deps)
             if len(node.dependencies) > 5:
                 deps_html += f" <em>(+{len(node.dependencies) - 5})</em>"
@@ -738,7 +745,7 @@ def render_html(graph: PlanGraph) -> str:
             <td class="pkg-deps">{deps_html}</td>
         </tr>''')
 
-    order_table = '\n'.join(order_rows)
+    order_table = "\n".join(order_rows)
 
     # Cycles warning HTML
     cycles_html = ""
@@ -748,12 +755,12 @@ def render_html(graph: PlanGraph) -> str:
             cycle_items.append(f"<li>{' → '.join(esc(n) for n in cycle)}</li>")
         if len(graph.cycles) > 5:
             cycle_items.append(f"<li><em>... and {len(graph.cycles) - 5} more cycles</em></li>")
-        cycles_html = f'''
+        cycles_html = f"""
         <div class="warning-box">
             <h3>⚠️ Dependency Cycles Detected</h3>
-            <ul>{''.join(cycle_items)}</ul>
+            <ul>{"".join(cycle_items)}</ul>
         </div>
-        '''
+        """
 
     # Build waves HTML (swim lanes)
     if graph.waves:
@@ -769,17 +776,17 @@ def render_html(graph: PlanGraph) -> str:
                 pills.append(
                     f'<span class="wave-pill {type_class} node-link" data-pkg="{esc(node.id)}">{esc(node.id)}</span>'
                 )
-            wave_rows.append(f'''
+            wave_rows.append(f"""
             <div class="wave-lane">
                 <div class="wave-label">Wave {wave_num} <span class="wave-count">({len(nodes)})</span></div>
-                <div class="wave-packages">{''.join(pills)}</div>
+                <div class="wave-packages">{"".join(pills)}</div>
             </div>
-            ''')
-        wave_lanes = ''.join(wave_rows)
+            """)
+        wave_lanes = "".join(wave_rows)
     else:
         wave_lanes = '<div class="wave-empty">(no waves computed - graph may have cycles)</div>'
 
-    waves_html = f'''
+    waves_html = f"""
         <div class="panel panel-full">
             <div class="panel-header">
                 <span>Build Waves ({graph.wave_count} waves)</span>
@@ -790,13 +797,13 @@ def render_html(graph: PlanGraph) -> str:
                 </div>
             </div>
         </div>
-    '''
+    """
 
     # SVG dimensions for graph visualization
     min(1200, max(800, graph.node_count * 8))
     svg_height = min(800, max(400, graph.node_count * 4))
 
-    html_content = f'''<!DOCTYPE html>
+    html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -865,7 +872,7 @@ def render_html(graph: PlanGraph) -> str:
 
         .panels {{
             display: grid;
-            grid-template-columns: {'1fr' if simplified else '1fr 1fr'};
+            grid-template-columns: {"1fr" if simplified else "1fr 1fr"};
             gap: 20px;
         }}
         .panel {{
@@ -1058,11 +1065,11 @@ def render_html(graph: PlanGraph) -> str:
             </div>
             <div class="card card-release">
                 <div class="card-title">Release</div>
-                <div class="card-value">{type_counts['release']}</div>
+                <div class="card-value">{type_counts["release"]}</div>
             </div>
             <div class="card card-snapshot">
                 <div class="card-title">Snapshot</div>
-                <div class="card-value">{type_counts['snapshot']}</div>
+                <div class="card-value">{type_counts["snapshot"]}</div>
             </div>
         </div>
 
@@ -1098,7 +1105,7 @@ def render_html(graph: PlanGraph) -> str:
                 </div>
             </div>
 
-            {'<div class="panel"><div class="panel-header"><span>Dependency Graph</span></div><div class="panel-body"><svg id="graph-svg"></svg></div></div>' if not simplified else ''}
+            {'<div class="panel"><div class="panel-header"><span>Dependency Graph</span></div><div class="panel-body"><svg id="graph-svg"></svg></div></div>' if not simplified else ""}
         </div>
 
         <footer>
@@ -1111,7 +1118,7 @@ def render_html(graph: PlanGraph) -> str:
         const nodes = {nodes_json};
         const edges = {edges_json};
         const topoOrder = {topo_json};
-        const simplified = {'true' if simplified else 'false'};
+        const simplified = {"true" if simplified else "false"};
 
         // Search functionality
         const searchInput = document.getElementById('search-input');
@@ -1286,7 +1293,7 @@ def render_html(graph: PlanGraph) -> str:
         }}
     </script>
 </body>
-</html>'''
+</html>"""
 
     return html_content
 

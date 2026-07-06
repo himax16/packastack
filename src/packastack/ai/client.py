@@ -180,11 +180,7 @@ def call_ai(
         choices = body.get("choices", [])
         content = choices[0].get("message", {}).get("content", "") if choices else ""
         usage = body.get("usage", {})
-        tokens = usage.get("prompt_tokens", 0) + usage.get(
-            "completion_tokens", 0
-        )
+        tokens = usage.get("prompt_tokens", 0) + usage.get("completion_tokens", 0)
         return AIResponse(success=True, content=content, tokens_used=tokens)
     except (KeyError, ValueError, TypeError) as exc:
-        return AIResponse(
-            success=False, error=f"Failed to parse API response: {exc}"
-        )
+        return AIResponse(success=False, error=f"Failed to parse API response: {exc}")

@@ -51,7 +51,9 @@ if TYPE_CHECKING:
 runner = CliRunner()
 
 
-def _make_resolved_target(pkg: str, upstream: str | None = None, source: str = "local") -> ResolvedTarget:
+def _make_resolved_target(
+    pkg: str, upstream: str | None = None, source: str = "local"
+) -> ResolvedTarget:
     """Create a ResolvedTarget for testing."""
     return ResolvedTarget(
         source_package=pkg,
@@ -247,9 +249,7 @@ class TestResolvePackageTargets:
         assert result == []
 
     @patch("packastack.commands.plan.load_project_releases")
-    def test_fallback_to_releases(
-        self, mock_load: MagicMock, tmp_path: Path
-    ) -> None:
+    def test_fallback_to_releases(self, mock_load: MagicMock, tmp_path: Path) -> None:
         """Test fallback to openstack/releases."""
         mock_load.return_value = MagicMock()  # Simulate project found
 
@@ -553,9 +553,13 @@ class TestPlanCLI:
                 }
                 with patch("packastack.commands.plan.resolve_series") as mock_series:
                     mock_series.return_value = "oracular"
-                    with patch("packastack.commands.plan.get_current_development_series") as mock_dev:
+                    with patch(
+                        "packastack.commands.plan.get_current_development_series"
+                    ) as mock_dev:
                         mock_dev.return_value = "2024.2"
-                        with patch("packastack.commands.plan._resolve_package_targets") as mock_resolve:
+                        with patch(
+                            "packastack.commands.plan._resolve_package_targets"
+                        ) as mock_resolve:
                             mock_resolve.return_value = []
 
                             result = runner.invoke(app, ["plan", "nonexistent"])
@@ -574,10 +578,17 @@ class TestPlanCLI:
                 }
                 with patch("packastack.commands.plan.resolve_series") as mock_series:
                     mock_series.return_value = "oracular"
-                    with patch("packastack.commands.plan.get_current_development_series") as mock_dev:
+                    with patch(
+                        "packastack.commands.plan.get_current_development_series"
+                    ) as mock_dev:
                         mock_dev.return_value = "2024.2"
-                        with patch("packastack.commands.plan._resolve_package_targets") as mock_resolve:
-                            mock_resolve.return_value = [_make_resolved_target("oslo.config"), _make_resolved_target("oslo.log")]
+                        with patch(
+                            "packastack.commands.plan._resolve_package_targets"
+                        ) as mock_resolve:
+                            mock_resolve.return_value = [
+                                _make_resolved_target("oslo.config"),
+                                _make_resolved_target("oslo.log"),
+                            ]
 
                             result = runner.invoke(app, ["plan", "oslo"])
 
@@ -595,11 +606,17 @@ class TestPlanCLI:
                 }
                 with patch("packastack.commands.plan.resolve_series") as mock_series:
                     mock_series.return_value = "oracular"
-                    with patch("packastack.commands.plan.get_current_development_series") as mock_dev:
+                    with patch(
+                        "packastack.commands.plan.get_current_development_series"
+                    ) as mock_dev:
                         mock_dev.return_value = "2024.2"
-                        with patch("packastack.commands.plan._resolve_package_targets") as mock_resolve:
+                        with patch(
+                            "packastack.commands.plan._resolve_package_targets"
+                        ) as mock_resolve:
                             mock_resolve.return_value = [_make_resolved_target("nova")]
-                            with patch("packastack.commands.plan.is_snapshot_eligible") as mock_eligible:
+                            with patch(
+                                "packastack.commands.plan.is_snapshot_eligible"
+                            ) as mock_eligible:
                                 mock_eligible.return_value = (False, "blocked by policy", "1.0.0")
 
                                 result = runner.invoke(app, ["plan", "nova"])
@@ -634,16 +651,27 @@ Description: Nova
                 }
                 with patch("packastack.commands.plan.resolve_series") as mock_series:
                     mock_series.return_value = "oracular"
-                    with patch("packastack.commands.plan.get_current_development_series") as mock_dev:
+                    with patch(
+                        "packastack.commands.plan.get_current_development_series"
+                    ) as mock_dev:
                         mock_dev.return_value = "2024.2"
-                        with patch("packastack.commands.plan._resolve_package_targets") as mock_resolve:
+                        with patch(
+                            "packastack.commands.plan._resolve_package_targets"
+                        ) as mock_resolve:
                             mock_resolve.return_value = [_make_resolved_target("nova")]
-                            with patch("packastack.commands.plan.is_snapshot_eligible") as mock_eligible:
+                            with patch(
+                                "packastack.commands.plan.is_snapshot_eligible"
+                            ) as mock_eligible:
                                 mock_eligible.return_value = (False, "blocked", "1.0.0")
-                                with patch("packastack.commands.plan.load_package_index") as mock_index:
+                                with patch(
+                                    "packastack.commands.plan.load_package_index"
+                                ) as mock_index:
                                     mock_index.return_value = PackageIndex()
-                                    with patch("packastack.commands.plan._build_dependency_graph") as mock_graph:
+                                    with patch(
+                                        "packastack.commands.plan._build_dependency_graph"
+                                    ) as mock_graph:
                                         from packastack.planning.graph import DependencyGraph
+
                                         g = DependencyGraph()
                                         g.add_node("nova", needs_rebuild=True)
                                         mock_graph.return_value = (g, {})
@@ -665,15 +693,25 @@ Description: Nova
                 }
                 with patch("packastack.commands.plan.resolve_series") as mock_series:
                     mock_series.return_value = "oracular"
-                    with patch("packastack.commands.plan.get_current_development_series") as mock_dev:
+                    with patch(
+                        "packastack.commands.plan.get_current_development_series"
+                    ) as mock_dev:
                         mock_dev.return_value = "2024.2"
-                        with patch("packastack.commands.plan._resolve_package_targets") as mock_resolve:
+                        with patch(
+                            "packastack.commands.plan._resolve_package_targets"
+                        ) as mock_resolve:
                             mock_resolve.return_value = [_make_resolved_target("nova")]
-                            with patch("packastack.commands.plan.is_snapshot_eligible") as mock_eligible:
+                            with patch(
+                                "packastack.commands.plan.is_snapshot_eligible"
+                            ) as mock_eligible:
                                 mock_eligible.return_value = (True, "ok", None)
-                                with patch("packastack.commands.plan.load_package_index") as mock_index:
+                                with patch(
+                                    "packastack.commands.plan.load_package_index"
+                                ) as mock_index:
                                     mock_index.return_value = PackageIndex()
-                                    with patch("packastack.commands.plan._build_dependency_graph") as mock_graph:
+                                    with patch(
+                                        "packastack.commands.plan._build_dependency_graph"
+                                    ) as mock_graph:
                                         # Create graph with cycle
                                         g = DependencyGraph()
                                         g.add_edge("A", "B")
@@ -696,20 +734,32 @@ Description: Nova
                 }
                 with patch("packastack.commands.plan.resolve_series") as mock_series:
                     mock_series.return_value = "oracular"
-                    with patch("packastack.commands.plan.get_current_development_series") as mock_dev:
+                    with patch(
+                        "packastack.commands.plan.get_current_development_series"
+                    ) as mock_dev:
                         mock_dev.return_value = "2024.2"
-                        with patch("packastack.commands.plan._resolve_package_targets") as mock_resolve:
+                        with patch(
+                            "packastack.commands.plan._resolve_package_targets"
+                        ) as mock_resolve:
                             mock_resolve.return_value = [_make_resolved_target("nova")]
-                            with patch("packastack.commands.plan.is_snapshot_eligible") as mock_eligible:
+                            with patch(
+                                "packastack.commands.plan.is_snapshot_eligible"
+                            ) as mock_eligible:
                                 mock_eligible.return_value = (True, "ok", None)
-                                with patch("packastack.commands.plan.load_package_index") as mock_index:
+                                with patch(
+                                    "packastack.commands.plan.load_package_index"
+                                ) as mock_index:
                                     # Return empty index so deps are missing
                                     mock_index.return_value = PackageIndex()
-                                    with patch("packastack.commands.plan._build_dependency_graph") as mock_graph:
+                                    with patch(
+                                        "packastack.commands.plan._build_dependency_graph"
+                                    ) as mock_graph:
                                         g = DependencyGraph()
                                         g.add_node("nova", needs_rebuild=True)
                                         # Simulate missing dep by mocking find_missing_dependencies
-                                        with patch.object(g, "find_missing_dependencies") as mock_find:
+                                        with patch.object(
+                                            g, "find_missing_dependencies"
+                                        ) as mock_find:
                                             mock_find.return_value = {"nova": ["libmissing"]}
                                             mock_graph.return_value = (g, {})
 
@@ -729,20 +779,32 @@ Description: Nova
                 }
                 with patch("packastack.commands.plan.resolve_series") as mock_series:
                     mock_series.return_value = "oracular"
-                    with patch("packastack.commands.plan.get_current_development_series") as mock_dev:
+                    with patch(
+                        "packastack.commands.plan.get_current_development_series"
+                    ) as mock_dev:
                         mock_dev.return_value = "2024.2"
-                        with patch("packastack.commands.plan._resolve_package_targets") as mock_resolve:
+                        with patch(
+                            "packastack.commands.plan._resolve_package_targets"
+                        ) as mock_resolve:
                             mock_resolve.return_value = [_make_resolved_target("nova")]
-                            with patch("packastack.commands.plan.is_snapshot_eligible") as mock_eligible:
+                            with patch(
+                                "packastack.commands.plan.is_snapshot_eligible"
+                            ) as mock_eligible:
                                 mock_eligible.return_value = (True, "ok", None)
-                                with patch("packastack.commands.plan.load_package_index") as mock_index:
+                                with patch(
+                                    "packastack.commands.plan.load_package_index"
+                                ) as mock_index:
                                     mock_index.return_value = PackageIndex()
-                                    with patch("packastack.commands.plan._build_dependency_graph") as mock_graph:
+                                    with patch(
+                                        "packastack.commands.plan._build_dependency_graph"
+                                    ) as mock_graph:
                                         g = DependencyGraph()
                                         g.add_node("nova", needs_rebuild=True)
                                         mock_graph.return_value = (g, {})
 
-                                        result = runner.invoke(app, ["plan", "nova", "--plan-upload"])
+                                        result = runner.invoke(
+                                            app, ["plan", "nova", "--plan-upload"]
+                                        )
 
                                         assert result.exit_code == EXIT_SUCCESS
 
@@ -758,16 +820,27 @@ Description: Nova
                 }
                 with patch("packastack.commands.plan.resolve_series") as mock_series:
                     mock_series.return_value = "oracular"
-                    with patch("packastack.commands.plan.get_current_development_series") as mock_dev:
+                    with patch(
+                        "packastack.commands.plan.get_current_development_series"
+                    ) as mock_dev:
                         mock_dev.return_value = "2024.2"
-                        with patch("packastack.commands.plan._resolve_package_targets") as mock_resolve:
+                        with patch(
+                            "packastack.commands.plan._resolve_package_targets"
+                        ) as mock_resolve:
                             mock_resolve.return_value = [_make_resolved_target("nova")]
-                            with patch("packastack.commands.plan.is_snapshot_eligible") as mock_eligible:
+                            with patch(
+                                "packastack.commands.plan.is_snapshot_eligible"
+                            ) as mock_eligible:
                                 mock_eligible.return_value = (True, "ok", None)
-                                with patch("packastack.commands.plan.load_package_index") as mock_index:
+                                with patch(
+                                    "packastack.commands.plan.load_package_index"
+                                ) as mock_index:
                                     mock_index.return_value = PackageIndex()
-                                    with patch("packastack.commands.plan._build_dependency_graph") as mock_graph:
+                                    with patch(
+                                        "packastack.commands.plan._build_dependency_graph"
+                                    ) as mock_graph:
                                         from packastack.planning.graph import DependencyGraph
+
                                         g = DependencyGraph()
                                         # Create a small graph with two nodes to generate waves
                                         g.add_node("lib", needs_rebuild=True)
@@ -775,8 +848,19 @@ Description: Nova
                                         g.add_edge("nova", "lib")
                                         mock_graph.return_value = (g, {})
 
-                                        with patch("sys.__stdout__", new=io.StringIO()) as fake_stdout:
-                                            result = runner.invoke(app, ["plan", "nova", "--print-build-order", "--build-order-format", "waves"])
+                                        with patch(
+                                            "sys.__stdout__", new=io.StringIO()
+                                        ) as fake_stdout:
+                                            result = runner.invoke(
+                                                app,
+                                                [
+                                                    "plan",
+                                                    "nova",
+                                                    "--print-build-order",
+                                                    "--build-order-format",
+                                                    "waves",
+                                                ],
+                                            )
                                             assert result.exit_code == EXIT_SUCCESS
                                             assert "Build waves" in fake_stdout.getvalue()
 
@@ -792,15 +876,25 @@ Description: Nova
                 }
                 with patch("packastack.commands.plan.resolve_series") as mock_series:
                     mock_series.return_value = "oracular"
-                    with patch("packastack.commands.plan.get_current_development_series") as mock_dev:
+                    with patch(
+                        "packastack.commands.plan.get_current_development_series"
+                    ) as mock_dev:
                         mock_dev.return_value = "2024.2"
-                        with patch("packastack.commands.plan._resolve_package_targets") as mock_resolve:
+                        with patch(
+                            "packastack.commands.plan._resolve_package_targets"
+                        ) as mock_resolve:
                             mock_resolve.return_value = [_make_resolved_target("nova")]
-                            with patch("packastack.commands.plan.is_snapshot_eligible") as mock_eligible:
+                            with patch(
+                                "packastack.commands.plan.is_snapshot_eligible"
+                            ) as mock_eligible:
                                 mock_eligible.return_value = (True, "ok", None)
-                                with patch("packastack.commands.plan.load_package_index") as mock_index:
+                                with patch(
+                                    "packastack.commands.plan.load_package_index"
+                                ) as mock_index:
                                     mock_index.return_value = PackageIndex()
-                                    with patch("packastack.commands.plan._build_dependency_graph") as mock_graph:
+                                    with patch(
+                                        "packastack.commands.plan._build_dependency_graph"
+                                    ) as mock_graph:
                                         g = DependencyGraph()
                                         g.add_node("nova", needs_rebuild=True)
                                         # Add MIR candidates

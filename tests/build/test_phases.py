@@ -107,6 +107,7 @@ class TestCheckRetirementStatus:
         # Simulate directory creation during clone
         def create_dir(*args, **kwargs):
             project_config_path.mkdir(parents=True, exist_ok=True)
+
         mock_clone.side_effect = create_dir
         mock_spinner.return_value.__enter__ = MagicMock()
         mock_spinner.return_value.__exit__ = MagicMock()
@@ -260,9 +261,7 @@ class TestCheckRetirementStatus:
         )
 
         # Check that the deliverable was passed without python- prefix
-        mock_checker.check_retirement.assert_called_once_with(
-            "python-oslo.config", "oslo.config"
-        )
+        mock_checker.check_retirement.assert_called_once_with("python-oslo.config", "oslo.config")
 
 
 class TestResolveUpstreamRegistry:
@@ -307,7 +306,9 @@ class TestResolveUpstreamRegistry:
 
     @patch("packastack.upstream.releases.load_openstack_packages")
     @patch("packastack.upstream.registry.UpstreamsRegistry")
-    def test_detects_openstack_governed_package(self, mock_registry_class, mock_load_pkgs, tmp_path):
+    def test_detects_openstack_governed_package(
+        self, mock_registry_class, mock_load_pkgs, tmp_path
+    ):
         """Test that OpenStack-governed packages are detected."""
         run = MagicMock()
 
@@ -496,9 +497,7 @@ class TestCheckPolicy:
         assert policy_result.snapshot_eligible is True
 
     @patch("packastack.upstream.releases.is_snapshot_eligible")
-    def test_openstack_releases_still_checked_for_default(
-        self, mock_eligible, tmp_path
-    ):
+    def test_openstack_releases_still_checked_for_default(self, mock_eligible, tmp_path):
         """Test that openstack_releases projects still use eligibility check."""
         from packastack.build.phases import check_policy
         from packastack.planning.type_selection import BuildType
@@ -519,9 +518,7 @@ class TestCheckPolicy:
         mock_eligible.assert_called_once()
 
     @patch("packastack.upstream.releases.is_snapshot_eligible")
-    def test_openstack_releases_blocked_when_release_exists(
-        self, mock_eligible, tmp_path
-    ):
+    def test_openstack_releases_blocked_when_release_exists(self, mock_eligible, tmp_path):
         """Test that openstack_releases projects are blocked when release exists."""
         from packastack.build.phases import check_policy
         from packastack.planning.type_selection import BuildType

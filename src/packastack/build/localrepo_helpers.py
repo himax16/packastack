@@ -61,7 +61,9 @@ def refresh_local_repo_indexes(
             {
                 "event": f"{phase}.index",
                 "package_count": index_result.package_count,
-                "packages_file": str(index_result.packages_file) if index_result.packages_file else None,
+                "packages_file": str(index_result.packages_file)
+                if index_result.packages_file
+                else None,
             }
         )
     else:
@@ -81,8 +83,12 @@ def refresh_local_repo_indexes(
             }
         )
     else:
-        activity(phase, f"Warning: Failed to regenerate source indexes: {source_index_result.error}")
-        run.log_event({"event": f"{phase}.source_index_failed", "error": source_index_result.error})
+        activity(
+            phase, f"Warning: Failed to regenerate source indexes: {source_index_result.error}"
+        )
+        run.log_event(
+            {"event": f"{phase}.source_index_failed", "error": source_index_result.error}
+        )
 
     return index_result, source_index_result
 

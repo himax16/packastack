@@ -294,6 +294,7 @@ def update_changelog(
     Returns:
         Tuple of (success: bool, error_message: str). error_message is empty on success.
     """
+
     def _detect_existing_maintainer() -> str | None:
         # Prefer the maintainer from the current top changelog entry to avoid
         # introducing inconsistent-maintainer lintian errors.
@@ -333,6 +334,7 @@ def update_changelog(
 
     # Debug logging
     import sys
+
     print(f"[update_changelog] maintainer={maintainer}", file=sys.stderr)
     print(f"[update_changelog] prefer_gbp={prefer_gbp}", file=sys.stderr)
 
@@ -412,20 +414,16 @@ def _update_changelog_gbp_dch(
         )
 
         if result.returncode != 0:
-            error_msg = f"gbp dch failed (rc={result.returncode}): {result.stderr or result.stdout}"
+            error_msg = (
+                f"gbp dch failed (rc={result.returncode}): {result.stderr or result.stdout}"
+            )
             return False, error_msg
 
         # Add the custom changes (like "New upstream release") using dch
         # Use --maintmaint to use the specified maintainer instead of
         # preserving previous maintainer
         for change in changes:
-            append_cmd = [
-                "dch",
-                "--maintmaint",
-                "--append",
-                "--",
-                change
-            ]
+            append_cmd = ["dch", "--maintmaint", "--append", "--", change]
             append_result = subprocess.run(
                 append_cmd,
                 cwd=repo_root,
@@ -586,6 +584,7 @@ def _update_changelog_dch(
     except Exception as e:
         print(f"[dch-debug] Exception in _update_changelog_dch: {e}", file=sys.stderr)
         import traceback
+
         traceback.print_exc(file=sys.stderr)
         return False, f"Exception in _update_changelog_dch: {e}"
 

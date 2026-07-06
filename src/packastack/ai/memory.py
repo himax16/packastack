@@ -154,7 +154,7 @@ def load_memory(run_path: Path) -> AIMemory | None:
             version=data.get("version", ""),
             attempts=attempts,
         )
-    except (json.JSONDecodeError, KeyError, TypeError, OSError):
+    except json.JSONDecodeError, KeyError, TypeError, OSError:
         return None
 
 

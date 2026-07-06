@@ -369,7 +369,6 @@ class TestRegenerateIndexes:
         deb_file = pool_dir / "test_1.0_amd64.deb"
         deb_file.write_bytes(b"fake deb content")
 
-
         with patch.object(localrepo, "extract_deb_control") as mock_extract:
             mock_extract.return_value = localrepo.DebPackageInfo(
                 package="test",
@@ -787,9 +786,13 @@ class TestRegenerateIndexesEdgeCases:
 
         def mock_extract(path: Path):
             if "_amd64" in path.name:
-                return localrepo.DebPackageInfo(package="test", version="1.0", architecture="amd64")
+                return localrepo.DebPackageInfo(
+                    package="test", version="1.0", architecture="amd64"
+                )
             elif "_arm64" in path.name:
-                return localrepo.DebPackageInfo(package="test", version="1.0", architecture="arm64")
+                return localrepo.DebPackageInfo(
+                    package="test", version="1.0", architecture="arm64"
+                )
             elif "_all" in path.name:
                 return localrepo.DebPackageInfo(package="test", version="1.0", architecture="all")
             return None
@@ -812,7 +815,9 @@ class TestRegenerateIndexesEdgeCases:
 
         def mock_extract(path: Path):
             if "good" in path.name:
-                return localrepo.DebPackageInfo(package="good", version="1.0", architecture="amd64")
+                return localrepo.DebPackageInfo(
+                    package="good", version="1.0", architecture="amd64"
+                )
             return None  # Extraction failed
 
         with patch.object(localrepo, "extract_deb_control", side_effect=mock_extract):

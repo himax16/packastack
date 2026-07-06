@@ -107,6 +107,7 @@ class TestCheckRequiredTools:
 
     def test_some_tools_missing(self) -> None:
         """Test when some tools are missing."""
+
         def mock_find(name: str) -> Path | None:
             if name == "gbp":
                 return None
@@ -156,6 +157,7 @@ class TestCheckRequiredTools:
 
     def test_missing_sbuild_added_to_missing_list(self) -> None:
         """Test that missing sbuild is added to missing list."""
+
         def mock_find(name: str) -> Path | None:
             if name == "sbuild":
                 return None

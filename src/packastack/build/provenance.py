@@ -106,9 +106,7 @@ class BuildProvenance:
     upstream: UpstreamProvenance = field(default_factory=UpstreamProvenance)
 
     # Release source
-    release_source: ReleaseSourceProvenance = field(
-        default_factory=ReleaseSourceProvenance
-    )
+    release_source: ReleaseSourceProvenance = field(default_factory=ReleaseSourceProvenance)
 
     # Tarball acquisition
     tarball: TarballProvenance = field(default_factory=TarballProvenance)
@@ -121,9 +119,7 @@ class BuildProvenance:
     registry_override_path: str = ""
 
     # Watch mismatch
-    watch_mismatch: WatchMismatchProvenance = field(
-        default_factory=WatchMismatchProvenance
-    )
+    watch_mismatch: WatchMismatchProvenance = field(default_factory=WatchMismatchProvenance)
 
     # Build type
     build_type: str = ""  # release, snapshot

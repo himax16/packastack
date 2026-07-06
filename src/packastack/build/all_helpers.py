@@ -172,14 +172,22 @@ def get_parallel_batches(
 
     # Get remaining packages to build
     remaining = {
-        name for name, pkg_state in state.packages.items()
+        name
+        for name, pkg_state in state.packages.items()
         if pkg_state.status == PackageStatus.PENDING
     }
 
     # Get already processed packages (success, failed, blocked, or skipped)
     processed = {
-        name for name, pkg_state in state.packages.items()
-        if pkg_state.status in (PackageStatus.SUCCESS, PackageStatus.FAILED, PackageStatus.BLOCKED, PackageStatus.SKIPPED)
+        name
+        for name, pkg_state in state.packages.items()
+        if pkg_state.status
+        in (
+            PackageStatus.SUCCESS,
+            PackageStatus.FAILED,
+            PackageStatus.BLOCKED,
+            PackageStatus.SKIPPED,
+        )
     }
 
     # Packages in the graph but not in state are external dependencies
@@ -247,10 +255,15 @@ def run_single_build(
     from packastack.planning.build_all_state import FailureType
 
     cmd = [
-        sys.executable, "-m", "packastack", "build",
+        sys.executable,
+        "-m",
+        "packastack",
+        "build",
         package,
-        "--target", target,
-        "--ubuntu-series", ubuntu_series,
+        "--target",
+        target,
+        "--ubuntu-series",
+        ubuntu_series,
         "--yes",  # No prompts
         "--no-cleanup",  # Keep workspace for debugging
         "--skip-repo-regen",  # Coordinator handles repo regeneration
@@ -344,7 +357,9 @@ def run_single_build(
             failure_type = FailureType.POLICY_BLOCKED
 
         # Build descriptive error message
-        base_msg = exit_code_messages.get(result.returncode, f"Unknown error (code {result.returncode})")
+        base_msg = exit_code_messages.get(
+            result.returncode, f"Unknown error (code {result.returncode})"
+        )
 
         # Try to extract last meaningful line from log for context
         error_context = ""

@@ -57,8 +57,12 @@ class RunContext:
         self.command = command
         self.package = package
         self.cfg = load_config()
-        self.paths = {k: Path(v).expanduser().resolve() for k, v in self.cfg.get("paths", {}).items()}
-        self.build_root = self.paths.get("build_root", Path.home() / ".cache" / "packastack" / "build")
+        self.paths = {
+            k: Path(v).expanduser().resolve() for k, v in self.cfg.get("paths", {}).items()
+        }
+        self.build_root = self.paths.get(
+            "build_root", Path.home() / ".cache" / "packastack" / "build"
+        )
         now_utc = datetime.datetime.now(datetime.UTC)
         self.build_id = build_id or now_utc.strftime("%Y%m%d-%H%M%S")
         self.run_id = self.build_id  # backward-compat alias
@@ -321,6 +325,7 @@ class RunContext:
 # Lightweight helper for activity lines which should appear even if stdout is
 # redirected to log files during a RunContext. These write to the real
 # terminal (sys.__stdout__).
+
 
 def activity(phase: str, description: str) -> None:
     with contextlib.suppress(Exception):

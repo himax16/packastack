@@ -85,7 +85,9 @@ class SourcePackageInfo:
     architecture: str = ""
     format: str = ""
     # File checksums for the source package
-    files: list[tuple[str, int, str]] = field(default_factory=list)  # [(filename, size, hash), ...]
+    files: list[tuple[str, int, str]] = field(
+        default_factory=list
+    )  # [(filename, size, hash), ...]
     # Directory in the pool
     directory: str = ""
 
@@ -290,9 +292,7 @@ def extract_dsc_info(dsc_path: Path) -> SourcePackageInfo | None:
         return None
 
 
-def _set_dsc_field(
-    info: SourcePackageInfo, field_name: str, value: list[str]
-) -> None:
+def _set_dsc_field(info: SourcePackageInfo, field_name: str, value: list[str]) -> None:
     """Set a field on SourcePackageInfo based on dsc field name."""
     field_lower = field_name.lower()
     joined = " ".join(value) if value else ""
@@ -453,7 +453,14 @@ def publish_artifacts(
                 # Binary packages go to pool/main/<first-letter>/<source>/
                 # For simplicity, we'll use pool/main/
                 dest = pool_main / artifact.name
-            elif artifact.suffix in (".dsc", ".changes", ".tar.gz", ".tar.xz", ".diff.gz", ".buildinfo"):
+            elif artifact.suffix in (
+                ".dsc",
+                ".changes",
+                ".tar.gz",
+                ".tar.xz",
+                ".diff.gz",
+                ".buildinfo",
+            ):
                 # Source packages and metadata also go to pool/main/
                 dest = pool_main / artifact.name
             else:
@@ -620,7 +627,9 @@ def regenerate_source_indexes(repo_root: Path) -> SourceIndexResult:
         return SourceIndexResult(success=False, error=str(e))
 
 
-def regenerate_all_indexes(repo_root: Path, arch: str = "amd64") -> tuple[IndexResult, SourceIndexResult]:
+def regenerate_all_indexes(
+    repo_root: Path, arch: str = "amd64"
+) -> tuple[IndexResult, SourceIndexResult]:
     """Regenerate both binary and source indexes.
 
     Args:
@@ -655,7 +664,9 @@ def ensure_repo_initialized(repo_root: Path, arch: str = "amd64") -> bool:
         pool_dir.mkdir(parents=True, exist_ok=True)
 
         # Check if indexes already exist for the given arch
-        binary_packages_gz = repo_root / "dists" / "local" / "main" / f"binary-{arch}" / "Packages.gz"
+        binary_packages_gz = (
+            repo_root / "dists" / "local" / "main" / f"binary-{arch}" / "Packages.gz"
+        )
         all_packages_gz = repo_root / "dists" / "local" / "main" / "binary-all" / "Packages.gz"
 
         # If any required index is missing, regenerate all indexes
@@ -663,7 +674,9 @@ def ensure_repo_initialized(repo_root: Path, arch: str = "amd64") -> bool:
             # regenerate_indexes handles creating empty indexes when pool is empty
             result = regenerate_indexes(repo_root, arch)
             if not result.success:
-                logger.warning("Failed to initialize binary indexes for %s: %s", arch, result.error)
+                logger.warning(
+                    "Failed to initialize binary indexes for %s: %s", arch, result.error
+                )
                 return False
 
             # Also create indexes for 'all' architecture if not the same
@@ -764,7 +777,7 @@ def satisfies(repo_root: Path, package_name: str, constraint: str) -> bool:
     for rel in (">=", "<=", ">>", "<<", "="):
         if constraint.startswith(rel):
             relation = rel
-            required_version = constraint[len(rel):].strip()
+            required_version = constraint[len(rel) :].strip()
             break
 
     if not relation:
@@ -775,7 +788,13 @@ def satisfies(repo_root: Path, package_name: str, constraint: str) -> bool:
         required = Version(required_version)
         for v in versions:
             available = Version(v)
-            if (relation == ">=" and available >= required) or (relation == "<=" and available <= required) or (relation == ">>" and available > required) or (relation == "<<" and available < required) or (relation == "=" and available == required):
+            if (
+                (relation == ">=" and available >= required)
+                or (relation == "<=" and available <= required)
+                or (relation == ">>" and available > required)
+                or (relation == "<<" and available < required)
+                or (relation == "=" and available == required)
+            ):
                 return True
     except Exception:
         pass

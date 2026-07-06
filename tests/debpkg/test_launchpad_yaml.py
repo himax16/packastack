@@ -57,16 +57,12 @@ class TestLaunchpadConfig:
 
     def test_get_recipes(self) -> None:
         """Test get_recipes with recipes."""
-        config = launchpad_yaml.LaunchpadConfig(
-            data={"recipes": [{"name": "test"}]}
-        )
+        config = launchpad_yaml.LaunchpadConfig(data={"recipes": [{"name": "test"}]})
         assert config.get_recipes() == [{"name": "test"}]
 
     def test_get_git_repository(self) -> None:
         """Test get_git_repository."""
-        config = launchpad_yaml.LaunchpadConfig(
-            data={"git-repository": "lp:~test/+git/pkg"}
-        )
+        config = launchpad_yaml.LaunchpadConfig(data={"git-repository": "lp:~test/+git/pkg"})
         assert config.get_git_repository() == "lp:~test/+git/pkg"
 
     def test_get_git_repository_empty(self) -> None:
@@ -76,9 +72,7 @@ class TestLaunchpadConfig:
 
     def test_get_git_repository_push(self) -> None:
         """Test get_git_repository_push."""
-        config = launchpad_yaml.LaunchpadConfig(
-            data={"git-repository-push": "lp:~test/+git/pkg"}
-        )
+        config = launchpad_yaml.LaunchpadConfig(data={"git-repository-push": "lp:~test/+git/pkg"})
         assert config.get_git_repository_push() == "lp:~test/+git/pkg"
 
 
@@ -163,11 +157,7 @@ class TestFindSeriesReferences:
 
     def test_nested_data(self) -> None:
         """Test finding series in nested structure."""
-        data = {
-            "recipes": [
-                {"name": "pkg-caracal", "branch": "ubuntu/noble-caracal"}
-            ]
-        }
+        data = {"recipes": [{"name": "pkg-caracal", "branch": "ubuntu/noble-caracal"}]}
         refs = launchpad_yaml.find_series_references(data, "caracal")
 
         assert len(refs) == 2
@@ -191,9 +181,7 @@ class TestUpdateSeriesReferences:
     def test_update_branch(self) -> None:
         """Test updating branch references."""
         data = {"branch": "ubuntu/noble-caracal"}
-        new_data, updated = launchpad_yaml.update_series_references(
-            data, "caracal", "dalmatian"
-        )
+        new_data, updated = launchpad_yaml.update_series_references(data, "caracal", "dalmatian")
 
         assert "dalmatian" in new_data["branch"]
         assert "caracal" not in new_data["branch"]
@@ -201,14 +189,8 @@ class TestUpdateSeriesReferences:
 
     def test_update_recipe_names(self) -> None:
         """Test updating recipe name references."""
-        data = {
-            "recipes": [
-                {"name": "pkg-caracal", "branch": "ubuntu/noble-caracal"}
-            ]
-        }
-        new_data, _updated = launchpad_yaml.update_series_references(
-            data, "caracal", "dalmatian"
-        )
+        data = {"recipes": [{"name": "pkg-caracal", "branch": "ubuntu/noble-caracal"}]}
+        new_data, _updated = launchpad_yaml.update_series_references(data, "caracal", "dalmatian")
 
         assert "dalmatian" in new_data["recipes"][0]["name"]
         assert "dalmatian" in new_data["recipes"][0]["branch"]
@@ -216,9 +198,7 @@ class TestUpdateSeriesReferences:
     def test_no_updates_needed(self) -> None:
         """Test when no updates are needed."""
         data = {"branch": "ubuntu/noble"}
-        new_data, updated = launchpad_yaml.update_series_references(
-            data, "caracal", "dalmatian"
-        )
+        new_data, updated = launchpad_yaml.update_series_references(data, "caracal", "dalmatian")
 
         assert new_data == data
         assert len(updated) == 0
@@ -234,9 +214,7 @@ class TestValidateUpdate:
             path=tmp_path / "launchpad.yaml",
         )
 
-        is_valid, fields, warnings = launchpad_yaml.validate_update(
-            config, "caracal", "dalmatian"
-        )
+        is_valid, fields, warnings = launchpad_yaml.validate_update(config, "caracal", "dalmatian")
 
         assert is_valid is True
         assert fields == []
@@ -328,9 +306,7 @@ class TestCreateDefaultLaunchpadYaml:
 
     def test_default_recipe_type(self, tmp_path: Path) -> None:
         """Test that default recipe type is daily-build."""
-        launchpad_yaml.create_default_launchpad_yaml(
-            tmp_path, "pkg", "noble", "caracal"
-        )
+        launchpad_yaml.create_default_launchpad_yaml(tmp_path, "pkg", "noble", "caracal")
 
         yaml_path = tmp_path / "launchpad.yaml"
         data = yaml.safe_load(yaml_path.read_text())
@@ -345,9 +321,7 @@ class TestUpdateSeriesReferencesEdgeCases:
         data = {
             "description": "This is the caracal version",
         }
-        new_data, updated = launchpad_yaml.update_series_references(
-            data, "caracal", "dalmatian"
-        )
+        new_data, updated = launchpad_yaml.update_series_references(data, "caracal", "dalmatian")
 
         # description is not a safe field, should not be updated
         assert new_data["description"] == "This is the caracal version"
@@ -355,14 +329,8 @@ class TestUpdateSeriesReferencesEdgeCases:
 
     def test_array_index_field_name_extraction(self) -> None:
         """Test field name extraction with array indices."""
-        data = {
-            "recipes": [
-                {"source-branch": "ubuntu/caracal"}
-            ]
-        }
-        new_data, updated = launchpad_yaml.update_series_references(
-            data, "caracal", "dalmatian"
-        )
+        data = {"recipes": [{"source-branch": "ubuntu/caracal"}]}
+        new_data, updated = launchpad_yaml.update_series_references(data, "caracal", "dalmatian")
 
         # source-branch is a safe field
         assert "dalmatian" in new_data["recipes"][0]["source-branch"]
@@ -375,9 +343,7 @@ class TestUpdateSeriesReferencesEdgeCases:
             "enabled": True,
             "branch": "caracal",
         }
-        new_data, _updated = launchpad_yaml.update_series_references(
-            data, "caracal", "dalmatian"
-        )
+        new_data, _updated = launchpad_yaml.update_series_references(data, "caracal", "dalmatian")
 
         assert new_data["count"] == 42
         assert new_data["enabled"] is True

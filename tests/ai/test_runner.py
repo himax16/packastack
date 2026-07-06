@@ -43,9 +43,7 @@ from packastack.ai.skills import Skill
 def _write_skill(root: Path, name: str, frontmatter: str, body: str) -> None:
     skill_dir = root / name
     skill_dir.mkdir(parents=True, exist_ok=True)
-    (skill_dir / "SKILL.md").write_text(
-        f"---\n{frontmatter}---\n{body}\n", encoding="utf-8"
-    )
+    (skill_dir / "SKILL.md").write_text(f"---\n{frontmatter}---\n{body}\n", encoding="utf-8")
 
 
 def _inputs(tmp_path: Path) -> CollectorInputs:
@@ -111,9 +109,7 @@ class TestExpandTemplates:
     def test_no_placeholder_is_passthrough(self) -> None:
         assert _expand_templates("no templates here") == "no templates here"
 
-    def test_expands_skills_menu(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_expands_skills_menu(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         _write_skill(
             tmp_path,
             "foo",
@@ -134,9 +130,7 @@ class TestRunSkill:
         assert result.success is False
         assert "AI not available" in result.error
 
-    def test_missing_skill(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_missing_skill(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("PACKASTACK_SKILLS_DIR", str(tmp_path))
         result = run_skill(
             "does-not-exist",
@@ -146,44 +140,32 @@ class TestRunSkill:
         assert result.success is False
         assert "Failed to load skill" in result.error
 
-    def test_bad_requires_context(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_bad_requires_context(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         _write_skill(
             tmp_path,
             "bad",
-            "name: bad\ndescription: x\noutput_contract: patch\n"
-            "requires_context: not-a-list\n",
+            "name: bad\ndescription: x\noutput_contract: patch\nrequires_context: not-a-list\n",
             "body",
         )
         monkeypatch.setenv("PACKASTACK_SKILLS_DIR", str(tmp_path))
-        result = run_skill(
-            "bad", _inputs(tmp_path), cfg={"ai": {"api_key": "x"}}
-        )
+        result = run_skill("bad", _inputs(tmp_path), cfg={"ai": {"api_key": "x"}})
         assert result.success is False
         assert "assemble context" in result.error
         assert result.contract == "patch"
 
-    def test_unknown_collector(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_unknown_collector(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         _write_skill(
             tmp_path,
             "bad",
-            "name: bad\ndescription: x\noutput_contract: patch\n"
-            "requires_context:\n  - nope\n",
+            "name: bad\ndescription: x\noutput_contract: patch\nrequires_context:\n  - nope\n",
             "body",
         )
         monkeypatch.setenv("PACKASTACK_SKILLS_DIR", str(tmp_path))
-        result = run_skill(
-            "bad", _inputs(tmp_path), cfg={"ai": {"api_key": "x"}}
-        )
+        result = run_skill("bad", _inputs(tmp_path), cfg={"ai": {"api_key": "x"}})
         assert result.success is False
         assert "assemble context" in result.error
 
-    def test_ai_call_failure(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_ai_call_failure(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         _write_skill(
             tmp_path,
             "ok",
@@ -196,17 +178,13 @@ class TestRunSkill:
             "call_ai",
             lambda *a, **k: AIResponse(success=False, error="nope", content="partial"),
         )
-        result = run_skill(
-            "ok", _inputs(tmp_path), cfg={"ai": {"api_key": "x"}}
-        )
+        result = run_skill("ok", _inputs(tmp_path), cfg={"ai": {"api_key": "x"}})
         assert result.success is False
         assert "AI call failed" in result.error
         assert result.raw == "partial"
         assert result.contract == "patch"
 
-    def test_parse_failure(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_parse_failure(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         _write_skill(
             tmp_path,
             "ok",
@@ -219,9 +197,7 @@ class TestRunSkill:
             "call_ai",
             lambda *a, **k: AIResponse(success=True, content="irrelevant"),
         )
-        result = run_skill(
-            "ok", _inputs(tmp_path), cfg={"ai": {"api_key": "x"}}
-        )
+        result = run_skill("ok", _inputs(tmp_path), cfg={"ai": {"api_key": "x"}})
         assert result.success is False
         assert "Failed to parse" in result.error
         assert result.raw == "irrelevant"
@@ -249,9 +225,7 @@ class TestRunSkill:
 
         register("custom-probe", lambda _i: "CONTEXT BLOCK", replace=True)
         try:
-            result = run_skill(
-                "ok", _inputs(tmp_path), cfg={"ai": {"api_key": "x"}}
-            )
+            result = run_skill("ok", _inputs(tmp_path), cfg={"ai": {"api_key": "x"}})
         finally:
             unregister("custom-probe")
 
@@ -262,9 +236,7 @@ class TestRunSkill:
         assert captured["user"] == "CONTEXT BLOCK"
         assert captured["system"].strip() == "body"
 
-    def test_skips_empty_collectors(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_skips_empty_collectors(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         _write_skill(
             tmp_path,
             "ok",
@@ -284,9 +256,7 @@ class TestRunSkill:
         register("empty-probe", lambda _i: "", replace=True)
         register("full-probe", lambda _i: "FULL", replace=True)
         try:
-            result = run_skill(
-                "ok", _inputs(tmp_path), cfg={"ai": {"api_key": "x"}}
-            )
+            result = run_skill("ok", _inputs(tmp_path), cfg={"ai": {"api_key": "x"}})
         finally:
             unregister("empty-probe")
             unregister("full-probe")
@@ -319,9 +289,7 @@ class TestRunSkill:
 
         monkeypatch.setattr(runner, "call_ai", fake_call_ai)
 
-        result = run_skill(
-            "router", _inputs(tmp_path), cfg={"ai": {"api_key": "x"}}
-        )
+        result = run_skill("router", _inputs(tmp_path), cfg={"ai": {"api_key": "x"}})
         assert result.success is True
         assert isinstance(result.parsed, DispatchPayload)
         assert result.parsed.skill == "worker"

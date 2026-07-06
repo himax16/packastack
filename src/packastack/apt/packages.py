@@ -378,15 +378,20 @@ def apply_ubuntu_source_fallbacks(
                 upl = getattr(t, "upstream_project", None)
                 # If upstream_project is missing or obviously a python-prefixed name,
                 # normalize it to the base deliverable name.
-                if not upl or (isinstance(upl, str) and (upl.startswith("python3-") or upl.startswith("python-") or upl == src)):
+                if not upl or (
+                    isinstance(upl, str)
+                    and (upl.startswith("python3-") or upl.startswith("python-") or upl == src)
+                ):
                     with contextlib.suppress(Exception):
                         t.upstream_project = base
                     if run is not None and hasattr(run, "log_event"):
-                        run.log_event({
-                            "event": "plan.ub_fallback_upstream_normalized",
-                            "original": src,
-                            "normalized": base,
-                        })
+                        run.log_event(
+                            {
+                                "event": "plan.ub_fallback_upstream_normalized",
+                                "original": src,
+                                "normalized": base,
+                            }
+                        )
         return
 
     for t in resolved_targets:
@@ -432,17 +437,21 @@ def apply_ubuntu_source_fallbacks(
             # canonical upstream project identifier.
             try:
                 upl = getattr(t, "upstream_project", None)
-                if isinstance(upl, str) and (upl.startswith("python3-") or upl.startswith("python-")):
+                if isinstance(upl, str) and (
+                    upl.startswith("python3-") or upl.startswith("python-")
+                ):
                     t.upstream_project = upl.removeprefix("python3-").removeprefix("python-")
             except Exception:
                 pass
             if run is not None and hasattr(run, "log_event"):
-                run.log_event({
-                    "event": "plan.ub_fallback_applied",
-                    "original": original,
-                    "chosen": chosen,
-                    "tried": tried,
-                })
+                run.log_event(
+                    {
+                        "event": "plan.ub_fallback_applied",
+                        "original": original,
+                        "chosen": chosen,
+                        "tried": tried,
+                    }
+                )
             # Emit a human-friendly activity if available
             try:
                 from packastack.core.run import activity
@@ -452,11 +461,13 @@ def apply_ubuntu_source_fallbacks(
                 pass
         else:
             if run is not None and hasattr(run, "log_event"):
-                run.log_event({
-                    "event": "plan.ub_fallback_not_found",
-                    "original": original,
-                    "tried": tried,
-                })
+                run.log_event(
+                    {
+                        "event": "plan.ub_fallback_not_found",
+                        "original": original,
+                        "tried": tried,
+                    }
+                )
 
 
 if __name__ == "__main__":

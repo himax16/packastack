@@ -178,7 +178,9 @@ class TestUpdateChangelogGbp:
 
     @patch("packastack.debpkg.changelog._update_changelog_python_debian", return_value=(True, ""))
     @patch("packastack.debpkg.changelog.subprocess.run")
-    def test_falls_back_when_gbp_fails(self, mock_run: MagicMock, mock_python: MagicMock, tmp_path: Path) -> None:
+    def test_falls_back_when_gbp_fails(
+        self, mock_run: MagicMock, mock_python: MagicMock, tmp_path: Path
+    ) -> None:
         mock_run.return_value = MagicMock(returncode=1, stdout="", stderr="boom")
 
         debian_dir = tmp_path / "pkg" / "debian"
@@ -284,9 +286,7 @@ class TestGetCurrentVersionBasic:
             changelog.Changelog = None
 
             changelog_path = tmp_path / "changelog"
-            changelog_path.write_text(
-                "nova (1:29.0.0-0ubuntu1) noble; urgency=medium\n\n"
-            )
+            changelog_path.write_text("nova (1:29.0.0-0ubuntu1) noble; urgency=medium\n\n")
 
             result = changelog.get_current_version(changelog_path)
             assert result == "1:29.0.0-0ubuntu1"
@@ -297,7 +297,9 @@ class TestGetCurrentVersionBasic:
 class TestUpdateChangelog:
     """Tests for update_changelog function."""
 
-    def test_update_changelog_success(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_update_changelog_success(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test successful changelog update."""
         monkeypatch.setenv("DEBFULLNAME", "Test User")
         monkeypatch.setenv("DEBEMAIL", "test@example.com")
@@ -321,7 +323,9 @@ class TestUpdateChangelog:
         success, _error = result
         assert success in (True, False)
 
-    def test_update_uses_environment_vars(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_update_uses_environment_vars(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test that maintainer comes from environment."""
         monkeypatch.setenv("DEBFULLNAME", "Custom Name")
         monkeypatch.setenv("DEBEMAIL", "custom@example.com")
@@ -609,7 +613,9 @@ class TestGetCurrentVersion:
         result = changelog.get_current_version(changelog_path)
         assert result == "28.0.0-1"
 
-    def test_fallback_parsing_no_match(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_fallback_parsing_no_match(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test fallback regex parsing returns None when format doesn't match."""
         changelog_path = tmp_path / "changelog"
         # Invalid format - no version in parentheses

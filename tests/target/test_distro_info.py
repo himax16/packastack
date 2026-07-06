@@ -361,20 +361,30 @@ class TestIsSupportedEdgeCases:
     """Edge cases for UbuntuRelease.is_supported and date parsing."""
 
     def test_unreleased_is_not_supported(self) -> None:
-        rel = UbuntuRelease(version="99.04", codename="zzz", series="zzz", is_lts=False, release_date=None)
+        rel = UbuntuRelease(
+            version="99.04", codename="zzz", series="zzz", is_lts=False, release_date=None
+        )
         assert rel.is_supported is False
 
     def test_released_without_eol_is_supported(self) -> None:
         rel = UbuntuRelease(
-            version="24.10", codename="oracular", series="oracular", is_lts=False,
-            release_date=date(2024, 10, 10), eol_date=None,
+            version="24.10",
+            codename="oracular",
+            series="oracular",
+            is_lts=False,
+            release_date=date(2024, 10, 10),
+            eol_date=None,
         )
         assert rel.is_supported is True
 
     def test_non_lts_past_eol_not_supported(self) -> None:
         rel = UbuntuRelease(
-            version="23.10", codename="mantic", series="mantic", is_lts=False,
-            release_date=date(2023, 10, 12), eol_date=date(2024, 7, 11),
+            version="23.10",
+            codename="mantic",
+            series="mantic",
+            is_lts=False,
+            release_date=date(2023, 10, 12),
+            eol_date=date(2024, 7, 11),
         )
         assert rel.is_supported is False
 

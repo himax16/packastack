@@ -251,11 +251,7 @@ class DependencyGraph:
         if not components:
             return {}
 
-        comp_index = {
-            node: idx
-            for idx, component in enumerate(components)
-            for node in component
-        }
+        comp_index = {node: idx for idx, component in enumerate(components) for node in component}
         comp_edges: dict[int, set[int]] = {idx: set() for idx in range(len(components))}
         comp_reverse: dict[int, set[int]] = {idx: set() for idx in range(len(components))}
 
@@ -291,10 +287,7 @@ class DependencyGraph:
             else:
                 comp_waves[comp] = 1 + max(comp_waves[dep] for dep in deps)
 
-        return {
-            node: comp_waves[comp_index[node]]
-            for node in self.nodes
-        }
+        return {node: comp_waves[comp_index[node]] for node in self.nodes}
 
     def get_cycle_edges(self) -> list[tuple[str, str]]:
         """Return edges that participate in dependency cycles.
@@ -306,15 +299,8 @@ class DependencyGraph:
         if not components:
             return []
 
-        comp_index = {
-            node: idx
-            for idx, component in enumerate(components)
-            for node in component
-        }
-        cycle_components = {
-            idx for idx, component in enumerate(components)
-            if len(component) > 1
-        }
+        comp_index = {node: idx for idx, component in enumerate(components) for node in component}
+        cycle_components = {idx for idx, component in enumerate(components) if len(component) > 1}
 
         edges: set[tuple[str, str]] = set()
         for from_node, deps in self.edges.items():
@@ -394,10 +380,7 @@ class DependencyGraph:
 
             deps = self.edges.get(node, set())
             # Find deps in wave-1 (the critical predecessors)
-            critical_deps = [
-                dep for dep in deps
-                if waves.get(dep, 0) == wave - 1
-            ]
+            critical_deps = [dep for dep in deps if waves.get(dep, 0) == wave - 1]
 
             # Sort for stable output
             critical_deps.sort()

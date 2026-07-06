@@ -55,7 +55,9 @@ def parse_duration(value: str) -> int:
     """
     match = DURATION_PATTERN.match(value.strip())
     if not match:
-        raise ValueError(f"Invalid duration format: '{value}'. Expected format like '6h', '30m', '1d'.")
+        raise ValueError(
+            f"Invalid duration format: '{value}'. Expected format like '6h', '30m', '1d'."
+        )
 
     amount = int(match.group(1))
     unit = match.group(2).lower()

@@ -64,7 +64,6 @@ class UpstreamSource:
         return self.build_type == BuildType.SNAPSHOT
 
 
-
 @dataclass
 class TarballResult:
     """Result of downloading and verifying a tarball."""
@@ -226,7 +225,9 @@ def select_upstream_source(
         if latest is None:
             return None
 
-        tarball_url = build_tarball_url(proj.name, latest.version, proj.tarball_base, proj.tarball_dir)
+        tarball_url = build_tarball_url(
+            proj.name, latest.version, proj.tarball_base, proj.tarball_dir
+        )
         signature_url = build_signature_url(tarball_url)
 
         return UpstreamSource(
@@ -773,7 +774,6 @@ def acquire_upstream_snapshot(
     else:
         # Fallback to old format if git describe fails
         upstream_version = f"{request.base_version}+git{date_str}.{short_sha}"
-
 
     # Step 4: Generate orig tarball
     tarball_result = generate_snapshot_tarball(

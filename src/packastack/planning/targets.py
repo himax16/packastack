@@ -28,14 +28,14 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 
 class TargetParseError(ValueError):
     """Raised when a target expression fails to parse."""
 
 
-class TargetScope(str, Enum):
+class TargetScope(StrEnum):
     SOURCE = "source"
     CANONICAL = "canonical"
     UPSTREAM = "upstream"
@@ -43,7 +43,7 @@ class TargetScope(str, Enum):
     REPO = "repo"
 
 
-class MatchMode(str, Enum):
+class MatchMode(StrEnum):
     EXACT = "exact"
     PREFIX = "prefix"
     CONTAINS = "contains"
@@ -197,20 +197,70 @@ def resolve_targets(
     tiers: list[tuple[MatchMode, list[TargetIdentity]]] = []
     tiers.append((MatchMode.EXACT, exact(lambda i: i.source_package)))
     tiers.append((MatchMode.EXACT, exact(lambda i: i.canonical_upstream)))
-    tiers.append((MatchMode.EXACT, [i for i in scoped_identities if i.deliverable_name and i.deliverable_name.lower() == query]))
-    tiers.append((MatchMode.EXACT, [i for i in scoped_identities if any(alias.lower() == query for alias in i.aliases)]))
+    tiers.append(
+        (
+            MatchMode.EXACT,
+            [
+                i
+                for i in scoped_identities
+                if i.deliverable_name and i.deliverable_name.lower() == query
+            ],
+        )
+    )
+    tiers.append(
+        (
+            MatchMode.EXACT,
+            [i for i in scoped_identities if any(alias.lower() == query for alias in i.aliases)],
+        )
+    )
 
     if mode in (MatchMode.PREFIX, MatchMode.GLOB, MatchMode.EXACT):
         tiers.append((MatchMode.PREFIX, prefix(lambda i: i.source_package)))
         tiers.append((MatchMode.PREFIX, prefix(lambda i: i.canonical_upstream)))
-        tiers.append((MatchMode.PREFIX, [i for i in scoped_identities if i.deliverable_name and i.deliverable_name.lower().startswith(query)]))
-        tiers.append((MatchMode.PREFIX, [i for i in scoped_identities if any(alias.lower().startswith(query) for alias in i.aliases)]))
+        tiers.append(
+            (
+                MatchMode.PREFIX,
+                [
+                    i
+                    for i in scoped_identities
+                    if i.deliverable_name and i.deliverable_name.lower().startswith(query)
+                ],
+            )
+        )
+        tiers.append(
+            (
+                MatchMode.PREFIX,
+                [
+                    i
+                    for i in scoped_identities
+                    if any(alias.lower().startswith(query) for alias in i.aliases)
+                ],
+            )
+        )
 
     if mode in (MatchMode.CONTAINS, MatchMode.PREFIX, MatchMode.GLOB, MatchMode.EXACT):
         tiers.append((MatchMode.CONTAINS, contains(lambda i: i.source_package)))
         tiers.append((MatchMode.CONTAINS, contains(lambda i: i.canonical_upstream)))
-        tiers.append((MatchMode.CONTAINS, [i for i in scoped_identities if i.deliverable_name and query in i.deliverable_name.lower()]))
-        tiers.append((MatchMode.CONTAINS, [i for i in scoped_identities if any(query in alias.lower() for alias in i.aliases)]))
+        tiers.append(
+            (
+                MatchMode.CONTAINS,
+                [
+                    i
+                    for i in scoped_identities
+                    if i.deliverable_name and query in i.deliverable_name.lower()
+                ],
+            )
+        )
+        tiers.append(
+            (
+                MatchMode.CONTAINS,
+                [
+                    i
+                    for i in scoped_identities
+                    if any(query in alias.lower() for alias in i.aliases)
+                ],
+            )
+        )
 
     for tier_mode, matches in tiers:
         if not matches:
@@ -226,7 +276,9 @@ def resolve_targets(
     return [], mode
 
 
-def _apply_scope(scope: TargetScope | None, identities: Iterable[TargetIdentity]) -> list[TargetIdentity]:
+def _apply_scope(
+    scope: TargetScope | None, identities: Iterable[TargetIdentity]
+) -> list[TargetIdentity]:
     """Filter identities by scope."""
 
     if scope is None:

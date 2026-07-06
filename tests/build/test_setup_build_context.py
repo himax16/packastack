@@ -101,14 +101,17 @@ class TestDeliverableNameHandling:
         # Create upstream_config with None deliverable
         mock_upstream_config = MagicMock()
         mock_upstream_config.release_source.deliverable = None  # This is the test condition
-        mock_upstream_config.upstream.url = "https://opendev.org/openstack/python-barbicanclient.git"
+        mock_upstream_config.upstream.url = (
+            "https://opendev.org/openstack/python-barbicanclient.git"
+        )
 
         # Mock only what we need to get to the resolve_build_type_auto call
-        with patch("packastack.build.phases.check_retirement_status") as mock_retirement, \
-             patch("packastack.build.phases.resolve_upstream_registry") as mock_registry, \
-             patch("packastack.target.series.resolve_series") as mock_resolve_series, \
-             patch("packastack.upstream.releases.get_current_development_series") as mock_get_dev:
-
+        with (
+            patch("packastack.build.phases.check_retirement_status") as mock_retirement,
+            patch("packastack.build.phases.resolve_upstream_registry") as mock_registry,
+            patch("packastack.target.series.resolve_series") as mock_resolve_series,
+            patch("packastack.upstream.releases.get_current_development_series") as mock_get_dev,
+        ):
             # Setup mocks to get past initial checks
             mock_resolve_series.return_value = "resolute"
             mock_get_dev.return_value = "gazpacho"
@@ -141,25 +144,27 @@ class TestDeliverableNameHandling:
         # Verify resolve_build_type_auto was called with pkg_name (not None)
         assert mock_auto_resolve.called
         call_args = mock_auto_resolve.call_args
-        assert call_args.kwargs["deliverable"] == "python-barbicanclient", \
+        assert call_args.kwargs["deliverable"] == "python-barbicanclient", (
             "deliverable parameter should be pkg_name when release_source.deliverable is None"
+        )
         assert call_args.kwargs["source_package"] == "python-barbicanclient"
 
     @patch("packastack.build.type_resolution.resolve_build_type_auto")
-    def test_explicit_deliverable_value_used(
-        self, mock_auto_resolve, base_setup_inputs, tmp_path
-    ):
+    def test_explicit_deliverable_value_used(self, mock_auto_resolve, base_setup_inputs, tmp_path):
         """Test that explicit deliverable value is preserved when provided."""
         # Create upstream_config with explicit deliverable
         mock_upstream_config = MagicMock()
         mock_upstream_config.release_source.deliverable = "python-barbicanclient"
-        mock_upstream_config.upstream.url = "https://opendev.org/openstack/python-barbicanclient.git"
+        mock_upstream_config.upstream.url = (
+            "https://opendev.org/openstack/python-barbicanclient.git"
+        )
 
-        with patch("packastack.build.phases.check_retirement_status") as mock_retirement, \
-             patch("packastack.build.phases.resolve_upstream_registry") as mock_registry, \
-             patch("packastack.target.series.resolve_series") as mock_resolve_series, \
-             patch("packastack.upstream.releases.get_current_development_series") as mock_get_dev:
-
+        with (
+            patch("packastack.build.phases.check_retirement_status") as mock_retirement,
+            patch("packastack.build.phases.resolve_upstream_registry") as mock_registry,
+            patch("packastack.target.series.resolve_series") as mock_resolve_series,
+            patch("packastack.upstream.releases.get_current_development_series") as mock_get_dev,
+        ):
             mock_resolve_series.return_value = "resolute"
             mock_get_dev.return_value = "gazpacho"
             mock_retirement.return_value = (MagicMock(success=True), MagicMock())
@@ -186,8 +191,9 @@ class TestDeliverableNameHandling:
 
         # Verify the explicit deliverable was used
         call_args = mock_auto_resolve.call_args
-        assert call_args.kwargs["deliverable"] == "python-barbicanclient", \
+        assert call_args.kwargs["deliverable"] == "python-barbicanclient", (
             "explicit deliverable value should be preserved"
+        )
 
     @patch("packastack.upstream.releases.is_snapshot_eligible")
     def test_policy_check_uses_deliverable_or_pkg_name(
@@ -198,15 +204,18 @@ class TestDeliverableNameHandling:
         mock_upstream_config = MagicMock()
         mock_upstream_config.release_source.deliverable = None
         mock_upstream_config.release_source.type = ReleaseSourceType.OPENSTACK_RELEASES
-        mock_upstream_config.upstream.url = "https://opendev.org/openstack/python-barbicanclient.git"
+        mock_upstream_config.upstream.url = (
+            "https://opendev.org/openstack/python-barbicanclient.git"
+        )
 
-        with patch("packastack.build.phases.check_retirement_status") as mock_retirement, \
-             patch("packastack.build.phases.resolve_upstream_registry") as mock_registry, \
-             patch("packastack.target.series.resolve_series") as mock_resolve_series, \
-             patch("packastack.upstream.releases.get_current_development_series") as mock_get_dev, \
-             patch("packastack.build.type_resolution.resolve_build_type_auto") as mock_auto, \
-             patch("packastack.upstream.releases.get_previous_series") as mock_prev:
-
+        with (
+            patch("packastack.build.phases.check_retirement_status") as mock_retirement,
+            patch("packastack.build.phases.resolve_upstream_registry") as mock_registry,
+            patch("packastack.target.series.resolve_series") as mock_resolve_series,
+            patch("packastack.upstream.releases.get_current_development_series") as mock_get_dev,
+            patch("packastack.build.type_resolution.resolve_build_type_auto") as mock_auto,
+            patch("packastack.upstream.releases.get_previous_series") as mock_prev,
+        ):
             mock_resolve_series.return_value = "resolute"
             mock_get_dev.return_value = "gazpacho"
             mock_retirement.return_value = (MagicMock(success=True), MagicMock())
@@ -235,9 +244,9 @@ class TestDeliverableNameHandling:
         assert mock_eligible.called
         call_args = mock_eligible.call_args
         # Third argument is the project name
-        assert call_args.args[2] == "python-barbicanclient", \
+        assert call_args.args[2] == "python-barbicanclient", (
             "is_snapshot_eligible should be called with pkg_name when deliverable is None"
-
+        )
 
     def test_policy_check_uses_pkg_name_when_deliverable_is_stripped(
         self, base_setup_inputs, tmp_path
@@ -252,15 +261,18 @@ class TestDeliverableNameHandling:
         mock_release_source.deliverable = "barbicanclient"
         mock_release_source.type = ReleaseSourceType.OPENSTACK_RELEASES
         mock_upstream_config.release_source = mock_release_source
-        mock_upstream_config.upstream.url = "https://opendev.org/openstack/python-barbicanclient.git"
+        mock_upstream_config.upstream.url = (
+            "https://opendev.org/openstack/python-barbicanclient.git"
+        )
         mock_upstream_config.build_repos = []
 
         # Test setup with proper mocking pattern
-        with patch("packastack.build.phases.check_retirement_status") as mock_retirement, \
-             patch("packastack.build.phases.resolve_upstream_registry") as mock_registry, \
-             patch("packastack.target.series.resolve_series") as mock_resolve_series, \
-             patch("packastack.upstream.releases.get_current_development_series") as mock_get_dev:
-
+        with (
+            patch("packastack.build.phases.check_retirement_status") as mock_retirement,
+            patch("packastack.build.phases.resolve_upstream_registry") as mock_registry,
+            patch("packastack.target.series.resolve_series") as mock_resolve_series,
+            patch("packastack.upstream.releases.get_current_development_series") as mock_get_dev,
+        ):
             # Setup mocks to get past initial checks
             mock_resolve_series.return_value = "resolute"
             mock_get_dev.return_value = "gazpacho"
@@ -278,8 +290,10 @@ class TestDeliverableNameHandling:
             mock_registry_info.registry.override_applied = False
             mock_registry.return_value = (MagicMock(success=True), mock_registry_info)
 
-            with patch("packastack.build.type_resolution.resolve_build_type_auto") as mock_auto, \
-                 patch("packastack.upstream.releases.load_project_releases") as mock_load_releases:
+            with (
+                patch("packastack.build.type_resolution.resolve_build_type_auto") as mock_auto,
+                patch("packastack.upstream.releases.load_project_releases") as mock_load_releases,
+            ):
                 # Return SNAPSHOT so policy check is executed
                 mock_auto.return_value = (BuildType.SNAPSHOT, "NOT_IN_RELEASES")
 
@@ -291,11 +305,14 @@ class TestDeliverableNameHandling:
                     elif project_name == "python-barbicanclient":
                         return [MagicMock()]  # Has releases
                     return []
+
                 mock_load_releases.side_effect = load_side_effect
 
                 with patch("packastack.upstream.releases.get_previous_series") as mock_prev:
                     mock_prev.return_value = "flamingo"
-                    with patch("packastack.upstream.releases.is_snapshot_eligible") as mock_eligible:
+                    with patch(
+                        "packastack.upstream.releases.is_snapshot_eligible"
+                    ) as mock_eligible:
                         # Policy check blocks to stop execution
                         mock_eligible.return_value = (False, "Test stop", None)
 
@@ -304,14 +321,16 @@ class TestDeliverableNameHandling:
                 # Verify is_snapshot_eligible was called with full pkg_name "python-barbicanclient"
                 assert mock_eligible.called
                 eligible_call_args = mock_eligible.call_args
-                assert eligible_call_args.args[2] == "python-barbicanclient", \
+                assert eligible_call_args.args[2] == "python-barbicanclient", (
                     "is_snapshot_eligible should use pkg_name when deliverable doesn't exist in releases"
+                )
 
                 # Verify is_snapshot_eligible was called with full pkg_name, not stripped deliverable
                 assert mock_eligible.called
                 eligible_call_args = mock_eligible.call_args
-                assert eligible_call_args.args[2] == "python-barbicanclient", \
+                assert eligible_call_args.args[2] == "python-barbicanclient", (
                     "is_snapshot_eligible should use pkg_name when deliverable is stripped name"
+                )
 
     def test_main_package_with_matching_deliverable(self, base_setup_inputs, tmp_path):
         """Test packages where pkg_name equals deliverable (e.g., 'cinder').
@@ -333,11 +352,12 @@ class TestDeliverableNameHandling:
         mock_upstream_config.upstream.url = "https://opendev.org/openstack/cinder.git"
         mock_upstream_config.build_repos = []
 
-        with patch("packastack.build.phases.check_retirement_status") as mock_retirement, \
-             patch("packastack.build.phases.resolve_upstream_registry") as mock_registry, \
-             patch("packastack.target.series.resolve_series") as mock_resolve_series, \
-             patch("packastack.upstream.releases.get_current_development_series") as mock_get_dev:
-
+        with (
+            patch("packastack.build.phases.check_retirement_status") as mock_retirement,
+            patch("packastack.build.phases.resolve_upstream_registry") as mock_registry,
+            patch("packastack.target.series.resolve_series") as mock_resolve_series,
+            patch("packastack.upstream.releases.get_current_development_series") as mock_get_dev,
+        ):
             # Setup mocks to get past initial checks
             mock_resolve_series.return_value = "resolute"
             mock_get_dev.return_value = "gazpacho"
@@ -355,8 +375,10 @@ class TestDeliverableNameHandling:
             mock_registry_info.registry.override_applied = False
             mock_registry.return_value = (MagicMock(success=True), mock_registry_info)
 
-            with patch("packastack.build.type_resolution.resolve_build_type_auto") as mock_auto, \
-                 patch("packastack.upstream.releases.load_project_releases") as mock_load_releases:
+            with (
+                patch("packastack.build.type_resolution.resolve_build_type_auto") as mock_auto,
+                patch("packastack.upstream.releases.load_project_releases") as mock_load_releases,
+            ):
                 # Return SNAPSHOT so policy check is executed
                 mock_auto.return_value = (BuildType.SNAPSHOT, "NOT_IN_RELEASES")
 
@@ -365,11 +387,14 @@ class TestDeliverableNameHandling:
                     if project_name == "cinder":
                         return [MagicMock()]  # Has releases
                     return []
+
                 mock_load_releases.side_effect = load_side_effect
 
                 with patch("packastack.upstream.releases.get_previous_series") as mock_prev:
                     mock_prev.return_value = "flamingo"
-                    with patch("packastack.upstream.releases.is_snapshot_eligible") as mock_eligible:
+                    with patch(
+                        "packastack.upstream.releases.is_snapshot_eligible"
+                    ) as mock_eligible:
                         # Policy check blocks to stop execution
                         mock_eligible.return_value = (False, "Test stop", None)
 
@@ -378,13 +403,12 @@ class TestDeliverableNameHandling:
                 # Verify is_snapshot_eligible was called with "cinder"
                 assert mock_eligible.called
                 eligible_call_args = mock_eligible.call_args
-                assert eligible_call_args.args[2] == "cinder", \
+                assert eligible_call_args.args[2] == "cinder", (
                     "is_snapshot_eligible should use deliverable 'cinder' when it exists in releases"
+                )
 
                 # Verify load_project_releases was called with "cinder" and found releases
                 assert mock_load_releases.called
                 # Should have been called with "cinder" and found it
                 load_calls = [call.args[2] for call in mock_load_releases.call_args_list]
                 assert "cinder" in load_calls, "Should have checked if 'cinder' exists in releases"
-
-

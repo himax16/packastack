@@ -93,7 +93,9 @@ def run_uscan(repo_path: Path, version: str | None = None) -> tuple[bool, Path |
         return False, None, str(e)
 
 
-def download_pypi_tarball(project: str, version: str, dest_dir: Path) -> tuple[bool, Path | None, str]:
+def download_pypi_tarball(
+    project: str, version: str, dest_dir: Path
+) -> tuple[bool, Path | None, str]:
     """Download PyPI sdist tarball using the simple URL pattern.
 
     Constructs the PyPI URL from project name and version, then downloads
@@ -235,7 +237,11 @@ def fetch_release_tarball(
             )
             provenance.verification.mode = upstream_config.signatures.mode.value
             return cached_path, cached_meta.signature_verified, cached_meta.signature_warning
-        return None, False, f"Offline mode missing cached tarball for {project_key} {upstream.version}"
+        return (
+            None,
+            False,
+            f"Offline mode missing cached tarball for {project_key} {upstream.version}",
+        )
 
     # 1) uscan - preferred method when watch file is available
     success, path, err = run_uscan(pkg_repo, upstream.version if upstream else None)
@@ -317,8 +323,7 @@ def fetch_release_tarball(
 
         if name == "pypi":
             project = (
-                upstream_config.release_source.project
-                or upstream_config.project_key
+                upstream_config.release_source.project or upstream_config.project_key
                 if hasattr(upstream_config, "project_key")
                 else ""
             )
@@ -378,9 +383,7 @@ def fetch_release_tarball(
                 upstream_config, "project_key", ""
             )
             ref = (
-                upstream.version
-                if upstream
-                else upstream_config.upstream.default_branch or "HEAD"
+                upstream.version if upstream else upstream_config.upstream.default_branch or "HEAD"
             )
             repo_dir = workspace / "git-archive"
             if repo_dir.exists():

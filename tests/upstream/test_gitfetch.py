@@ -125,8 +125,7 @@ class TestGitFetcher:
         )
         url = fetcher.build_url("trove")
         assert url == (
-            "ssh://myuser@git.launchpad.net/~ubuntu-openstack-dev"
-            "/ubuntu/+source/openstack-trove"
+            "ssh://myuser@git.launchpad.net/~ubuntu-openstack-dev/ubuntu/+source/openstack-trove"
         )
 
     def test_build_url_no_override_for_unknown_package(self) -> None:
@@ -339,9 +338,7 @@ class TestCloneMethod:
         with patch("git.Repo.clone_from", return_value=mock_repo) as mock_clone:
             result = fetcher.clone("https://example.com/nova.git", dest_path)
 
-        mock_clone.assert_called_once_with(
-            "https://example.com/nova.git", dest_path
-        )
+        mock_clone.assert_called_once_with("https://example.com/nova.git", dest_path)
         assert result.cloned is True
         assert result.path == dest_path
         assert result.error is None
@@ -370,9 +367,7 @@ class TestCloneMethod:
         mock_repo.remotes.origin.refs = []
 
         with patch("git.Repo.clone_from", return_value=mock_repo) as mock_clone:
-            result = fetcher.clone(
-                "https://example.com/nova.git", dest_path, branch="30.0.0"
-            )
+            result = fetcher.clone("https://example.com/nova.git", dest_path, branch="30.0.0")
 
         call_kwargs = mock_clone.call_args[1]
         assert call_kwargs.get("branch") == "30.0.0"
@@ -406,9 +401,7 @@ class TestCloneMethod:
         fetcher = GitFetcher()
         dest_path = tmp_path / "nova"
 
-        with patch(
-            "git.Repo.clone_from", side_effect=git.GitCommandError("clone", "error")
-        ):
+        with patch("git.Repo.clone_from", side_effect=git.GitCommandError("clone", "error")):
             result = fetcher.clone("https://example.com/nova.git", dest_path)
 
         assert result.error is not None

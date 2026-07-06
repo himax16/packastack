@@ -331,7 +331,7 @@ def ensure_upstream_branch(
             success=False,
             branch_name=upstream_branch,
             error=f"Cannot create '{upstream_branch}': previous series branch "
-                  f"'{prev_upstream_branch}' does not exist",
+            f"'{prev_upstream_branch}' does not exist",
         )
 
     # Create the new upstream branch from the previous series
@@ -689,10 +689,7 @@ def drop_patch(repo_path: Path, patch_name: str) -> DropPatchResult:
             # Compare only the patch filename (first field), ignoring
             # options like -p1 that may follow on the same line.
             filtered = [
-                line
-                for line in lines
-                if not line.strip()
-                or line.strip().split()[0] != patch_name
+                line for line in lines if not line.strip() or line.strip().split()[0] != patch_name
             ]
             series_file.write_text(
                 "\n".join(filtered) + "\n" if filtered else "",

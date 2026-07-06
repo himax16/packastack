@@ -307,8 +307,7 @@ def _create_schroot(
 
     _cleanup_partial_chroot(target_dir)
     return False, (
-        f"sbuild-createchroot failed:\n{sbuild_err}\n\n"
-        f"mmdebstrap fallback failed:\n{mm_err}"
+        f"sbuild-createchroot failed:\n{sbuild_err}\n\nmmdebstrap fallback failed:\n{mm_err}"
     )
 
 
@@ -432,9 +431,7 @@ def _fstab_has_repo_mount(fstab_path: Path, repo_path: str) -> bool:
     if not fstab_path.is_file():
         return False
     try:
-        return repo_path in fstab_path.read_text(
-            encoding="utf-8", errors="replace"
-        )
+        return repo_path in fstab_path.read_text(encoding="utf-8", errors="replace")
     except OSError:
         return False
 
@@ -504,8 +501,7 @@ def configure_repo_mount(
     config_path = _find_schroot_config(chroot_name)
     if config_path is None:
         raise RepoMountError(
-            f"Cannot find schroot config for '{chroot_name}' "
-            f"in {_CHROOT_CONF_DIR}"
+            f"Cannot find schroot config for '{chroot_name}' in {_CHROOT_CONF_DIR}"
         )
 
     repo_path = str(local_repo_root.resolve())
@@ -521,25 +517,17 @@ def configure_repo_mount(
         return True
 
     try:
-        base_content = base_fstab.read_text(
-            encoding="utf-8", errors="replace"
-        )
+        base_content = base_fstab.read_text(encoding="utf-8", errors="replace")
     except OSError as exc:
-        raise RepoMountError(
-            f"Cannot read base fstab {base_fstab}: {exc}"
-        ) from exc
+        raise RepoMountError(f"Cannot read base fstab {base_fstab}: {exc}") from exc
 
     mount_line = f"{repo_path} {chroot_mount} none ro,bind 0 0"
-    custom_content = (
-        f"{base_content.rstrip()}\n{REPO_FSTAB_MARKER}\n{mount_line}\n"
-    )
+    custom_content = f"{base_content.rstrip()}\n{REPO_FSTAB_MARKER}\n{mount_line}\n"
 
     try:
         _sudo_write_file(custom_fstab, custom_content)
         _sudo_set_fstab_key(config_path, custom_fstab)
     except (subprocess.CalledProcessError, OSError) as exc:
-        raise RepoMountError(
-            f"Failed to write fstab or update schroot config: {exc}"
-        ) from exc
+        raise RepoMountError(f"Failed to write fstab or update schroot config: {exc}") from exc
 
     return True

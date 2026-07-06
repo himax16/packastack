@@ -69,21 +69,30 @@ def test_check_watch_mismatch_returns_none_on_match() -> None:
         base_url="https://tarballs.opendev.org/openstack/nova",
     )
 
-    assert watch.check_watch_mismatch("nova", result, "opendev", "https://tarballs.opendev.org") is None
+    assert (
+        watch.check_watch_mismatch("nova", result, "opendev", "https://tarballs.opendev.org")
+        is None
+    )
 
 
 def test_check_watch_mismatch_unknown_host() -> None:
     """Unknown registry hosts are ignored (no warning)."""
-    result = watch.WatchParseResult(mode=watch.DetectedWatchMode.GITHUB_RELEASE, base_url="https://example.com")
+    result = watch.WatchParseResult(
+        mode=watch.DetectedWatchMode.GITHUB_RELEASE, base_url="https://example.com"
+    )
 
     assert watch.check_watch_mismatch("nova", result, "unknown", "https://example.com") is None
 
 
 def test_check_watch_mismatch_reports_warning() -> None:
     """Mismatch produces WatchMismatchWarning with message."""
-    result = watch.WatchParseResult(mode=watch.DetectedWatchMode.GITHUB_RELEASE, base_url="https://github.com/foo/bar")
+    result = watch.WatchParseResult(
+        mode=watch.DetectedWatchMode.GITHUB_RELEASE, base_url="https://github.com/foo/bar"
+    )
 
-    warning = watch.check_watch_mismatch("nova", result, "opendev", "https://tarballs.opendev.org/openstack/nova")
+    warning = watch.check_watch_mismatch(
+        "nova", result, "opendev", "https://tarballs.opendev.org/openstack/nova"
+    )
 
     assert warning is not None
     assert warning.package == "nova"
@@ -289,11 +298,11 @@ class TestFixMalformedWatchOpts:
         """Options after the closing quote are moved inside."""
         watch_file = tmp_path / "watch"
         watch_file.write_text(
-            'version=4\n'
+            "version=4\n"
             'opts="uversionmangle=s/\\.([a-zA-Z])/~$1/;s/%7E/~/;s/\\.0b/~b/;s/\\.0rc/~rc/"'
-            ',pgpsigurlmangle=s/$/.asc/ \\\n'
-            ' https://tarballs.opendev.org/openstack/heat-dashboard/'
-            ' heat_dashboard-(\\d{1,2}\\.\\d.*)\\.tar\\.gz\n'
+            ",pgpsigurlmangle=s/$/.asc/ \\\n"
+            " https://tarballs.opendev.org/openstack/heat-dashboard/"
+            " heat_dashboard-(\\d{1,2}\\.\\d.*)\\.tar\\.gz\n"
         )
 
         result = watch.fix_malformed_watch_opts(watch_file)
@@ -309,10 +318,10 @@ class TestFixMalformedWatchOpts:
         """Multiple leaked options are all moved inside the quotes."""
         watch_file = tmp_path / "watch"
         watch_file.write_text(
-            'version=4\n'
+            "version=4\n"
             'opts="uversionmangle=s/\\.0rc/~rc/"'
-            ',pgpsigurlmangle=s/$/.asc/,pgpmode=auto \\\n'
-            ' https://example.com/ foo-(\\d.*)\\.tar\\.gz\n'
+            ",pgpsigurlmangle=s/$/.asc/,pgpmode=auto \\\n"
+            " https://example.com/ foo-(\\d.*)\\.tar\\.gz\n"
         )
 
         result = watch.fix_malformed_watch_opts(watch_file)
@@ -325,9 +334,9 @@ class TestFixMalformedWatchOpts:
         """Returns False when opts are correctly quoted."""
         watch_file = tmp_path / "watch"
         watch_file.write_text(
-            'version=4\n'
+            "version=4\n"
             'opts="uversionmangle=s/\\.0rc/~rc/,pgpsigurlmangle=s/$/.asc/" \\\n'
-            ' https://example.com/ foo-(\\d.*)\\.tar\\.gz\n'
+            " https://example.com/ foo-(\\d.*)\\.tar\\.gz\n"
         )
 
         result = watch.fix_malformed_watch_opts(watch_file)
@@ -361,9 +370,8 @@ class TestFixMalformedWatchOpts:
             " heat_dashboard-(\\d{1,2}\\.\\d.*)\\.tar\\.gz\n"
         )
         watch_file.write_text(
-            'version=4\n'
-            'opts="uversionmangle=s/\\.0rc/~rc/",pgpsigurlmangle=s/$/.asc/ \\\n'
-            + url_line
+            "version=4\n"
+            'opts="uversionmangle=s/\\.0rc/~rc/",pgpsigurlmangle=s/$/.asc/ \\\n' + url_line
         )
 
         watch.fix_malformed_watch_opts(watch_file)
@@ -417,8 +425,7 @@ class TestRestorePgpOptionsToWatch:
         """Returns False when there is no opts= line to modify."""
         watch_file = tmp_path / "watch"
         watch_file.write_text(
-            "version=4\n"
-            "https://tarballs.opendev.org/openstack/aodh/ aodh-(\\d.*)\\.tar\\.gz\n"
+            "version=4\nhttps://tarballs.opendev.org/openstack/aodh/ aodh-(\\d.*)\\.tar\\.gz\n"
         )
 
         result = watch.restore_pgp_options_to_watch(watch_file)
@@ -449,10 +456,10 @@ class TestRestorePgpOptionsToWatch:
         """Inserts pgpsigurlmangle before the closing quote for quoted opts."""
         watch_file = tmp_path / "watch"
         watch_file.write_text(
-            'version=4\n'
+            "version=4\n"
             'opts="uversionmangle=s/\\.([a-zA-Z])/~$1/;s/%7E/~/;s/\\.0b/~b/;s/\\.0rc/~rc/" \\\n'
-            ' https://tarballs.opendev.org/openstack/heat-dashboard/'
-            ' heat_dashboard-(\\d{1,2}\\.\\d.*)\\.tar\\.gz\n'
+            " https://tarballs.opendev.org/openstack/heat-dashboard/"
+            " heat_dashboard-(\\d{1,2}\\.\\d.*)\\.tar\\.gz\n"
         )
 
         result = watch.restore_pgp_options_to_watch(watch_file)
@@ -466,9 +473,9 @@ class TestRestorePgpOptionsToWatch:
     def test_roundtrip_quoted_opts(self, tmp_path: Path) -> None:
         """Remove then restore PGP options with quoted opts stays valid."""
         original = (
-            'version=4\n'
+            "version=4\n"
             'opts="uversionmangle=s/\\.0rc/~rc/,pgpsigurlmangle=s/$/.asc/" \\\n'
-            ' https://tarballs.opendev.org/openstack/aodh/ aodh-(\\d.*)\\.tar\\.gz\n'
+            " https://tarballs.opendev.org/openstack/aodh/ aodh-(\\d.*)\\.tar\\.gz\n"
         )
         watch_file = tmp_path / "watch"
         watch_file.write_text(original)
@@ -506,7 +513,10 @@ class TestParseDehsOutput:
         assert result.success is True
         assert result.debian_upstream_version == "1.13.0"
         assert result.upstream_version == "1.14.0"
-        assert result.upstream_url == "https://files.pythonhosted.org/packages/source/a/alembic/alembic-1.14.0.tar.gz"
+        assert (
+            result.upstream_url
+            == "https://files.pythonhosted.org/packages/source/a/alembic/alembic-1.14.0.tar.gz"
+        )
         assert result.newer_available is True
 
     def test_parse_valid_dehs_up_to_date(self) -> None:
@@ -790,7 +800,9 @@ class TestUpdateSigningKey:
         fallback_dir = tmp_path / "home" / "openstack-signing-keys"
         fallback_dir.mkdir(parents=True)
         fallback_key = fallback_dir / "gazpacho-signing-key.asc"
-        fallback_key.write_text("-----BEGIN PGP PUBLIC KEY BLOCK-----\nfallback-key-with-subkeys\n")
+        fallback_key.write_text(
+            "-----BEGIN PGP PUBLIC KEY BLOCK-----\nfallback-key-with-subkeys\n"
+        )
 
         # Also create a releases repo with a different key
         releases_repo = self._make_releases_repo(tmp_path)
@@ -819,7 +831,9 @@ class TestUpdateSigningKey:
         assert signing_key.exists()
         assert "releases-repo-key" in signing_key.read_text()
 
-    def test_release_uses_static_cycle_key_from_releases_repo(self, tmp_path: Path, monkeypatch) -> None:
+    def test_release_uses_static_cycle_key_from_releases_repo(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
         """Release builds use static key exports from openstack-releases."""
         pkg_repo = tmp_path / "pkg"
         (pkg_repo / "debian").mkdir(parents=True)
@@ -846,7 +860,9 @@ class TestUpdateSigningKey:
         assert "Hibiscus Cycle" in signing_key.read_text()
         assert "hibiscus-key" in signing_key.read_text()
 
-    def test_release_static_cycle_key_unchanged_returns_false(self, tmp_path: Path, monkeypatch) -> None:
+    def test_release_static_cycle_key_unchanged_returns_false(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
         """Returns False when the static cycle key already matches."""
         pkg_repo = tmp_path / "pkg"
         signing_key = pkg_repo / "debian" / "upstream" / "signing-key.asc"
@@ -872,7 +888,9 @@ class TestUpdateSigningKey:
 
         assert result is False
 
-    def test_release_fallback_key_unchanged_returns_false(self, tmp_path: Path, monkeypatch) -> None:
+    def test_release_fallback_key_unchanged_returns_false(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
         """Returns False when fallback key content matches existing signing key."""
         pkg_repo = tmp_path / "pkg"
         signing_key = pkg_repo / "debian" / "upstream" / "signing-key.asc"
@@ -892,7 +910,9 @@ class TestUpdateSigningKey:
 
         assert result is False
 
-    def test_release_releases_repo_key_unchanged_returns_false(self, tmp_path: Path, monkeypatch) -> None:
+    def test_release_releases_repo_key_unchanged_returns_false(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
         """Returns False when releases repo key content matches existing signing key."""
         pkg_repo = tmp_path / "pkg"
         signing_key = pkg_repo / "debian" / "upstream" / "signing-key.asc"
@@ -1109,9 +1129,7 @@ class TestVerifySigningKeyWithUscan:
         pkg_repo = tmp_path / "pkg"
         (pkg_repo / "debian").mkdir(parents=True)
 
-        mock_run.return_value = MagicMock(
-            returncode=1, stdout="", stderr="404 Not Found"
-        )
+        mock_run.return_value = MagicMock(returncode=1, stdout="", stderr="404 Not Found")
 
         result = watch.verify_signing_key_with_uscan(pkg_repo)
 
@@ -1151,9 +1169,7 @@ class TestVerifySigningKeyWithUscan:
 
     @patch("packastack.debpkg.watch._refresh_key_from_keyserver")
     @patch("packastack.debpkg.watch.subprocess.run")
-    def test_gpg_failure_refresh_fails(
-        self, mock_run, mock_refresh, tmp_path: Path
-    ) -> None:
+    def test_gpg_failure_refresh_fails(self, mock_run, mock_refresh, tmp_path: Path) -> None:
         """Returns failure when keyserver refresh itself fails."""
         pkg_repo = tmp_path / "pkg"
         (pkg_repo / "debian" / "upstream").mkdir(parents=True)
@@ -1207,9 +1223,7 @@ class TestVerifySigningKeyWithUscan:
 
     @patch("packastack.debpkg.watch._refresh_key_from_keyserver")
     @patch("packastack.debpkg.watch.subprocess.run")
-    def test_gpg_failure_reverify_timeout(
-        self, mock_run, mock_refresh, tmp_path: Path
-    ) -> None:
+    def test_gpg_failure_reverify_timeout(self, mock_run, mock_refresh, tmp_path: Path) -> None:
         """Returns failure when re-verification times out."""
         pkg_repo = tmp_path / "pkg"
         (pkg_repo / "debian" / "upstream").mkdir(parents=True)

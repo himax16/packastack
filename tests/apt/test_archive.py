@@ -52,7 +52,10 @@ class TestArchiveFetcher:
             component="main",
             arch="amd64",
         )
-        assert url == "http://archive.ubuntu.com/ubuntu/dists/noble-updates/main/binary-amd64/Packages.gz"
+        assert (
+            url
+            == "http://archive.ubuntu.com/ubuntu/dists/noble-updates/main/binary-amd64/Packages.gz"
+        )
 
     def test_build_url_security_pocket(self) -> None:
         fetcher = archive.ArchiveFetcher()
@@ -63,7 +66,10 @@ class TestArchiveFetcher:
             component="universe",
             arch="arm64",
         )
-        assert url == "http://archive.ubuntu.com/ubuntu/dists/noble-security/universe/binary-arm64/Packages.gz"
+        assert (
+            url
+            == "http://archive.ubuntu.com/ubuntu/dists/noble-security/universe/binary-arm64/Packages.gz"
+        )
 
     def test_build_url_strips_trailing_slash(self) -> None:
         fetcher = archive.ArchiveFetcher()
@@ -77,9 +83,7 @@ class TestArchiveFetcher:
         assert "ubuntu//dists" not in url
 
     @responses.activate
-    def test_fetch_index_success(
-        self, temp_home: Path, sample_packages_gz: bytes
-    ) -> None:
+    def test_fetch_index_success(self, temp_home: Path, sample_packages_gz: bytes) -> None:
         url = "http://archive.ubuntu.com/ubuntu/dists/noble/main/binary-amd64/Packages.gz"
         responses.add(
             responses.GET,
@@ -133,7 +137,10 @@ class TestArchiveFetcher:
         )
 
         assert responses.calls[0].request.headers["If-None-Match"] == '"test-etag"'
-        assert responses.calls[0].request.headers["If-Modified-Since"] == "Thu, 01 Jan 2025 00:00:00 GMT"
+        assert (
+            responses.calls[0].request.headers["If-Modified-Since"]
+            == "Thu, 01 Jan 2025 00:00:00 GMT"
+        )
 
     @responses.activate
     def test_fetch_index_http_error(self, temp_home: Path) -> None:
@@ -154,9 +161,7 @@ class TestArchiveFetcher:
         dest.write_bytes(sample_packages_gz)
 
         fetcher = archive.ArchiveFetcher()
-        result = fetcher.fetch_index(
-            "http://example.com/Packages.gz", dest, offline=True
-        )
+        result = fetcher.fetch_index("http://example.com/Packages.gz", dest, offline=True)
 
         assert result.error is None
         assert result.was_cached is True
@@ -166,9 +171,7 @@ class TestArchiveFetcher:
         dest = temp_home / "missing" / "Packages.gz"
 
         fetcher = archive.ArchiveFetcher()
-        result = fetcher.fetch_index(
-            "http://example.com/Packages.gz", dest, offline=True
-        )
+        result = fetcher.fetch_index("http://example.com/Packages.gz", dest, offline=True)
 
         assert result.error is not None
         assert "not found" in result.error.lower()
@@ -344,9 +347,7 @@ class TestCloudArchiveFetcher:
         assert "/caracal/" in url
 
     @responses.activate
-    def test_fetch_cloud_archive(
-        self, temp_home: Path, sample_packages_gz: bytes
-    ) -> None:
+    def test_fetch_cloud_archive(self, temp_home: Path, sample_packages_gz: bytes) -> None:
         url = "https://ubuntu-cloud.archive.canonical.com/ubuntu/dists/noble-updates/caracal/main/binary-amd64/Packages.gz"
         responses.add(
             responses.GET,

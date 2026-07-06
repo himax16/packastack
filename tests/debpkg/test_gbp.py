@@ -474,9 +474,7 @@ class TestEnsureUpstreamBranch:
         repo.index.add(["file.txt"])
         repo.index.commit("Initial commit")
 
-        result = gbp.ensure_upstream_branch(
-            tmp_path, target_series="gazpacho", prev_series=None
-        )
+        result = gbp.ensure_upstream_branch(tmp_path, target_series="gazpacho", prev_series=None)
 
         assert result.success is False
         assert "upstream-gazpacho" in result.error

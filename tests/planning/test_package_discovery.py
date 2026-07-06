@@ -307,24 +307,32 @@ class TestDiscoverPackagesFromLaunchpad:
         # Create mock repos with +source pattern URLs
         mock_nova_repo = MagicMock()
         mock_nova_repo.name = "nova"
-        mock_nova_repo.git_https_url = "https://git.launchpad.net/~ubuntu-openstack-dev/ubuntu/+source/nova"
+        mock_nova_repo.git_https_url = (
+            "https://git.launchpad.net/~ubuntu-openstack-dev/ubuntu/+source/nova"
+        )
         mock_nova_repo.date_last_modified = recent
 
         mock_glance_repo = MagicMock()
         mock_glance_repo.name = "glance"
-        mock_glance_repo.git_https_url = "https://git.launchpad.net/~ubuntu-openstack-dev/ubuntu/+source/glance"
+        mock_glance_repo.git_https_url = (
+            "https://git.launchpad.net/~ubuntu-openstack-dev/ubuntu/+source/glance"
+        )
         mock_glance_repo.date_last_modified = recent
 
         mock_charm_repo = MagicMock()
         mock_charm_repo.name = "nova-charm"
-        mock_charm_repo.git_https_url = "https://git.launchpad.net/~ubuntu-openstack-dev/ubuntu/+source/nova-charm"
+        mock_charm_repo.git_https_url = (
+            "https://git.launchpad.net/~ubuntu-openstack-dev/ubuntu/+source/nova-charm"
+        )
         mock_charm_repo.date_last_modified = recent
 
         mock_lp = MagicMock()
         mock_team = MagicMock()
         mock_lp.people.__getitem__.return_value = mock_team
         mock_lp.git_repositories.getRepositories.return_value = [
-            mock_nova_repo, mock_glance_repo, mock_charm_repo
+            mock_nova_repo,
+            mock_glance_repo,
+            mock_charm_repo,
         ]
 
         with patch("packastack.planning.package_discovery.Launchpad") as mock_Launchpad:
@@ -346,7 +354,9 @@ class TestDiscoverPackagesFromLaunchpad:
         # Create mock repos
         mock_nova_repo = MagicMock()
         mock_nova_repo.name = "nova"
-        mock_nova_repo.git_https_url = "https://git.launchpad.net/~ubuntu-openstack-dev/ubuntu/+source/nova"
+        mock_nova_repo.git_https_url = (
+            "https://git.launchpad.net/~ubuntu-openstack-dev/ubuntu/+source/nova"
+        )
         mock_nova_repo.date_last_modified = recent
 
         mock_lp = MagicMock()
@@ -416,14 +426,18 @@ class TestDiscoverPackagesFromLaunchpad:
         assert result.packages == []
         assert "enumeration failed" in result.errors[0]
 
-    def test_cache_write_failure_is_ignored(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_cache_write_failure_is_ignored(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test cache write errors are ignored."""
         cache_file = tmp_path / "launchpad-repos.json"
         recent = datetime.now(UTC)
 
         mock_repo = MagicMock()
         mock_repo.name = "nova"
-        mock_repo.git_https_url = "https://git.launchpad.net/~ubuntu-openstack-dev/ubuntu/+source/nova"
+        mock_repo.git_https_url = (
+            "https://git.launchpad.net/~ubuntu-openstack-dev/ubuntu/+source/nova"
+        )
         mock_repo.date_last_modified = recent
 
         mock_lp = MagicMock()
@@ -453,19 +467,24 @@ class TestDiscoverPackagesFromLaunchpad:
         # Create mock repos with different path formats
         mock_valid_repo = MagicMock()
         mock_valid_repo.name = "keystone"
-        mock_valid_repo.git_https_url = "https://git.launchpad.net/~ubuntu-openstack-dev/ubuntu/+source/keystone"
+        mock_valid_repo.git_https_url = (
+            "https://git.launchpad.net/~ubuntu-openstack-dev/ubuntu/+source/keystone"
+        )
         mock_valid_repo.date_last_modified = recent
 
         mock_invalid_repo = MagicMock()
         mock_invalid_repo.name = "some-other-repo"
-        mock_invalid_repo.git_https_url = "https://git.launchpad.net/~ubuntu-openstack-dev/some-other-repo"
+        mock_invalid_repo.git_https_url = (
+            "https://git.launchpad.net/~ubuntu-openstack-dev/some-other-repo"
+        )
         mock_invalid_repo.date_last_modified = recent
 
         mock_lp = MagicMock()
         mock_team = MagicMock()
         mock_lp.people.__getitem__.return_value = mock_team
         mock_lp.git_repositories.getRepositories.return_value = [
-            mock_valid_repo, mock_invalid_repo
+            mock_valid_repo,
+            mock_invalid_repo,
         ]
 
         with patch("packastack.planning.package_discovery.Launchpad") as mock_Launchpad:
@@ -625,7 +644,9 @@ class TestGetReleasesLibrariesAndServices:
         result = get_releases_libraries_and_services(tmp_path)
         assert result == set()
 
-    def test_yaml_disabled_returns_empty(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_yaml_disabled_returns_empty(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test yaml missing returns empty set."""
         from packastack.planning import package_discovery
 
@@ -668,7 +689,9 @@ class TestReleasesPackageHelpers:
         assert "oslo.config" in packages
         assert "python-oslo.config" in packages
 
-    def test_all_releases_packages_yaml_disabled(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_all_releases_packages_yaml_disabled(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test yaml missing returns empty set."""
         from packastack.planning import package_discovery
 
@@ -705,13 +728,17 @@ class TestCrossReferencePackages:
         )
 
         # Cross-reference - unknown-package is not in releases or registry
-        with patch("packastack.planning.package_discovery._get_upstreams_registry", return_value=None):
+        with patch(
+            "packastack.planning.package_discovery._get_upstreams_registry", return_value=None
+        ):
             _cross_reference_packages(result, tmp_path)
 
         # unknown-package has no upstream entry (not in releases)
         assert "unknown-package" in result.missing_upstream
 
-    def test_registry_common_name_resolution(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_registry_common_name_resolution(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test registry common names prevent missing-upstream flags."""
         from packastack.planning import package_discovery
 

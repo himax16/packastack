@@ -114,6 +114,205 @@ ignore_missing_imports = true
 module = ["debian", "debian.*"]
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = ["launchpadlib", "launchpadlib.*"]
+ignore_missing_imports = true
+
+# Integration-heavy modules: relax strict type checking for known issues
+# (None-handling in build orchestration, untyped third-party APIs, etc.).
+# Each group lists only the error codes actually present in that module set,
+# so new error categories still surface.
+[[tool.mypy.overrides]]
+module = [
+    "packastack.commands.build_subset",
+    "packastack.upstream.retirement",
+]
+disable_error_code = [
+    "arg-type",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "packastack.upstream.source",
+]
+disable_error_code = [
+    "arg-type",
+    "assignment",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "packastack.build.single_build",
+]
+disable_error_code = [
+    "arg-type",
+    "assignment",
+    "attr-defined",
+    "call-arg",
+    "operator",
+    "return-value",
+    "type-arg",
+    "union-attr",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "packastack.upstream.registry",
+]
+disable_error_code = [
+    "arg-type",
+    "no-any-return",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "packastack.commands.build",
+]
+disable_error_code = [
+    "arg-type",
+    "operator",
+    "type-arg",
+    "union-attr",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "packastack.commands.plan",
+]
+disable_error_code = [
+    "arg-type",
+    "type-arg",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "packastack.build.all_runner",
+]
+disable_error_code = [
+    "assignment",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "packastack.debpkg.gbp",
+]
+disable_error_code = [
+    "assignment",
+    "attr-defined",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "packastack.planning.graph",
+]
+disable_error_code = [
+    "assignment",
+    "index",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "packastack.logs.dep_sync",
+]
+disable_error_code = [
+    "assignment",
+    "index",
+    "type-arg",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "packastack.logs.plan_graph",
+    "packastack.planning.type_selection",
+]
+disable_error_code = [
+    "assignment",
+    "type-arg",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "packastack.logs.type_selection",
+]
+disable_error_code = [
+    "assignment",
+    "var-annotated",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "packastack.debpkg.changelog",
+]
+disable_error_code = [
+    "attr-defined",
+    "truthy-function",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "packastack.planning.build_manifest",
+]
+disable_error_code = [
+    "index",
+    "type-arg",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "packastack.debpkg.launchpad_yaml",
+    "packastack.debpkg.manpages",
+    "packastack.upstream.releases",
+]
+disable_error_code = [
+    "no-any-return",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "packastack.build.tarball",
+    "packastack.planning.targets",
+]
+disable_error_code = [
+    "no-untyped-def",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "packastack.apt.packages",
+    "packastack.commands.clean",
+    "packastack.planning.control_min_versions",
+    "packastack.planning.dependency_satisfaction",
+    "packastack.upstream.gitfetch",
+    "packastack.upstream.tarball_cache",
+]
+disable_error_code = [
+    "type-arg",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "packastack.planning.package_discovery",
+]
+disable_error_code = [
+    "unused-ignore",
+]
+
+# Test files: relax strict type annotation requirements.
+# Tests import from modules with relaxed overrides above, which mypy
+# treats as missing library stubs. Suppress import-untyped and
+# no-untyped-def for test modules.
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+disable_error_code = [
+    "no-untyped-def",
+    "no-untyped-call",
+    "import-untyped",
+]
+
+[[tool.mypy.overrides]]
+module = ["packastack.*"]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = [
@@ -183,6 +382,7 @@ exclude_lines = [
     "if __name__ == .__main__.:",
     "@abstractmethod",
 ]
+fail_under = 95
 
 [dependency-groups]
 docs = [

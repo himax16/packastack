@@ -12,12 +12,16 @@ def _index(entries: list[tuple[str, str, str]]) -> PackageIndex:
 
 
 def test_version_check_and_cloud_archive_flag() -> None:
-    dev = _index([
-        ("python3-foo", "2.0", "main"),
-    ])
-    prev = _index([
-        ("python3-foo", "1.0", "main"),
-    ])
+    dev = _index(
+        [
+            ("python3-foo", "2.0", "main"),
+        ]
+    )
+    prev = _index(
+        [
+            ("python3-foo", "1.0", "main"),
+        ]
+    )
 
     deps = [
         ParsedDependency(name="python3-foo", relation=">=", version="2.0"),
@@ -43,12 +47,16 @@ def test_version_check_and_cloud_archive_flag() -> None:
 
 
 def test_mir_warning_detected() -> None:
-    dev = _index([
-        ("python3-baz", "1.0", "universe"),
-    ])
-    prev = _index([
-        ("python3-baz", "1.0", "universe"),
-    ])
+    dev = _index(
+        [
+            ("python3-baz", "1.0", "universe"),
+        ]
+    )
+    prev = _index(
+        [
+            ("python3-baz", "1.0", "universe"),
+        ]
+    )
 
     deps = [ParsedDependency(name="python3-baz")]
 
@@ -60,9 +68,11 @@ def test_mir_warning_detected() -> None:
 
 
 def test_alternative_dep_returns_first_found() -> None:
-    dev = _index([
-        ("python3-alt", "1.0", "main"),
-    ])
+    dev = _index(
+        [
+            ("python3-alt", "1.0", "main"),
+        ]
+    )
 
     dep = ParsedDependency(
         name="python3-alt",
@@ -86,9 +96,11 @@ def test_alternative_dep_returns_first_found() -> None:
 
 
 def test_missing_version_counts_as_found() -> None:
-    dev = _index([
-        ("python3-noversion", "", "main"),
-    ])
+    dev = _index(
+        [
+            ("python3-noversion", "", "main"),
+        ]
+    )
 
     dep = ParsedDependency(name="python3-noversion")
 

@@ -316,7 +316,9 @@ def run_plan_for_package(
             with activity_spinner("policy", "Checking snapshot eligibility"):
                 for t in resolved_targets:
                     if t.resolution_source.startswith("registry"):
-                        run.log_event({"event": "policy.skip_snapshot_registry", "package": t.source_package})
+                        run.log_event(
+                            {"event": "policy.skip_snapshot_registry", "package": t.source_package}
+                        )
                         continue
 
                     # Use the canonical upstream project name for snapshot
@@ -330,8 +332,12 @@ def run_plan_for_package(
                     # Strip common distribution prefixes (python3-/python-) so
                     # that library packages map to their upstream project names
                     # (e.g. python-stevedore -> stevedore) for policy checks.
-                    if isinstance(upstream_name, str) and (upstream_name.startswith("python3-") or upstream_name.startswith("python-")):
-                        upstream_name = upstream_name.removeprefix("python3-").removeprefix("python-")
+                    if isinstance(upstream_name, str) and (
+                        upstream_name.startswith("python3-") or upstream_name.startswith("python-")
+                    ):
+                        upstream_name = upstream_name.removeprefix("python3-").removeprefix(
+                            "python-"
+                        )
                     eligible, reason, preferred_version = is_snapshot_eligible(
                         releases_repo, openstack_target, upstream_name
                     )
@@ -339,8 +345,13 @@ def run_plan_for_package(
                     # If the project wasn't found and the name looks like a
                     # python- prefixed package, retry using the stripped
                     # base name (e.g., python-stevedore -> stevedore).
-                    if not eligible and isinstance(upstream_name, str) and (
-                        upstream_name.startswith("python3-") or upstream_name.startswith("python-")
+                    if (
+                        not eligible
+                        and isinstance(upstream_name, str)
+                        and (
+                            upstream_name.startswith("python3-")
+                            or upstream_name.startswith("python-")
+                        )
                     ):
                         alt = upstream_name.removeprefix("python3-").removeprefix("python-")
                         try:
@@ -348,39 +359,59 @@ def run_plan_for_package(
                                 releases_repo, openstack_target, alt
                             )
                             if alt_eligible:
-                                eligible, reason, preferred_version = alt_eligible, alt_reason, alt_pref
+                                eligible, reason, preferred_version = (
+                                    alt_eligible,
+                                    alt_reason,
+                                    alt_pref,
+                                )
                         except Exception:
                             pass
 
                     if not eligible:
                         # Use the normalized upstream name in policy messages
                         policy_issues.append(f"{upstream_name}: {reason}")
-                        run.log_event({
-                            "event": "policy.blocked",
-                            "package": t.source_package,
-                            "upstream": upstream_name,
-                            "reason": reason,
-                        })
+                        run.log_event(
+                            {
+                                "event": "policy.blocked",
+                                "package": t.source_package,
+                                "upstream": upstream_name,
+                                "reason": reason,
+                            }
+                        )
                         if preferred_version:
                             preferred_versions[t.source_package] = preferred_version
                     elif "Warning" in reason:
                         activity("policy", f"Warning: {t.source_package}: {reason}")
-                        run.log_event({"event": "policy.warning", "package": t.source_package, "reason": reason})
+                        run.log_event(
+                            {
+                                "event": "policy.warning",
+                                "package": t.source_package,
+                                "reason": reason,
+                            }
+                        )
         else:
             for t in resolved_targets:
                 if t.resolution_source.startswith("registry"):
-                    run.log_event({"event": "policy.skip_snapshot_registry", "package": t.source_package})
+                    run.log_event(
+                        {"event": "policy.skip_snapshot_registry", "package": t.source_package}
+                    )
                     continue
                 upstream_name = getattr(t, "upstream_project", t.source_package)
                 if isinstance(upstream_name, str) and "/" in upstream_name:
                     upstream_name = upstream_name.split("/")[-1]
-                if isinstance(upstream_name, str) and (upstream_name.startswith("python3-") or upstream_name.startswith("python-")):
+                if isinstance(upstream_name, str) and (
+                    upstream_name.startswith("python3-") or upstream_name.startswith("python-")
+                ):
                     upstream_name = upstream_name.removeprefix("python3-").removeprefix("python-")
                 eligible, reason, preferred_version = is_snapshot_eligible(
                     releases_repo, openstack_target, upstream_name
                 )
-                if not eligible and isinstance(upstream_name, str) and (
-                    upstream_name.startswith("python3-") or upstream_name.startswith("python-")
+                if (
+                    not eligible
+                    and isinstance(upstream_name, str)
+                    and (
+                        upstream_name.startswith("python3-") or upstream_name.startswith("python-")
+                    )
                 ):
                     alt = upstream_name.removeprefix("python3-").removeprefix("python-")
                     try:
@@ -388,17 +419,23 @@ def run_plan_for_package(
                             releases_repo, openstack_target, alt
                         )
                         if alt_eligible:
-                            eligible, reason, preferred_version = alt_eligible, alt_reason, alt_pref
+                            eligible, reason, preferred_version = (
+                                alt_eligible,
+                                alt_reason,
+                                alt_pref,
+                            )
                     except Exception:
                         pass
                 if not eligible:
                     policy_issues.append(f"{upstream_name}: {reason}")
-                    run.log_event({
-                        "event": "policy.blocked",
-                        "package": t.source_package,
-                        "upstream": upstream_name,
-                        "reason": reason,
-                    })
+                    run.log_event(
+                        {
+                            "event": "policy.blocked",
+                            "package": t.source_package,
+                            "upstream": upstream_name,
+                            "reason": reason,
+                        }
+                    )
                     if preferred_version:
                         preferred_versions[t.source_package] = preferred_version
 
@@ -439,7 +476,9 @@ def run_plan_for_package(
             cycles=[],
             plan_graph=None,
         )
-        run.log_event({"event": "report.plan_result", "result": str(plan_result), "build_deps": False})
+        run.log_event(
+            {"event": "report.plan_result", "result": str(plan_result), "build_deps": False}
+        )
         return plan_result, EXIT_SUCCESS
 
     # Phase: plan - Load Ubuntu package index
@@ -466,7 +505,9 @@ def run_plan_for_package(
                 pockets=pockets,
                 components=components,
                 arches=["host", "all"],
-                mirror=cfg.get("mirrors", {}).get("ubuntu_archive", "http://archive.ubuntu.com/ubuntu"),
+                mirror=cfg.get("mirrors", {}).get(
+                    "ubuntu_archive", "http://archive.ubuntu.com/ubuntu"
+                ),
                 ttl_seconds=0,
                 force=True,
                 offline=False,
@@ -476,17 +517,23 @@ def run_plan_for_package(
             # Reload index after refresh
             if verbose_output:
                 with activity_spinner("plan", "Reloading Ubuntu package index"):
-                    ubuntu_index = load_package_index(ubuntu_cache, resolved_ubuntu, pockets, components)
+                    ubuntu_index = load_package_index(
+                        ubuntu_cache, resolved_ubuntu, pockets, components
+                    )
             else:
-                ubuntu_index = load_package_index(ubuntu_cache, resolved_ubuntu, pockets, components)
+                ubuntu_index = load_package_index(
+                    ubuntu_cache, resolved_ubuntu, pockets, components
+                )
         except Exception as e:
             activity("warn", f"Could not auto-refresh package index: {e}")
 
-    run.log_event({
-        "event": "plan.index_loaded",
-        "packages": len(ubuntu_index.packages),
-        "sources": len(ubuntu_index.sources),
-    })
+    run.log_event(
+        {
+            "event": "plan.index_loaded",
+            "packages": len(ubuntu_index.packages),
+            "sources": len(ubuntu_index.sources),
+        }
+    )
 
     # Apply Ubuntu source-name fallbacks for resolved targets so that
     # planning uses the canonical source package names available in the
@@ -522,6 +569,7 @@ def run_plan_for_package(
     local_index: PackageIndex | None = None
     if local_repo.exists():
         from packastack.apt.packages import load_local_repo_index
+
         try:
             local_index = load_local_repo_index(local_repo, get_host_arch())
             total_local = len(local_index.packages)
@@ -558,22 +606,29 @@ def run_plan_for_package(
             openstack_series=openstack_target,
         )
 
-    run.log_event({
-        "event": "plan.graph_built",
-        "nodes": len(graph.nodes),
-        "edges": sum(len(e) for e in graph.edges.values()),
-    })
+    run.log_event(
+        {
+            "event": "plan.graph_built",
+            "nodes": len(graph.nodes),
+            "edges": sum(len(e) for e in graph.edges.values()),
+        }
+    )
 
     if verbose_output:
-        activity("plan", f"Graph: {len(graph.nodes)} packages, {sum(len(e) for e in graph.edges.values())} dependencies")
+        activity(
+            "plan",
+            f"Graph: {len(graph.nodes)} packages, {sum(len(e) for e in graph.edges.values())} dependencies",
+        )
 
     # Check for cycles
     cycles = graph.detect_cycles()
     if cycles:
-        run.log_event({
-            "event": "plan.cycle_edges",
-            "edges": graph.get_cycle_edges(),
-        })
+        run.log_event(
+            {
+                "event": "plan.cycle_edges",
+                "edges": graph.get_cycle_edges(),
+            }
+        )
         for cycle in cycles:
             cycle_str = " -> ".join(cycle)
             activity("plan", f"Cycle detected: {cycle_str}")
@@ -602,8 +657,13 @@ def run_plan_for_package(
                 for pkg, deps in mir_candidates.items():
                     for dep in deps:
                         activity("verify", f"MIR warning: {pkg} depends on {dep}")
-                        run.log_event({"event": "verify.mir_warning", "package": pkg, "dependency": dep})
-            activity("verify", f"MIR candidates: {sum(len(d) for d in mir_candidates.values())} dependencies")
+                        run.log_event(
+                            {"event": "verify.mir_warning", "package": pkg, "dependency": dep}
+                        )
+            activity(
+                "verify",
+                f"MIR candidates: {sum(len(d) for d in mir_candidates.values())} dependencies",
+            )
         else:
             for pkg, deps in mir_candidates.items():
                 for dep in deps:
@@ -722,8 +782,13 @@ def _resolve_package_targets(
             )
             if is_name_match and (pkg_dir / "debian" / "control").exists() and name not in seen:
                 seen.add(name)
-                results.append(ResolvedTarget(source_package=name, upstream_project=common_name, resolution_source="local"))
-
+                results.append(
+                    ResolvedTarget(
+                        source_package=name,
+                        upstream_project=common_name,
+                        resolution_source="local",
+                    )
+                )
 
     # Create resolver
     resolver = TargetResolver(
@@ -751,20 +816,26 @@ def _resolve_package_targets(
         upstream = identity.canonical_upstream or identity.source_package
         if isinstance(upstream, str) and "/" in upstream:
             upstream = upstream.split("/")[-1]
-        if isinstance(upstream, str) and (upstream.startswith("python3-") or upstream.startswith("python-")):
+        if isinstance(upstream, str) and (
+            upstream.startswith("python3-") or upstream.startswith("python-")
+        ):
             upstream = upstream.removeprefix("python3-").removeprefix("python-")
 
-        converted.append(ResolvedTarget(
-            source_package=identity.source_package,
-            upstream_project=upstream,
-            resolution_source=identity.origin.value,
-        ))
-        run.log_event({
-            "event": "resolve.match",
-            "package": identity.source_package,
-            "upstream": identity.canonical_upstream,
-            "source": identity.origin.value,
-        })
+        converted.append(
+            ResolvedTarget(
+                source_package=identity.source_package,
+                upstream_project=upstream,
+                resolution_source=identity.origin.value,
+            )
+        )
+        run.log_event(
+            {
+                "event": "resolve.match",
+                "package": identity.source_package,
+                "upstream": identity.canonical_upstream,
+                "source": identity.origin.value,
+            }
+        )
 
     # Merge converted results with any local matches
     for r in converted:
@@ -778,7 +849,13 @@ def _resolve_package_targets(
             if proj:
                 pkg_name = project_to_package_name(common_name, local_repo)
                 if pkg_name not in {r.source_package for r in results}:
-                    results.append(ResolvedTarget(source_package=pkg_name, upstream_project=common_name, resolution_source="releases_exact"))
+                    results.append(
+                        ResolvedTarget(
+                            source_package=pkg_name,
+                            upstream_project=common_name,
+                            resolution_source="releases_exact",
+                        )
+                    )
         except Exception:
             pass
 
@@ -811,11 +888,13 @@ def _enforce_retirement(
                     "policy",
                     f"Package {target.source_package} is RETIRED (registry: {target.upstream_project})",
                 )
-                run.log_event({
-                    "event": "policy.retired_registry",
-                    "package": target.source_package,
-                    "upstream": target.upstream_project,
-                })
+                run.log_event(
+                    {
+                        "event": "policy.retired_registry",
+                        "package": target.source_package,
+                        "upstream": target.upstream_project,
+                    }
+                )
                 return EXIT_CONFIG_ERROR
 
     # OpenStack project-config based retirement
@@ -836,18 +915,22 @@ def _enforce_retirement(
             for target in targets:
                 # Skip retirement check if package is from upstreams.yaml
                 if target.resolution_source == "upstreams.yaml":
-                    run.log_event({
-                        "event": "policy.retirement_check_skipped",
-                        "package": target.source_package,
-                        "reason": "explicit upstreams.yaml entry",
-                    })
+                    run.log_event(
+                        {
+                            "event": "policy.retirement_check_skipped",
+                            "package": target.source_package,
+                            "reason": "explicit upstreams.yaml entry",
+                        }
+                    )
                     continue
 
                 deliverable = target.upstream_project
                 if target.source_package.startswith("python-"):
                     deliverable = target.source_package[7:]
 
-                retirement_info = retirement_checker.check_retirement(target.source_package, deliverable)
+                retirement_info = retirement_checker.check_retirement(
+                    target.source_package, deliverable
+                )
                 if retirement_info.status == RetirementStatus.RETIRED:
                     activity(
                         "policy",
@@ -855,20 +938,24 @@ def _enforce_retirement(
                     )
                     if retirement_info.description:
                         activity("policy", f"  Reason: {retirement_info.description}")
-                    run.log_event({
-                        "event": "policy.retired_project",
-                        "package": target.source_package,
-                        "upstream_project": retirement_info.upstream_project,
-                        "source": retirement_info.source,
-                        "description": retirement_info.description,
-                    })
+                    run.log_event(
+                        {
+                            "event": "policy.retired_project",
+                            "package": target.source_package,
+                            "upstream_project": retirement_info.upstream_project,
+                            "source": retirement_info.source,
+                            "description": retirement_info.description,
+                        }
+                    )
                     return EXIT_CONFIG_ERROR
                 if retirement_info.status == RetirementStatus.POSSIBLY_RETIRED:
-                    run.log_event({
-                        "event": "policy.possibly_retired",
-                        "package": target.source_package,
-                        "source": retirement_info.source,
-                    })
+                    run.log_event(
+                        {
+                            "event": "policy.possibly_retired",
+                            "package": target.source_package,
+                            "source": retirement_info.source,
+                        }
+                    )
 
     return None
 
@@ -960,7 +1047,9 @@ def _build_dependency_graph(
         skipped = openstack_set & candidates_to_skip
         if skipped:
             run.log_event({"event": "plan.skip_rebuild_local", "packages": list(skipped)})
-            activity("plan", f"Skipping rebuild for {len(skipped)} packages present in local repo:")
+            activity(
+                "plan", f"Skipping rebuild for {len(skipped)} packages present in local repo:"
+            )
             for pkg in sorted(skipped):
                 activity("plan", f"  - {pkg}")
             openstack_set -= skipped
@@ -973,11 +1062,13 @@ def _build_dependency_graph(
     )
 
     for source, dep in result.excluded_edges:
-        run.log_event({
-            "event": "graph.soft_dep_excluded",
-            "source": source,
-            "dep": dep,
-        })
+        run.log_event(
+            {
+                "event": "graph.soft_dep_excluded",
+                "source": source,
+                "dep": dep,
+            }
+        )
 
     return result.graph, result.mir_candidates
 
@@ -997,7 +1088,9 @@ def _write_plan_dependency_summary(
     current_lts_codename = current_lts.codename if current_lts else ""
     current_lts_index = None
     if current_lts_codename:
-        current_lts_index = load_package_index(cache_root, current_lts_codename, pockets, components)
+        current_lts_index = load_package_index(
+            cache_root, current_lts_codename, pockets, components
+        )
 
     packages: list[dict[str, object]] = []
     totals = {
@@ -1008,15 +1101,19 @@ def _write_plan_dependency_summary(
 
     for node in sorted(graph.nodes):
         deps = [ParsedDependency(name=d) for d in graph.edges.get(node, set())]
-        _results, summary = evaluate_dependencies(deps, ubuntu_index, current_lts_index, kind="runtime")
-        packages.append({
-            "package": node,
-            "dependencies": summary.total,
-            "dev_satisfied": summary.dev_satisfied,
-            "current_lts_satisfied": summary.prev_lts_satisfied,
-            "cloud_archive_required": summary.cloud_archive_required,
-            "mir_warnings": summary.mir_warnings,
-        })
+        _results, summary = evaluate_dependencies(
+            deps, ubuntu_index, current_lts_index, kind="runtime"
+        )
+        packages.append(
+            {
+                "package": node,
+                "dependencies": summary.total,
+                "dev_satisfied": summary.dev_satisfied,
+                "current_lts_satisfied": summary.prev_lts_satisfied,
+                "cloud_archive_required": summary.cloud_archive_required,
+                "mir_warnings": summary.mir_warnings,
+            }
+        )
 
         totals["total"] += summary.total
         totals["cloud_archive_required"] += summary.cloud_archive_required
@@ -1141,16 +1238,20 @@ def _plan_all_packages(
             launchpad_cache_file=launchpad_cache,
         )
         package_names = sorted(discovery_result.packages)
-        run.log_event({
-            "event": "discover.packages",
-            "count": len(package_names),
-            "source": discovery_result.source,
-            "errors": discovery_result.errors,
-            "missing_upstream": discovery_result.missing_upstream,
-            "missing_packaging": discovery_result.missing_packaging,
-        })
+        run.log_event(
+            {
+                "event": "discover.packages",
+                "count": len(package_names),
+                "source": discovery_result.source,
+                "errors": discovery_result.errors,
+                "missing_upstream": discovery_result.missing_upstream,
+                "missing_packaging": discovery_result.missing_packaging,
+            }
+        )
 
-    activity("discover", f"Found {len(package_names)} packages (source: {discovery_result.source})")
+    activity(
+        "discover", f"Found {len(package_names)} packages (source: {discovery_result.source})"
+    )
 
     if discovery_result.errors:
         for err in discovery_result.errors[:3]:
@@ -1167,9 +1268,7 @@ def _plan_all_packages(
 
     # Convert package names to (source_package, deliverable) tuples
     # For libraries, strip python- prefix to get the deliverable name
-    packages_tuples = [
-        (pkg, _source_package_to_deliverable(pkg)) for pkg in package_names
-    ]
+    packages_tuples = [(pkg, _source_package_to_deliverable(pkg)) for pkg in package_names]
 
     # Build watch config (disabled in offline mode)
     watch_config = WatchConfig(
@@ -1213,7 +1312,9 @@ def _plan_all_packages(
                     target_series=openstack_target,
                 )
         elif offline:
-            activity("warn", "Project config not found, skipping retirement detection (offline mode)")
+            activity(
+                "warn", "Project config not found, skipping retirement detection (offline mode)"
+            )
         else:
             activity("warn", "Project config clone failed, skipping retirement detection")
 
@@ -1280,42 +1381,56 @@ def _plan_all_packages(
     # Copy cross-reference warnings from discovery to report
     report.missing_upstream = discovery_result.missing_upstream
     report.missing_packaging = discovery_result.missing_packaging
-    run.log_event({
-        "event": "type_selection.complete",
-        "total": report.total_count,
-        "by_type": report.counts_by_type,
-    })
+    run.log_event(
+        {
+            "event": "type_selection.complete",
+            "total": report.total_count,
+            "by_type": report.counts_by_type,
+        }
+    )
 
     activity("analyze", f"Type selection complete: {report.total_count} packages analyzed")
 
     # Report retired projects summary
     if report.count_retired > 0:
         activity("plan", f"Retired projects: {report.count_retired} (excluded from graph)")
-        run.log_event({
-            "event": "plan.retired_projects",
-            "count": report.count_retired,
-            "packages": list(report.retired_packages),
-        })
+        run.log_event(
+            {
+                "event": "plan.retired_projects",
+                "count": report.count_retired,
+                "packages": list(report.retired_packages),
+            }
+        )
     if report.possibly_retired_packages:
-        activity("plan", f"Possibly retired projects: {len(report.possibly_retired_packages)} (excluded from graph)")
-        run.log_event({
-            "event": "plan.possibly_retired_projects",
-            "count": len(report.possibly_retired_packages),
-            "packages": list(report.possibly_retired_packages),
-        })
+        activity(
+            "plan",
+            f"Possibly retired projects: {len(report.possibly_retired_packages)} (excluded from graph)",
+        )
+        run.log_event(
+            {
+                "event": "plan.possibly_retired_projects",
+                "count": len(report.possibly_retired_packages),
+                "packages": list(report.possibly_retired_packages),
+            }
+        )
 
     # Report packages needing upstreams.yaml mapping
     if report.needs_upstream_mapping:
-        activity("plan", f"Packages needing upstreams.yaml mapping: {len(report.needs_upstream_mapping)}")
+        activity(
+            "plan",
+            f"Packages needing upstreams.yaml mapping: {len(report.needs_upstream_mapping)}",
+        )
         for pkg in sorted(report.needs_upstream_mapping)[:5]:
             activity("plan", f"  - {pkg}")
         if len(report.needs_upstream_mapping) > 5:
             activity("plan", f"  ... and {len(report.needs_upstream_mapping) - 5} more")
-        run.log_event({
-            "event": "plan.needs_upstream_mapping",
-            "count": len(report.needs_upstream_mapping),
-            "packages": list(report.needs_upstream_mapping),
-        })
+        run.log_event(
+            {
+                "event": "plan.needs_upstream_mapping",
+                "count": len(report.needs_upstream_mapping),
+                "packages": list(report.needs_upstream_mapping),
+            }
+        )
 
     graph_package_names = package_names
     excluded_retired: set[str] = set()
@@ -1323,11 +1438,13 @@ def _plan_all_packages(
         excluded_retired = set(report.retired_packages) | set(report.possibly_retired_packages)
         if excluded_retired:
             graph_package_names = [pkg for pkg in package_names if pkg not in excluded_retired]
-            run.log_event({
-                "event": "plan.graph_excluded_retired",
-                "count": len(excluded_retired),
-                "packages": sorted(excluded_retired),
-            })
+            run.log_event(
+                {
+                    "event": "plan.graph_excluded_retired",
+                    "count": len(excluded_retired),
+                    "packages": sorted(excluded_retired),
+                }
+            )
             activity("plan", f"Excluded {len(excluded_retired)} retired packages from graph")
 
     # Phase: reports
@@ -1336,11 +1453,13 @@ def _plan_all_packages(
 
     with activity_spinner("report", "Generating type selection reports"):
         report_paths = write_type_selection_reports(report, reports_dir)
-        run.log_event({
-            "event": "reports.written",
-            "json_path": str(report_paths["json"]),
-            "html_path": str(report_paths["html"]),
-        })
+        run.log_event(
+            {
+                "event": "reports.written",
+                "json_path": str(report_paths["json"]),
+                "html_path": str(report_paths["html"]),
+            }
+        )
 
     activity("report", f"Reports written to {reports_dir}")
 
@@ -1351,11 +1470,13 @@ def _plan_all_packages(
                 type_report=report,
                 reports_dir=reports_dir,
             )
-            run.log_event({
-                "event": "reports.watch_resolution_written",
-                "json_path": str(watch_paths["json"]),
-                "html_path": str(watch_paths["html"]),
-            })
+            run.log_event(
+                {
+                    "event": "reports.watch_resolution_written",
+                    "json_path": str(watch_paths["json"]),
+                    "html_path": str(watch_paths["html"]),
+                }
+            )
         activity("report", f"Watch resolution report written to {reports_dir}")
 
     # Phase: graph reports (always generated)
@@ -1368,11 +1489,13 @@ def _plan_all_packages(
 
     with activity_spinner("plan", "Loading Ubuntu package index"):
         ubuntu_index = load_package_index(ubuntu_cache, resolved_ubuntu, pockets, components)
-        run.log_event({
-            "event": "plan.index_loaded",
-            "packages": len(ubuntu_index.packages),
-            "sources": len(ubuntu_index.sources),
-        })
+        run.log_event(
+            {
+                "event": "plan.index_loaded",
+                "packages": len(ubuntu_index.packages),
+                "sources": len(ubuntu_index.sources),
+            }
+        )
 
     activity("plan", f"Loaded {len(ubuntu_index.packages)} packages from Ubuntu index")
 
@@ -1390,20 +1513,27 @@ def _plan_all_packages(
             exclude_packages=excluded_retired,
         )
         cycles = dep_graph.detect_cycles()
-        run.log_event({
-            "event": "plan.graph_built",
-            "nodes": len(dep_graph.nodes),
-            "edges": sum(len(e) for e in dep_graph.edges.values()),
-            "cycles": len(cycles),
-        })
+        run.log_event(
+            {
+                "event": "plan.graph_built",
+                "nodes": len(dep_graph.nodes),
+                "edges": sum(len(e) for e in dep_graph.edges.values()),
+                "cycles": len(cycles),
+            }
+        )
 
-    activity("plan", f"Graph: {len(dep_graph.nodes)} packages, {sum(len(e) for e in dep_graph.edges.values())} dependencies")
+    activity(
+        "plan",
+        f"Graph: {len(dep_graph.nodes)} packages, {sum(len(e) for e in dep_graph.edges.values())} dependencies",
+    )
     if cycles:
         cycle_edges = dep_graph.get_cycle_edges()
-        run.log_event({
-            "event": "plan.cycle_edges",
-            "edges": cycle_edges,
-        })
+        run.log_event(
+            {
+                "event": "plan.cycle_edges",
+                "edges": cycle_edges,
+            }
+        )
         activity("warn", f"Detected {len(cycles)} dependency cycle(s)")
 
         suggestions = suggest_cycle_edge_exclusions(
@@ -1415,10 +1545,12 @@ def _plan_all_packages(
             upstream_cache_base=paths.get("upstream_tarballs"),
         )
         if suggestions:
-            run.log_event({
-                "event": "plan.cycle_exclusion_suggestions",
-                "suggestions": [suggestion.to_dict() for suggestion in suggestions],
-            })
+            run.log_event(
+                {
+                    "event": "plan.cycle_exclusion_suggestions",
+                    "suggestions": [suggestion.to_dict() for suggestion in suggestions],
+                }
+            )
             activity(
                 "warn",
                 f"Suggested {len(suggestions)} edge exclusion(s) based on upstream requirements",
@@ -1443,11 +1575,13 @@ def _plan_all_packages(
         )
 
         graph_paths = write_plan_graph_reports(plan_graph, reports_dir)
-        run.log_event({
-            "event": "graph_reports.written",
-            "json_path": str(graph_paths["json"]),
-            "html_path": str(graph_paths["html"]),
-        })
+        run.log_event(
+            {
+                "event": "graph_reports.written",
+                "json_path": str(graph_paths["json"]),
+                "html_path": str(graph_paths["html"]),
+            }
+        )
 
     dep_summary_paths = _write_plan_dependency_summary(
         graph=dep_graph,
@@ -1463,7 +1597,9 @@ def _plan_all_packages(
     # Support both legacy --print-graph and new --print-build-order flags
     show_build_order = print_build_order or print_graph
     focus = build_order_focus or graph_focus  # Prefer new flag, fall back to legacy
-    format_choice = build_order_format if not print_graph else graph_format  # Use legacy if --print-graph
+    format_choice = (
+        build_order_format if not print_graph else graph_format
+    )  # Use legacy if --print-graph
 
     if show_build_order:
         # Determine format
@@ -1518,7 +1654,14 @@ def _plan_all_packages(
             "html": str(report_paths["html"]),
             "plan_graph_json": str(graph_paths["json"]),
             "plan_graph_html": str(graph_paths["html"]),
-            **({"dependency_summary_json": str(dep_summary_paths["json"]), "dependency_summary_html": str(dep_summary_paths["html"])} if dep_summary_paths else {}),
+            **(
+                {
+                    "dependency_summary_json": str(dep_summary_paths["json"]),
+                    "dependency_summary_html": str(dep_summary_paths["html"]),
+                }
+                if dep_summary_paths
+                else {}
+            ),
         },
     )
 
@@ -1527,37 +1670,75 @@ def _plan_all_packages(
 
 def plan(
     package: str = typer.Argument("", help="Package name or prefix to plan (omit for --all)"),
-    ubuntu_series: str = typer.Option("devel", "-u", "--ubuntu-series", help="Ubuntu series target"),
+    ubuntu_series: str = typer.Option(
+        "devel", "-u", "--ubuntu-series", help="Ubuntu series target"
+    ),
     target: str = typer.Option("devel", "-t", "--target", help="OpenStack series target"),
     plan_only: bool = typer.Option(False, "-p", "--plan", help="Show plan without executing"),
-    plan_upload: bool = typer.Option(False, "-P", "--plan-upload", help="Show plan with upload order"),
+    plan_upload: bool = typer.Option(
+        False, "-P", "--plan-upload", help="Show plan with upload order"
+    ),
     upload: bool = typer.Option(False, "-U", "--upload", help="Mark packages for upload"),
     force: bool = typer.Option(False, "-f", "--force", help="Proceed despite warnings"),
     offline: bool = typer.Option(False, "-o", "--offline", help="Run in offline mode"),
-    skip_local: bool = typer.Option(False, "-s", "--skip-local", help="Skip local apt repo search"),
+    skip_local: bool = typer.Option(
+        False, "-s", "--skip-local", help="Skip local apt repo search"
+    ),
     pretty: bool = typer.Option(False, "-r", "--pretty", help="Print the dependency graph"),
     all_packages: bool = typer.Option(False, "-a", "--all", help="Plan all discovered packages"),
     type_mode: str = typer.Option("auto", "--type", help="Build type: auto|release|snapshot"),
     table: bool = typer.Option(False, "--table", help="Print full type selection table"),
-    explain_types: bool = typer.Option(False, "--explain-types", help="Explain type selection reasoning"),
+    explain_types: bool = typer.Option(
+        False, "--explain-types", help="Explain type selection reasoning"
+    ),
     parallel: int = typer.Option(0, "-j", "--parallel", help="Parallel workers (0=auto)"),
     # Graph options
-    print_build_order: bool = typer.Option(True, "--print-build-order/--no-print-build-order", help="Print build order to console"),
-    build_order_format: str = typer.Option("waves", "--build-order-format", help="Build order format: waves, list, or dot"),
-    build_order_focus: str = typer.Option("", "--build-order-focus", help="Focus build order on specific package"),
+    print_build_order: bool = typer.Option(
+        True, "--print-build-order/--no-print-build-order", help="Print build order to console"
+    ),
+    build_order_format: str = typer.Option(
+        "waves", "--build-order-format", help="Build order format: waves, list, or dot"
+    ),
+    build_order_focus: str = typer.Option(
+        "", "--build-order-focus", help="Focus build order on specific package"
+    ),
     # Legacy graph options (for compatibility)
-    print_graph: bool = typer.Option(False, "--print-graph", help="Print build-order graph to console (legacy)"),
-    graph_format: str = typer.Option("ascii", "--graph-format", help="Graph format: ascii or dot (legacy)"),
-    graph_max_nodes: int = typer.Option(200, "--graph-max-nodes", help="Max nodes to show in console graph"),
-    graph_focus: str = typer.Option("", "--graph-focus", help="Focus graph on specific package (legacy)"),
+    print_graph: bool = typer.Option(
+        False, "--print-graph", help="Print build-order graph to console (legacy)"
+    ),
+    graph_format: str = typer.Option(
+        "ascii", "--graph-format", help="Graph format: ascii or dot (legacy)"
+    ),
+    graph_max_nodes: int = typer.Option(
+        200, "--graph-max-nodes", help="Max nodes to show in console graph"
+    ),
+    graph_focus: str = typer.Option(
+        "", "--graph-focus", help="Focus graph on specific package (legacy)"
+    ),
     graph_depth: int = typer.Option(2, "--graph-depth", help="Depth for focused subgraph"),
     # Watch/uscan options
-    watch_fallback: bool = typer.Option(True, "--watch-fallback/--no-watch-fallback", help="Use debian/watch for packages not in openstack/releases"),
-    watch_check_upstream: bool = typer.Option(True, "--watch-check-upstream/--no-watch-check-upstream", help="Run uscan to discover upstream versions"),
-    watch_timeout: int = typer.Option(30, "--watch-timeout-seconds", help="Timeout for uscan execution"),
-    watch_max_projects: int = typer.Option(0, "--watch-max-projects", help="Max packages to run uscan for (0=unlimited)"),
+    watch_fallback: bool = typer.Option(
+        True,
+        "--watch-fallback/--no-watch-fallback",
+        help="Use debian/watch for packages not in openstack/releases",
+    ),
+    watch_check_upstream: bool = typer.Option(
+        True,
+        "--watch-check-upstream/--no-watch-check-upstream",
+        help="Run uscan to discover upstream versions",
+    ),
+    watch_timeout: int = typer.Option(
+        30, "--watch-timeout-seconds", help="Timeout for uscan execution"
+    ),
+    watch_max_projects: int = typer.Option(
+        0, "--watch-max-projects", help="Max packages to run uscan for (0=unlimited)"
+    ),
     # Retirement options
-    include_retired: bool = typer.Option(False, "--include-retired", help="Include retired upstream projects in the plan (default: skip)"),
+    include_retired: bool = typer.Option(
+        False,
+        "--include-retired",
+        help="Include retired upstream projects in the plan (default: skip)",
+    ),
 ) -> None:
     """Plan package builds and determine build order.
 
@@ -1589,7 +1770,10 @@ def plan(
         # Validate type mode
         valid_type_modes = ("auto", "release", "snapshot")
         if type_mode not in valid_type_modes:
-            activity("error", f"Invalid --type: {type_mode}. Must be one of: {', '.join(valid_type_modes)}")
+            activity(
+                "error",
+                f"Invalid --type: {type_mode}. Must be one of: {', '.join(valid_type_modes)}",
+            )
             sys.exit(EXIT_CONFIG_ERROR)
 
         # Determine parallel workers
@@ -1712,25 +1896,33 @@ def plan(
             preferred_versions: dict[str, str] = {}
             for t in resolved_targets:
                 if t.resolution_source.startswith("registry"):
-                    run.log_event({"event": "policy.skip_snapshot_registry", "package": t.source_package})
+                    run.log_event(
+                        {"event": "policy.skip_snapshot_registry", "package": t.source_package}
+                    )
                     continue
                 eligible, reason, preferred_version = is_snapshot_eligible(
                     releases_repo, openstack_target, t.source_package
                 )
                 if not eligible:
                     policy_issues.append(f"{t.source_package}: {reason}")
-                    run.log_event({"event": "policy.blocked", "package": t.source_package, "reason": reason})
+                    run.log_event(
+                        {"event": "policy.blocked", "package": t.source_package, "reason": reason}
+                    )
                     if preferred_version:
                         preferred_versions[t.source_package] = preferred_version
-                        run.log_event({
-                            "event": "policy.preferred_version",
-                            "package": t.source_package,
-                            "version": preferred_version,
-                        })
+                        run.log_event(
+                            {
+                                "event": "policy.preferred_version",
+                                "package": t.source_package,
+                                "version": preferred_version,
+                            }
+                        )
                 elif "Warning" in reason:
                     # Snapshot allowed but with warning
                     activity("policy", f"Warning: {t.source_package}: {reason}")
-                    run.log_event({"event": "policy.warning", "package": t.source_package, "reason": reason})
+                    run.log_event(
+                        {"event": "policy.warning", "package": t.source_package, "reason": reason}
+                    )
 
         if policy_issues and not force:
             for issue in policy_issues:
@@ -1762,15 +1954,19 @@ def plan(
 
         # Phase: plan - Build dependency graph
         with activity_spinner("plan", "Loading Ubuntu package index"):
-            pockets = cfg.get("defaults", {}).get("ubuntu_pockets", ["release", "updates", "security"])
+            pockets = cfg.get("defaults", {}).get(
+                "ubuntu_pockets", ["release", "updates", "security"]
+            )
             components = cfg.get("defaults", {}).get("ubuntu_components", ["main", "universe"])
             ubuntu_cache = paths["ubuntu_archive_cache"]
             ubuntu_index = load_package_index(ubuntu_cache, resolved_ubuntu, pockets, components)
-            run.log_event({
-                "event": "plan.index_loaded",
-                "packages": len(ubuntu_index.packages),
-                "sources": len(ubuntu_index.sources),
-            })
+            run.log_event(
+                {
+                    "event": "plan.index_loaded",
+                    "packages": len(ubuntu_index.packages),
+                    "sources": len(ubuntu_index.sources),
+                }
+            )
 
         # Apply Ubuntu source fallbacks for resolved targets in this code path
         try:
@@ -1793,6 +1989,7 @@ def plan(
         if local_repo.exists():
             from packastack.apt.packages import load_local_repo_index
             from packastack.target.arch import get_host_arch
+
             try:
                 local_index = load_local_repo_index(local_repo, get_host_arch())
                 total_local = len(local_index.packages)
@@ -1813,13 +2010,18 @@ def plan(
                 ubuntu_series=resolved_ubuntu,
                 openstack_series=openstack_target,
             )
-            run.log_event({
-                "event": "plan.graph_built",
-                "nodes": len(graph.nodes),
-                "edges": sum(len(e) for e in graph.edges.values()),
-            })
+            run.log_event(
+                {
+                    "event": "plan.graph_built",
+                    "nodes": len(graph.nodes),
+                    "edges": sum(len(e) for e in graph.edges.values()),
+                }
+            )
 
-        activity("plan", f"Graph: {len(graph.nodes)} packages, {sum(len(e) for e in graph.edges.values())} dependencies")
+        activity(
+            "plan",
+            f"Graph: {len(graph.nodes)} packages, {sum(len(e) for e in graph.edges.values())} dependencies",
+        )
 
         if pretty:
             for line in _format_graph(graph):
@@ -1828,14 +2030,18 @@ def plan(
         # Check for cycles
         cycles = graph.detect_cycles()
         if cycles:
-            run.log_event({
-                "event": "plan.cycle_edges",
-                "edges": graph.get_cycle_edges(),
-            })
+            run.log_event(
+                {
+                    "event": "plan.cycle_edges",
+                    "edges": graph.get_cycle_edges(),
+                }
+            )
             for cycle in cycles:
                 cycle_str = " -> ".join(cycle)
                 activity("plan", f"Cycle detected: {cycle_str}")
-            run.log_event({"event": "plan.cycles", "cycles": [[str(n) for n in c] for c in cycles]})
+            run.log_event(
+                {"event": "plan.cycles", "cycles": [[str(n) for n in c] for c in cycles]}
+            )
 
             if not force:
                 run.write_summary(
@@ -1866,10 +2072,15 @@ def plan(
             for pkg, deps in mir_candidates.items():
                 for dep in deps:
                     activity("verify", f"MIR warning: {pkg} depends on {dep}")
-                    run.log_event({"event": "verify.mir_warning", "package": pkg, "dependency": dep})
+                    run.log_event(
+                        {"event": "verify.mir_warning", "package": pkg, "dependency": dep}
+                    )
 
         if mir_candidates:
-            activity("verify", f"MIR candidates: {sum(len(d) for d in mir_candidates.values())} dependencies")
+            activity(
+                "verify",
+                f"MIR candidates: {sum(len(d) for d in mir_candidates.values())} dependencies",
+            )
         else:
             activity("verify", "No MIR issues detected")
 
@@ -1896,11 +2107,13 @@ def plan(
             )
 
             graph_paths = write_plan_graph_reports(plan_graph, reports_dir)
-            run.log_event({
-                "event": "graph_reports.written",
-                "json_path": str(graph_paths["json"]),
-                "html_path": str(graph_paths["html"]),
-            })
+            run.log_event(
+                {
+                    "event": "graph_reports.written",
+                    "json_path": str(graph_paths["json"]),
+                    "html_path": str(graph_paths["html"]),
+                }
+            )
 
         dep_summary_paths = _write_plan_dependency_summary(
             graph=graph,
@@ -1948,11 +2161,17 @@ def plan(
         if print_graph:
             if plan_graph.node_count > graph_max_nodes and not graph_focus:
                 activity("warn", f"Graph has {plan_graph.node_count} nodes, showing summary only")
-                print(f"\nBuild order (first 50 of {plan_graph.node_count}):", file=sys.__stdout__, flush=True)
+                print(
+                    f"\nBuild order (first 50 of {plan_graph.node_count}):",
+                    file=sys.__stdout__,
+                    flush=True,
+                )
                 for i, pkg_id in enumerate(build_order[:50]):
-                    print(f"  {i+1:3d}. {pkg_id}", file=sys.__stdout__, flush=True)
+                    print(f"  {i + 1:3d}. {pkg_id}", file=sys.__stdout__, flush=True)
                 if len(build_order) > 50:
-                    print(f"  ... and {len(build_order) - 50} more", file=sys.__stdout__, flush=True)
+                    print(
+                        f"  ... and {len(build_order) - 50} more", file=sys.__stdout__, flush=True
+                    )
             else:
                 if graph_format == "dot":
                     dot_output = render_dot(
@@ -2015,7 +2234,14 @@ def plan(
             reports={
                 "plan_graph_json": str(graph_paths["json"]),
                 "plan_graph_html": str(graph_paths["html"]),
-                **({"dependency_summary_json": str(dep_summary_paths["json"]), "dependency_summary_html": str(dep_summary_paths["html"])} if dep_summary_paths else {}),
+                **(
+                    {
+                        "dependency_summary_json": str(dep_summary_paths["json"]),
+                        "dependency_summary_html": str(dep_summary_paths["html"]),
+                    }
+                    if dep_summary_paths
+                    else {}
+                ),
             },
         )
 

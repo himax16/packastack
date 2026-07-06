@@ -127,7 +127,7 @@ def build_graph_from_control(
 
         try:
             source = parse_control(control_path)
-        except (ValueError, OSError):
+        except ValueError, OSError:
             continue
 
         all_build_deps = source.build_depends + source.build_depends_indep

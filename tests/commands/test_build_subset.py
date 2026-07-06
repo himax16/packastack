@@ -65,11 +65,12 @@ class TestUpdateOpenstackRepos:
         events: list[dict] = []
         run = SimpleNamespace(log_event=lambda e: events.append(e))
 
-        with patch(
-            "packastack.commands.build_subset._clone_or_update_releases"
-        ) as mock_releases, patch(
-            "packastack.commands.build_subset._clone_or_update_project_config"
-        ) as mock_project_config:
+        with (
+            patch("packastack.commands.build_subset._clone_or_update_releases") as mock_releases,
+            patch(
+                "packastack.commands.build_subset._clone_or_update_project_config"
+            ) as mock_project_config,
+        ):
             result = _update_openstack_repos(paths, run, offline=False)
 
         assert result is True
@@ -89,18 +90,17 @@ class TestUpdateOpenstackRepos:
         events: list[dict] = []
         run = SimpleNamespace(log_event=lambda e: events.append(e))
 
-        with patch(
-            "packastack.commands.build_subset._clone_or_update_releases",
-            side_effect=Exception("git error"),
-        ), patch(
-            "packastack.commands.build_subset._clone_or_update_project_config"
+        with (
+            patch(
+                "packastack.commands.build_subset._clone_or_update_releases",
+                side_effect=Exception("git error"),
+            ),
+            patch("packastack.commands.build_subset._clone_or_update_project_config"),
         ):
             result = _update_openstack_repos(paths, run, offline=False)
 
         assert result is True
-        assert any(
-            e.get("event") == "subset.releases_update_failed" for e in events
-        )
+        assert any(e.get("event") == "subset.releases_update_failed" for e in events)
 
     def test_continues_on_project_config_error(self, tmp_path: Path) -> None:
         """Should continue even if project-config update fails."""
@@ -111,18 +111,17 @@ class TestUpdateOpenstackRepos:
         events: list[dict] = []
         run = SimpleNamespace(log_event=lambda e: events.append(e))
 
-        with patch(
-            "packastack.commands.build_subset._clone_or_update_releases"
-        ), patch(
-            "packastack.commands.build_subset._clone_or_update_project_config",
-            side_effect=Exception("git error"),
+        with (
+            patch("packastack.commands.build_subset._clone_or_update_releases"),
+            patch(
+                "packastack.commands.build_subset._clone_or_update_project_config",
+                side_effect=Exception("git error"),
+            ),
         ):
             result = _update_openstack_repos(paths, run, offline=False)
 
         assert result is True
-        assert any(
-            e.get("event") == "subset.project_config_update_failed" for e in events
-        )
+        assert any(e.get("event") == "subset.project_config_update_failed" for e in events)
 
     def test_handles_missing_paths(self, tmp_path: Path) -> None:
         """Should handle missing path keys gracefully."""
@@ -143,17 +142,16 @@ class TestUpdateOpenstackRepos:
         events: list[dict] = []
         run = SimpleNamespace(log_event=lambda e: events.append(e))
 
-        with patch(
-            "packastack.commands.build_subset._clone_or_update_releases"
-        ) as mock_releases, patch(
-            "packastack.commands.build_subset._clone_or_update_project_config"
-        ) as mock_project_config:
+        with (
+            patch("packastack.commands.build_subset._clone_or_update_releases") as mock_releases,
+            patch(
+                "packastack.commands.build_subset._clone_or_update_project_config"
+            ) as mock_project_config,
+        ):
             result = _update_openstack_repos(paths, run, offline=False, phase="build")
 
         assert result is True
-        mock_releases.assert_called_once_with(
-            paths["openstack_releases_repo"], run, phase="build"
-        )
+        mock_releases.assert_called_once_with(paths["openstack_releases_repo"], run, phase="build")
         mock_project_config.assert_called_once_with(
             paths["openstack_project_config"], run, phase="build"
         )
@@ -182,13 +180,11 @@ class TestFilterPackagesBySubset:
 
         packages = ["python-oslo.config", "nova", "python-novaclient"]
 
-        with patch(
-            "packastack.commands.build_subset.load_openstack_packages"
-        ) as mock_load_pkgs, patch(
-            "packastack.commands.build_subset.load_project_releases"
-        ) as mock_load_rel, patch(
-            "packastack.commands.build_subset.infer_deliverable_kind"
-        ) as mock_infer:
+        with (
+            patch("packastack.commands.build_subset.load_openstack_packages") as mock_load_pkgs,
+            patch("packastack.commands.build_subset.load_project_releases") as mock_load_rel,
+            patch("packastack.commands.build_subset.infer_deliverable_kind") as mock_infer,
+        ):
             mock_load_pkgs.return_value = {
                 "python-oslo.config": "oslo.config",
                 "nova": "nova",
@@ -225,13 +221,11 @@ class TestFilterPackagesBySubset:
 
         packages = ["python-oslo.config", "nova", "python-novaclient"]
 
-        with patch(
-            "packastack.commands.build_subset.load_openstack_packages"
-        ) as mock_load_pkgs, patch(
-            "packastack.commands.build_subset.load_project_releases"
-        ) as mock_load_rel, patch(
-            "packastack.commands.build_subset.infer_deliverable_kind"
-        ) as mock_infer:
+        with (
+            patch("packastack.commands.build_subset.load_openstack_packages") as mock_load_pkgs,
+            patch("packastack.commands.build_subset.load_project_releases") as mock_load_rel,
+            patch("packastack.commands.build_subset.infer_deliverable_kind") as mock_infer,
+        ):
             mock_load_pkgs.return_value = {
                 "python-oslo.config": "oslo.config",
                 "nova": "nova",
@@ -267,13 +261,11 @@ class TestFilterPackagesBySubset:
 
         packages = ["python-oslo.config", "nova", "python-novaclient"]
 
-        with patch(
-            "packastack.commands.build_subset.load_openstack_packages"
-        ) as mock_load_pkgs, patch(
-            "packastack.commands.build_subset.load_project_releases"
-        ) as mock_load_rel, patch(
-            "packastack.commands.build_subset.infer_deliverable_kind"
-        ) as mock_infer:
+        with (
+            patch("packastack.commands.build_subset.load_openstack_packages") as mock_load_pkgs,
+            patch("packastack.commands.build_subset.load_project_releases") as mock_load_rel,
+            patch("packastack.commands.build_subset.infer_deliverable_kind") as mock_infer,
+        ):
             mock_load_pkgs.return_value = {
                 "python-oslo.config": "oslo.config",
                 "nova": "nova",
@@ -309,13 +301,11 @@ class TestFilterPackagesBySubset:
 
         packages = ["nova", "glance"]
 
-        with patch(
-            "packastack.commands.build_subset.load_openstack_packages"
-        ) as mock_load_pkgs, patch(
-            "packastack.commands.build_subset.load_project_releases"
-        ) as mock_load_rel, patch(
-            "packastack.commands.build_subset.infer_deliverable_kind"
-        ) as mock_infer:
+        with (
+            patch("packastack.commands.build_subset.load_openstack_packages") as mock_load_pkgs,
+            patch("packastack.commands.build_subset.load_project_releases") as mock_load_rel,
+            patch("packastack.commands.build_subset.infer_deliverable_kind") as mock_infer,
+        ):
             mock_load_pkgs.return_value = {
                 "nova": "nova",
                 "glance": "glance",
@@ -415,9 +405,7 @@ class TestRunSubsetBuild:
 
         assert exit_code == EXIT_SUCCESS
 
-    def test_dry_run_lists_packages(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_dry_run_lists_packages(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Should list packages without building in dry run mode."""
         import packastack.commands.build_subset as build_subset_module
 
@@ -546,9 +534,7 @@ class TestRunSubsetBuild:
         monkeypatch.setattr(
             build_subset_module,
             "discover_packages",
-            lambda **kwargs: DiscoveryResult(
-                packages=[], total_repos=0, source="explicit"
-            ),
+            lambda **kwargs: DiscoveryResult(packages=[], total_repos=0, source="explicit"),
         )
         monkeypatch.setattr(build_subset_module, "RunContext", DummyRun)
         monkeypatch.setattr(build_subset_module, "activity", lambda *args, **kwargs: None)
@@ -638,9 +624,7 @@ class TestRunSubsetBuild:
         )
         monkeypatch.setattr(build_subset_module, "RunContext", DummyRun)
         monkeypatch.setattr(build_subset_module, "activity", lambda *args, **kwargs: None)
-        monkeypatch.setattr(
-            "packastack.commands.build.run_build_all", fake_run_build_all
-        )
+        monkeypatch.setattr("packastack.commands.build.run_build_all", fake_run_build_all)
 
         from packastack.build import EXIT_SUCCESS
 
@@ -663,7 +647,6 @@ class TestRunSubsetBuild:
         assert len(build_all_calls) == 1
         assert build_all_calls[0]["packages_file"] != ""
         assert build_all_calls[0]["parallel"] == 2
-
 
     def test_passes_ppa_upload_to_run_build_all(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -731,9 +714,7 @@ class TestRunSubsetBuild:
         )
         monkeypatch.setattr(build_subset_module, "RunContext", DummyRun)
         monkeypatch.setattr(build_subset_module, "activity", lambda *args, **kwargs: None)
-        monkeypatch.setattr(
-            "packastack.commands.build.run_build_all", fake_run_build_all
-        )
+        monkeypatch.setattr("packastack.commands.build.run_build_all", fake_run_build_all)
 
         from packastack.build import EXIT_SUCCESS
 
@@ -761,9 +742,7 @@ class TestRunSubsetBuild:
 class TestBuildCommandSubsetRouting:
     """Tests for subset routing in the build command."""
 
-    def test_build_libraries_routes_to_subset(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_build_libraries_routes_to_subset(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Should route 'libraries' package to subset build."""
 
         subset_calls: list[dict] = []
@@ -797,9 +776,7 @@ class TestBuildCommandSubsetRouting:
         # The mock returns 0
         assert exit_code == 0
 
-    def test_build_clients_routes_to_subset(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_build_clients_routes_to_subset(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Should route 'clients' package to subset build."""
         from packastack.commands.build_subset import SubsetType, run_subset_build
 
@@ -835,9 +812,7 @@ class TestBuildCommandSubsetRouting:
 class TestBuildLibrariesFunction:
     """Tests for build_libraries function."""
 
-    def test_calls_run_subset_build_with_libraries(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_calls_run_subset_build_with_libraries(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Should call run_subset_build with LIBRARIES type."""
         from packastack.commands import build_subset as build_subset_module
 
@@ -847,9 +822,7 @@ class TestBuildLibrariesFunction:
             calls.append(kwargs)
             return 0
 
-        monkeypatch.setattr(
-            build_subset_module, "run_subset_build", fake_run_subset_build
-        )
+        monkeypatch.setattr(build_subset_module, "run_subset_build", fake_run_subset_build)
 
         # Mock sys.exit to prevent actual exit
         exits: list[int] = []
@@ -867,10 +840,7 @@ class TestBuildLibrariesFunction:
         assert calls[0]["ubuntu_series"] == "noble"
         assert exits == [0]
 
-
-    def test_passes_ppa_upload_flag(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_passes_ppa_upload_flag(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Should pass ppa_upload flag to run_subset_build."""
         from packastack.commands import build_subset as build_subset_module
 
@@ -880,9 +850,7 @@ class TestBuildLibrariesFunction:
             calls.append(kwargs)
             return 0
 
-        monkeypatch.setattr(
-            build_subset_module, "run_subset_build", fake_run_subset_build
-        )
+        monkeypatch.setattr(build_subset_module, "run_subset_build", fake_run_subset_build)
 
         exits: list[int] = []
         monkeypatch.setattr("sys.exit", lambda code: exits.append(code))
@@ -901,9 +869,7 @@ class TestBuildLibrariesFunction:
 class TestBuildClientsFunction:
     """Tests for build_clients function."""
 
-    def test_calls_run_subset_build_with_clients(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_calls_run_subset_build_with_clients(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Should call run_subset_build with CLIENTS type."""
         from packastack.commands import build_subset as build_subset_module
 
@@ -913,9 +879,7 @@ class TestBuildClientsFunction:
             calls.append(kwargs)
             return 0
 
-        monkeypatch.setattr(
-            build_subset_module, "run_subset_build", fake_run_subset_build
-        )
+        monkeypatch.setattr(build_subset_module, "run_subset_build", fake_run_subset_build)
 
         # Mock sys.exit to prevent actual exit
         exits: list[int] = []
@@ -933,9 +897,7 @@ class TestBuildClientsFunction:
         assert calls[0]["ubuntu_series"] == "noble"
         assert exits == [0]
 
-    def test_passes_ppa_upload_flag(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_passes_ppa_upload_flag(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Should pass ppa_upload flag to run_subset_build."""
         from packastack.commands import build_subset as build_subset_module
 
@@ -945,9 +907,7 @@ class TestBuildClientsFunction:
             calls.append(kwargs)
             return 0
 
-        monkeypatch.setattr(
-            build_subset_module, "run_subset_build", fake_run_subset_build
-        )
+        monkeypatch.setattr(build_subset_module, "run_subset_build", fake_run_subset_build)
 
         exits: list[int] = []
         monkeypatch.setattr("sys.exit", lambda code: exits.append(code))
@@ -966,9 +926,7 @@ class TestBuildClientsFunction:
 class TestBuildServicesFunction:
     """Tests for build_services function."""
 
-    def test_calls_run_subset_build_with_services(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_calls_run_subset_build_with_services(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Should call run_subset_build with SERVICES type."""
         from packastack.commands import build_subset as build_subset_module
 
@@ -978,9 +936,7 @@ class TestBuildServicesFunction:
             calls.append(kwargs)
             return 0
 
-        monkeypatch.setattr(
-            build_subset_module, "run_subset_build", fake_run_subset_build
-        )
+        monkeypatch.setattr(build_subset_module, "run_subset_build", fake_run_subset_build)
 
         # Mock sys.exit to prevent actual exit
         exits: list[int] = []
@@ -998,9 +954,7 @@ class TestBuildServicesFunction:
         assert calls[0]["ubuntu_series"] == "noble"
         assert exits == [0]
 
-    def test_passes_ppa_upload_flag(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_passes_ppa_upload_flag(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Should pass ppa_upload flag to run_subset_build."""
         from packastack.commands import build_subset as build_subset_module
 
@@ -1010,9 +964,7 @@ class TestBuildServicesFunction:
             calls.append(kwargs)
             return 0
 
-        monkeypatch.setattr(
-            build_subset_module, "run_subset_build", fake_run_subset_build
-        )
+        monkeypatch.setattr(build_subset_module, "run_subset_build", fake_run_subset_build)
 
         exits: list[int] = []
         monkeypatch.setattr("sys.exit", lambda code: exits.append(code))
@@ -1060,9 +1012,7 @@ class TestBuildCommandSubsetDispatch:
             "packastack.commands.build_subset.run_subset_build",
             fake_run_subset_build,
         )
-        monkeypatch.setattr(
-            "packastack.commands.build.load_config", lambda: {}
-        )
+        monkeypatch.setattr("packastack.commands.build.load_config", lambda: {})
 
         runner = CliRunner()
         result = runner.invoke(app, ["build", package])

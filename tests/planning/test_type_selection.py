@@ -98,9 +98,7 @@ class TestDetermineCycleStage:
     def test_returns_pre_final_for_development_series(self, tmp_path: Path):
         """Should return PRE_FINAL for series with development status."""
         releases_repo = tmp_path
-        with patch(
-            "packastack.planning.type_selection.load_series_info"
-        ) as mock_load:
+        with patch("packastack.planning.type_selection.load_series_info") as mock_load:
             mock_load.return_value = {
                 "dalmatian": MagicMock(status="development"),
             }
@@ -110,9 +108,7 @@ class TestDetermineCycleStage:
     def test_returns_post_final_for_maintained_series(self, tmp_path: Path):
         """Should return POST_FINAL for series with maintained status."""
         releases_repo = tmp_path
-        with patch(
-            "packastack.planning.type_selection.load_series_info"
-        ) as mock_load:
+        with patch("packastack.planning.type_selection.load_series_info") as mock_load:
             mock_load.return_value = {
                 "caracal": MagicMock(status="maintained"),
             }
@@ -122,9 +118,7 @@ class TestDetermineCycleStage:
     def test_returns_post_final_for_extended_maintenance(self, tmp_path: Path):
         """Should return POST_FINAL for extended maintenance status."""
         releases_repo = tmp_path
-        with patch(
-            "packastack.planning.type_selection.load_series_info"
-        ) as mock_load:
+        with patch("packastack.planning.type_selection.load_series_info") as mock_load:
             mock_load.return_value = {
                 "antelope": MagicMock(status="extended maintenance"),
             }
@@ -134,9 +128,7 @@ class TestDetermineCycleStage:
     def test_returns_unknown_for_unknown_series(self, tmp_path: Path):
         """Should return UNKNOWN for series not in info."""
         releases_repo = tmp_path
-        with patch(
-            "packastack.planning.type_selection.load_series_info"
-        ) as mock_load:
+        with patch("packastack.planning.type_selection.load_series_info") as mock_load:
             mock_load.return_value = {}
             result = determine_cycle_stage(releases_repo, "nonexistent")
             assert result == CycleStage.UNKNOWN
@@ -144,9 +136,7 @@ class TestDetermineCycleStage:
     def test_returns_unknown_for_unrecognized_status(self, tmp_path: Path):
         """Should return UNKNOWN for unrecognized status values."""
         releases_repo = tmp_path
-        with patch(
-            "packastack.planning.type_selection.load_series_info"
-        ) as mock_load:
+        with patch("packastack.planning.type_selection.load_series_info") as mock_load:
             mock_load.return_value = {
                 "weird": MagicMock(status="experimental"),
             }
@@ -756,9 +746,7 @@ class TestFindNewAndDefunctPackages:
 
     def test_finds_new_packages(self, tmp_path: Path):
         """Should find packages in local but not in releases."""
-        with patch(
-            "packastack.planning.type_selection.load_openstack_packages"
-        ) as mock_load:
+        with patch("packastack.planning.type_selection.load_openstack_packages") as mock_load:
             mock_load.return_value = {"nova": "nova", "glance": "glance"}
             local = {"nova", "glance", "new-pkg"}
             new, _defunct = find_new_and_defunct_packages(tmp_path, "dalmatian", local)
@@ -767,9 +755,7 @@ class TestFindNewAndDefunctPackages:
 
     def test_finds_defunct_packages(self, tmp_path: Path):
         """Should find packages in releases but not local."""
-        with patch(
-            "packastack.planning.type_selection.load_openstack_packages"
-        ) as mock_load:
+        with patch("packastack.planning.type_selection.load_openstack_packages") as mock_load:
             mock_load.return_value = {
                 "nova": "nova",
                 "glance": "glance",
@@ -786,12 +772,15 @@ class TestSelectBuildTypesForPackages:
 
     def test_generates_report(self, tmp_path: Path):
         """Should generate a complete report."""
-        with patch(
-            "packastack.planning.type_selection.determine_cycle_stage",
-            return_value=CycleStage.PRE_FINAL,
-        ), patch(
-            "packastack.planning.type_selection.load_project_releases",
-            return_value=None,
+        with (
+            patch(
+                "packastack.planning.type_selection.determine_cycle_stage",
+                return_value=CycleStage.PRE_FINAL,
+            ),
+            patch(
+                "packastack.planning.type_selection.load_project_releases",
+                return_value=None,
+            ),
         ):
             packages = [("nova", "nova"), ("glance", "glance")]
             report = select_build_types_for_packages(
@@ -815,12 +804,15 @@ class TestSelectBuildTypesForPackages:
         mock_project.has_beta_rc_or_final.return_value = True
         mock_project.get_latest_version.return_value = "25.0.0"
 
-        with patch(
-            "packastack.planning.type_selection.determine_cycle_stage",
-            return_value=CycleStage.PRE_FINAL,
-        ), patch(
-            "packastack.planning.type_selection.load_project_releases",
-            return_value=mock_project,
+        with (
+            patch(
+                "packastack.planning.type_selection.determine_cycle_stage",
+                return_value=CycleStage.PRE_FINAL,
+            ),
+            patch(
+                "packastack.planning.type_selection.load_project_releases",
+                return_value=mock_project,
+            ),
         ):
             packages = [("nova", "nova")]
             report = select_build_types_for_packages(
@@ -842,12 +834,15 @@ class TestSelectBuildTypesForPackages:
         mock_project.has_beta_rc_or_final.return_value = True
         mock_project.get_latest_version.return_value = "25.0.0"
 
-        with patch(
-            "packastack.planning.type_selection.determine_cycle_stage",
-            return_value=CycleStage.PRE_FINAL,
-        ), patch(
-            "packastack.planning.type_selection.load_project_releases",
-            return_value=mock_project,
+        with (
+            patch(
+                "packastack.planning.type_selection.determine_cycle_stage",
+                return_value=CycleStage.PRE_FINAL,
+            ),
+            patch(
+                "packastack.planning.type_selection.load_project_releases",
+                return_value=mock_project,
+            ),
         ):
             packages = [("nova", "nova")]
             report = select_build_types_for_packages(
@@ -871,12 +866,15 @@ class TestSelectBuildTypesForPackages:
         mock_project.get_latest_version.return_value = "25.0.0"
 
         progress: list[int] = []
-        with patch(
-            "packastack.planning.type_selection.determine_cycle_stage",
-            return_value=CycleStage.PRE_FINAL,
-        ), patch(
-            "packastack.planning.type_selection.load_project_releases",
-            return_value=mock_project,
+        with (
+            patch(
+                "packastack.planning.type_selection.determine_cycle_stage",
+                return_value=CycleStage.PRE_FINAL,
+            ),
+            patch(
+                "packastack.planning.type_selection.load_project_releases",
+                return_value=mock_project,
+            ),
         ):
             packages = [("nova", "nova")]
             report = select_build_types_for_packages(
@@ -1004,7 +1002,9 @@ class TestInferDeliverableKindExtras:
 class TestSelectBuildTypeWatchInfo:
     """Tests for watch/uscan handling in select_build_type."""
 
-    def test_uses_cached_uscan_result(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_uses_cached_uscan_result(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Should use cached uscan result when available."""
         repo = tmp_path / "nova"
         (repo / "debian").mkdir(parents=True)
@@ -1060,7 +1060,9 @@ class TestSelectBuildTypeWatchInfo:
         assert result.upstream_resolution is not None
         assert result.upstream_resolution.authority == UpstreamAuthority.RELEASES
 
-    def test_runs_uscan_for_not_in_releases(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_runs_uscan_for_not_in_releases(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Should run uscan and use WATCH authority when not in releases."""
         repo = tmp_path / "custom"
         (repo / "debian").mkdir(parents=True)
@@ -1105,7 +1107,9 @@ class TestSelectBuildTypeWatchInfo:
             deliverable="custom",
             cycle_stage=CycleStage.PRE_FINAL,
             packaging_repo=repo,
-            watch_config=WatchConfig(enabled=True, check_upstream=True, fallback_for_not_in_releases=True),
+            watch_config=WatchConfig(
+                enabled=True, check_upstream=True, fallback_for_not_in_releases=True
+            ),
             uscan_cache={},
         )
 
@@ -1333,7 +1337,9 @@ class TestSelectBuildTypesForPackagesAdvanced:
                 reason_human="",
             )
 
-        monkeypatch.setattr("packastack.planning.type_selection.select_build_type", fake_select_build_type)
+        monkeypatch.setattr(
+            "packastack.planning.type_selection.select_build_type", fake_select_build_type
+        )
 
         watch_config = WatchConfig(enabled=True, check_upstream=True, max_projects=1)
         progress: list[int] = []

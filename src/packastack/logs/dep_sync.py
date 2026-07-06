@@ -123,21 +123,25 @@ def create_sync_report(
 
     # Convert version bumps
     for bump in sync_result.version_bumps:
-        report.version_bumps.append({
-            "debian_package": bump.debian_package,
-            "python_package": bump.python_package,
-            "old_version": bump.old_version,
-            "new_version": bump.new_version,
-            "source": bump.source,
-        })
+        report.version_bumps.append(
+            {
+                "debian_package": bump.debian_package,
+                "python_package": bump.python_package,
+                "old_version": bump.old_version,
+                "new_version": bump.new_version,
+                "source": bump.source,
+            }
+        )
 
     # Convert additions
     for dep in sync_result.additions:
-        report.additions.append({
-            "name": dep.name,
-            "version": dep.version,
-            "relation": dep.relation,
-        })
+        report.additions.append(
+            {
+                "name": dep.name,
+                "version": dep.version,
+                "relation": dep.relation,
+            }
+        )
 
     # Copy unresolved and warnings
     report.unresolved = list(sync_result.unresolved)
@@ -378,14 +382,16 @@ def create_manifest_report(manifest: BuildManifest) -> ManifestReport:
     )
 
     for _name, pkg in manifest.packages.items():
-        report.packages.append({
-            "source_package": pkg.source_package,
-            "deliverable": pkg.deliverable,
-            "upstream_version": pkg.upstream_version,
-            "full_version": pkg.full_version,
-            "build_type": pkg.build_type.value,
-            "version_source": pkg.version_source,
-        })
+        report.packages.append(
+            {
+                "source_package": pkg.source_package,
+                "deliverable": pkg.deliverable,
+                "upstream_version": pkg.upstream_version,
+                "full_version": pkg.full_version,
+                "build_type": pkg.build_type.value,
+                "version_source": pkg.version_source,
+            }
+        )
 
         # Count by type
         if pkg.build_type == BuildType.RELEASE:
@@ -424,9 +430,7 @@ def render_manifest_report_text(report: ManifestReport) -> str:
     lines.append("-" * 40)
     for pkg in report.packages:
         build_type = pkg["build_type"].upper()
-        lines.append(
-            f"  {pkg['source_package']}: {pkg['full_version']} [{build_type}]"
-        )
+        lines.append(f"  {pkg['source_package']}: {pkg['full_version']} [{build_type}]")
     lines.append("")
 
     # Stats

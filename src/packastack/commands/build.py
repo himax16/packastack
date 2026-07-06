@@ -137,10 +137,7 @@ def _find_most_recent_workspace(build_root: Path, package: str) -> Path | None:
     if not pkg_dir.exists():
         return None
 
-    dirs = [
-        p for p in pkg_dir.iterdir()
-        if p.is_dir() and not p.name.startswith(".")
-    ]
+    dirs = [p for p in pkg_dir.iterdir() if p.is_dir() and not p.name.startswith(".")]
     if not dirs:
         return None
 
@@ -223,11 +220,13 @@ def _ensure_changes_files_present(
         changes_text = changes_file.read_text()
     except OSError as exc:
         activity("error", f"Failed to read changes file: {changes_file} ({exc})")
-        run.log_event({
-            "event": "ppa.changes_read_failed",
-            "changes_file": str(changes_file),
-            "error": str(exc),
-        })
+        run.log_event(
+            {
+                "event": "ppa.changes_read_failed",
+                "changes_file": str(changes_file),
+                "error": str(exc),
+            }
+        )
         return False
 
     required_files = _parse_changes_files(changes_text)
@@ -250,11 +249,13 @@ def _ensure_changes_files_present(
 
     if missing:
         activity("error", f"Missing files for upload: {', '.join(missing)}")
-        run.log_event({
-            "event": "ppa.missing_upload_files",
-            "changes_file": str(changes_file),
-            "missing": missing,
-        })
+        run.log_event(
+            {
+                "event": "ppa.missing_upload_files",
+                "changes_file": str(changes_file),
+                "missing": missing,
+            }
+        )
         return False
 
     return True
@@ -286,6 +287,7 @@ def _generate_reports(
 ) -> tuple[Path, Path]:
     """Generate build-all summary reports."""
     from packastack.logs.all_reports import generate_build_all_reports
+
     return generate_build_all_reports(state, run_dir)
 
 
@@ -311,11 +313,13 @@ def _build_ppa_source(
     output = stdout + stderr
     if returncode != 0:
         activity("error", f"PPA source build failed: {output}")
-        run.log_event({
-            "event": "ppa.source_build_failed",
-            "returncode": returncode,
-            "output": output,
-        })
+        run.log_event(
+            {
+                "event": "ppa.source_build_failed",
+                "returncode": returncode,
+                "output": output,
+            }
+        )
         return False, [], output
 
     artifacts: list[Path] = []
@@ -421,6 +425,7 @@ def run_build_all(
             exit_code = _run_build_all(run=run, request=request)
         except Exception as e:
             import traceback
+
             activity("error", f"Build-all failed: {e}")
             for line in traceback.format_exc().splitlines():
                 activity("error", f"  {line}")
@@ -434,21 +439,50 @@ def run_build_all(
 # =============================================================================
 
 
-
 def build(
-    package: str = typer.Argument("", help="Package name or OpenStack project to build (omit for --all)"),
-    target: str | None = typer.Option(None, "-t", "--target", help="OpenStack series target (default: from config defaults.upstream_target, or 'devel')"),
-    ubuntu_series: str | None = typer.Option(None, "-u", "--ubuntu-series", help="Ubuntu series target (default: from config defaults.ubuntu_series, or 'devel')"),
-    cloud_archive: str = typer.Option("", "-c", "--cloud-archive", help="Cloud archive pocket (e.g., caracal)"),
+    package: str = typer.Argument(
+        "", help="Package name or OpenStack project to build (omit for --all)"
+    ),
+    target: str | None = typer.Option(
+        None,
+        "-t",
+        "--target",
+        help="OpenStack series target (default: from config defaults.upstream_target, or 'devel')",
+    ),
+    ubuntu_series: str | None = typer.Option(
+        None,
+        "-u",
+        "--ubuntu-series",
+        help="Ubuntu series target (default: from config defaults.ubuntu_series, or 'devel')",
+    ),
+    cloud_archive: str = typer.Option(
+        "", "-c", "--cloud-archive", help="Cloud archive pocket (e.g., caracal)"
+    ),
     build_type: str = typer.Option("auto", "--type", help="Build type: auto, release, snapshot"),
     force: bool = typer.Option(False, "-f", "--force", help="Proceed despite warnings"),
     offline: bool = typer.Option(False, "-o", "--offline", help="Run in offline mode"),
-    validate_plan_only: bool = typer.Option(False, "-v", "--validate-plan", help="Stop after validated plan"),
-    plan_upload: bool = typer.Option(False, "-p", "--plan-upload", help="Show validated plan with upload order"),
+    validate_plan_only: bool = typer.Option(
+        False, "-v", "--validate-plan", help="Stop after validated plan"
+    ),
+    plan_upload: bool = typer.Option(
+        False, "-p", "--plan-upload", help="Show validated plan with upload order"
+    ),
     upload: bool = typer.Option(False, "-U", "--upload", help="Print upload commands"),
-    binary: bool = typer.Option(True, "-b/-B", "--binary/--no-binary", help="Build binary packages with sbuild (default: on)"),
-    builder: str = typer.Option("sbuild", "-x", "--builder", help="Builder for binary packages: sbuild or dpkg"),
-    build_deps: bool = typer.Option(False, "-d/-D", "--build-deps/--no-build-deps", help="Auto-build missing dependencies (default: off)"),
+    binary: bool = typer.Option(
+        True,
+        "-b/-B",
+        "--binary/--no-binary",
+        help="Build binary packages with sbuild (default: on)",
+    ),
+    builder: str = typer.Option(
+        "sbuild", "-x", "--builder", help="Builder for binary packages: sbuild or dpkg"
+    ),
+    build_deps: bool = typer.Option(
+        False,
+        "-d/-D",
+        "--build-deps/--no-build-deps",
+        help="Auto-build missing dependencies (default: off)",
+    ),
     archive_deps: bool = typer.Option(
         False,
         "--archive-deps/--no-archive-deps",
@@ -489,18 +523,44 @@ def build(
         "--dep-report/--no-dep-report",
         help="Write dependency satisfaction report files to the run directory",
     ),
-    no_cleanup: bool = typer.Option(False, "-k", "--no-cleanup", help="Don't cleanup workspace on success (keep)"),
-    no_spinner: bool = typer.Option(False, "-q", "--no-spinner", help="Disable spinner output (quiet)"),
+    no_cleanup: bool = typer.Option(
+        False, "-k", "--no-cleanup", help="Don't cleanup workspace on success (keep)"
+    ),
+    no_spinner: bool = typer.Option(
+        False, "-q", "--no-spinner", help="Disable spinner output (quiet)"
+    ),
     yes: bool = typer.Option(False, "-y", "--yes", help="Skip confirmations"),
-    include_retired: bool = typer.Option(False, "--include-retired", help="Build retired upstream projects (default: refuse)"),
-    skip_repo_regen: bool = typer.Option(False, "--skip-repo-regen", hidden=True, help="Skip local repo regeneration (internal use)"),
-    ppa_upload: bool = typer.Option(True, "--ppa-upload/--no-ppa-upload", help="Upload to configured PPA on success (default: on)"),
-    ai: bool = typer.Option(True, "--ai/--no-ai", help="AI-powered build failure diagnosis (default: on when API key set)"),
+    include_retired: bool = typer.Option(
+        False, "--include-retired", help="Build retired upstream projects (default: refuse)"
+    ),
+    skip_repo_regen: bool = typer.Option(
+        False, "--skip-repo-regen", hidden=True, help="Skip local repo regeneration (internal use)"
+    ),
+    ppa_upload: bool = typer.Option(
+        True,
+        "--ppa-upload/--no-ppa-upload",
+        help="Upload to configured PPA on success (default: on)",
+    ),
+    ai: bool = typer.Option(
+        True,
+        "--ai/--no-ai",
+        help="AI-powered build failure diagnosis (default: on when API key set)",
+    ),
     # --all mode options
-    all_packages: bool = typer.Option(False, "-a", "--all", help="Build all discovered packages in dependency order"),
-    keep_going: bool = typer.Option(True, "--keep-going/--fail-fast", help="Continue on failure (default: keep-going) [--all only]"),
-    max_failures: int = typer.Option(0, "--max-failures", help="Stop after N failures (0=unlimited) [--all only]"),
-    resume: bool = typer.Option(False, "--resume", help="Resume a previous run (all mode) or workspace (single mode)"),
+    all_packages: bool = typer.Option(
+        False, "-a", "--all", help="Build all discovered packages in dependency order"
+    ),
+    keep_going: bool = typer.Option(
+        True,
+        "--keep-going/--fail-fast",
+        help="Continue on failure (default: keep-going) [--all only]",
+    ),
+    max_failures: int = typer.Option(
+        0, "--max-failures", help="Stop after N failures (0=unlimited) [--all only]"
+    ),
+    resume: bool = typer.Option(
+        False, "--resume", help="Resume a previous run (all mode) or workspace (single mode)"
+    ),
     resume_build: str = typer.Option(
         "",
         "--resume-build",
@@ -511,11 +571,23 @@ def build(
         "--resume-run-id",
         help="(deprecated, use --resume-build) Specific run ID to resume",
     ),
-    retry_failed: bool = typer.Option(False, "--retry-failed", help="Retry failed packages on resume [--all only]"),
-    skip_failed: bool = typer.Option(True, "--skip-failed/--no-skip-failed", help="Skip previously failed on resume [--all only]"),
-    parallel: int = typer.Option(0, "-j", "--parallel", help="Parallel workers (0=auto) [--all only]"),
-    packages_file: str = typer.Option("", "--packages-file", help="File with package names (one per line) [--all only]"),
-    dry_run: bool = typer.Option(False, "-n", "--dry-run", help="Show plan without building [--all only]"),
+    retry_failed: bool = typer.Option(
+        False, "--retry-failed", help="Retry failed packages on resume [--all only]"
+    ),
+    skip_failed: bool = typer.Option(
+        True,
+        "--skip-failed/--no-skip-failed",
+        help="Skip previously failed on resume [--all only]",
+    ),
+    parallel: int = typer.Option(
+        0, "-j", "--parallel", help="Parallel workers (0=auto) [--all only]"
+    ),
+    packages_file: str = typer.Option(
+        "", "--packages-file", help="File with package names (one per line) [--all only]"
+    ),
+    dry_run: bool = typer.Option(
+        False, "-n", "--dry-run", help="Show plan without building [--all only]"
+    ),
 ) -> None:
     """Build OpenStack packages for Ubuntu.
 
@@ -766,11 +838,14 @@ def _build_single_mode(
             exit_code = _run_build(run=run, request=request)
         except Exception as e:
             import traceback
+
             activity("report", f"Build failed: {e}")
             activity("report", "Traceback:")
             for line in traceback.format_exc().splitlines():
                 activity("report", f"  {line}")
-            run.log_event({"event": "build.exception", "error": str(e), "traceback": traceback.format_exc()})
+            run.log_event(
+                {"event": "build.exception", "error": str(e), "traceback": traceback.format_exc()}
+            )
             exit_code = EXIT_BUILD_FAILED
             cleanup_on_exit = False
         finally:
@@ -867,20 +942,30 @@ def _upload_to_ppa(changes_file: Path, ppa: str, run: RunContextType) -> bool:
 
         if result.returncode == 0:
             activity("report", f"Successfully uploaded {changes_file.name} to {target_ppa}")
-            run.log_event({"event": "build.ppa_upload_success", "ppa": target_ppa, "changes_file": str(changes_file)})
+            run.log_event(
+                {
+                    "event": "build.ppa_upload_success",
+                    "ppa": target_ppa,
+                    "changes_file": str(changes_file),
+                }
+            )
             return True
         else:
-            activity("warn", f"PPA upload to {target_ppa} failed with exit code {result.returncode}")
+            activity(
+                "warn", f"PPA upload to {target_ppa} failed with exit code {result.returncode}"
+            )
             if result.stdout:
                 activity("warn", f"  stdout: {result.stdout}")
             if result.stderr:
                 activity("warn", f"  stderr: {result.stderr}")
-            run.log_event({
-                "event": "build.ppa_upload_failed",
-                "ppa": ppa,
-                "exit_code": result.returncode,
-                "error": result.stderr or result.stdout,
-            })
+            run.log_event(
+                {
+                    "event": "build.ppa_upload_failed",
+                    "ppa": ppa,
+                    "exit_code": result.returncode,
+                    "error": result.stderr or result.stdout,
+                }
+            )
             return False
     except FileNotFoundError:
         activity("warn", "dput is not installed. Install with: sudo apt install dput")
@@ -964,6 +1049,7 @@ def _run_build(
     plan_request = request.to_plan_request()
     # Pass resolved build type to planning to skip snapshot checks for release
     from dataclasses import replace
+
     # If the CLI asked for auto, leave plan_request.build_type as 'auto'
     # so each package can decide individually. Only override when the
     # user explicitly requested a non-auto build type.
@@ -1020,12 +1106,16 @@ def _run_build(
     # Get the resolved package names from plan result
     if not plan_result.build_order:
         activity("error", "No packages to build")
-        run.write_summary(status="failed", error="No packages in build order", exit_code=EXIT_CONFIG_ERROR)
+        run.write_summary(
+            status="failed", error="No packages in build order", exit_code=EXIT_CONFIG_ERROR
+        )
         return EXIT_CONFIG_ERROR
 
     resume_target_pkg: str | None = None
     if request.resume_workspace or request.resume_run_id:
-        resume_target_pkg = plan_result.build_order[-1] if plan_result.build_order else request.package
+        resume_target_pkg = (
+            plan_result.build_order[-1] if plan_result.build_order else request.package
+        )
 
     # Build all packages in dependency order using extracted orchestrator
     from packastack.build.single_build import (
@@ -1116,12 +1206,14 @@ def _run_build(
                 if candidate.exists():
                     resume_workspace_path = candidate
                     activity("resume", f"Resuming build {request.resume_build_id}: {candidate}")
-                    run.log_event({
-                        "event": "resume.workspace_found",
-                        "workspace": str(candidate),
-                        "package": pkg_name,
-                        "build_id": request.resume_build_id,
-                    })
+                    run.log_event(
+                        {
+                            "event": "resume.workspace_found",
+                            "workspace": str(candidate),
+                            "package": pkg_name,
+                            "build_id": request.resume_build_id,
+                        }
+                    )
                 else:
                     error = (
                         f"No workspace for {pkg_name} at build {request.resume_build_id} "
@@ -1138,12 +1230,14 @@ def _run_build(
                 if candidate.exists():
                     resume_workspace_path = candidate
                     activity("resume", f"Resuming from run {request.resume_run_id}: {candidate}")
-                    run.log_event({
-                        "event": "resume.workspace_found",
-                        "workspace": str(candidate),
-                        "package": pkg_name,
-                        "run_id": request.resume_run_id,
-                    })
+                    run.log_event(
+                        {
+                            "event": "resume.workspace_found",
+                            "workspace": str(candidate),
+                            "package": pkg_name,
+                            "run_id": request.resume_run_id,
+                        }
+                    )
                 else:
                     error = (
                         f"No workspace for {pkg_name} under run {request.resume_run_id} "
@@ -1156,18 +1250,27 @@ def _run_build(
                 resume_workspace_path = _find_most_recent_workspace(build_root, pkg_name)
 
                 if resume_workspace_path:
-                    activity("resume", f"Resuming from existing workspace: {resume_workspace_path}")
-                    run.log_event({
-                        "event": "resume.workspace_found",
-                        "workspace": str(resume_workspace_path),
-                        "package": pkg_name,
-                    })
+                    activity(
+                        "resume", f"Resuming from existing workspace: {resume_workspace_path}"
+                    )
+                    run.log_event(
+                        {
+                            "event": "resume.workspace_found",
+                            "workspace": str(resume_workspace_path),
+                            "package": pkg_name,
+                        }
+                    )
                 else:
-                    activity("resume", f"No existing workspace found for {pkg_name}, starting fresh build")
-                    run.log_event({
-                        "event": "resume.no_workspace",
-                        "package": pkg_name,
-                    })
+                    activity(
+                        "resume",
+                        f"No existing workspace found for {pkg_name}, starting fresh build",
+                    )
+                    run.log_event(
+                        {
+                            "event": "resume.no_workspace",
+                            "package": pkg_name,
+                        }
+                    )
 
         # Create setup inputs for the orchestrator
         setup_inputs = SetupInputs(
@@ -1196,7 +1299,9 @@ def _run_build(
             # Preserve 'auto' when the CLI requested auto so per-package
             # selection can occur during setup. Otherwise pass the resolved
             # build type determined earlier.
-            resolved_build_type_str=(parsed_type_str if parsed_type_str == "auto" else resolved_build_type_str),
+            resolved_build_type_str=(
+                parsed_type_str if parsed_type_str == "auto" else resolved_build_type_str
+            ),
             paths=paths,
             cfg=cfg,
             run=run,
@@ -1285,16 +1390,17 @@ def _run_build(
                     )
 
                     if ppa_success and ppa_artifacts:
-                        ppa_changes_files = [
-                            a for a in ppa_artifacts if a.suffix == ".changes"
-                        ]
+                        ppa_changes_files = [a for a in ppa_artifacts if a.suffix == ".changes"]
                         if ppa_changes_files:
                             source_changes = next(
                                 (
                                     a
                                     for a in ppa_changes_files
                                     if "ppa1" in a.name
-                                    and (a.name.endswith("_source.changes") or a.name.endswith(".source.changes"))
+                                    and (
+                                        a.name.endswith("_source.changes")
+                                        or a.name.endswith(".source.changes")
+                                    )
                                 ),
                                 next(
                                     (
@@ -1350,7 +1456,9 @@ def _run_build(
             exit_code=EXIT_SUCCESS,
         )
 
-        activity("report", f"Package {pkg_idx}/{len(plan_result.build_order)} complete: {pkg_name}")
+        activity(
+            "report", f"Package {pkg_idx}/{len(plan_result.build_order)} complete: {pkg_name}"
+        )
         activity("report", f"Logs: {run.run_path}")
 
     # All packages built successfully

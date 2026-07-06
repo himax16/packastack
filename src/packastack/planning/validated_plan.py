@@ -695,7 +695,9 @@ class DependencyResolutionResult:
     project: str  # Upstream project name
     upstream_deps: UpstreamDeps  # Parsed dependencies
     missing_deps: list[str] = field(default_factory=list)  # Debian names not found
-    resolved_deps: dict[str, tuple[str, str]] = field(default_factory=dict)  # debian_name -> (version, source)
+    resolved_deps: dict[str, tuple[str, str]] = field(
+        default_factory=dict
+    )  # debian_name -> (version, source)
     needs_building: list[str] = field(default_factory=list)  # Source packages needing to be built
 
 
@@ -734,9 +736,18 @@ def project_to_source_package(project: str) -> str:
         return f"python-{project}"
     # Other libraries that commonly have python- prefix
     if project in (
-        "keystoneauth1", "keystonemiddleware", "osc-lib",
-        "tooz", "taskflow", "automaton", "futurist", "cotyledon",
-        "stevedore", "debtcollector", "cliff", "oslotest",
+        "keystoneauth1",
+        "keystonemiddleware",
+        "osc-lib",
+        "tooz",
+        "taskflow",
+        "automaton",
+        "futurist",
+        "cotyledon",
+        "stevedore",
+        "debtcollector",
+        "cliff",
+        "oslotest",
     ):
         return f"python-{project}"
     # Services keep their name as-is
@@ -786,9 +797,7 @@ def validate_plan(
             result.resolved_deps[debian_name] = source
             result.dependency_versions[debian_name] = version
             if uncertain:
-                result.warnings.append(
-                    f"Mapped {python_dep} -> {debian_name} (heuristic)"
-                )
+                result.warnings.append(f"Mapped {python_dep} -> {debian_name} (heuristic)")
             if not satisfied:
                 result.warnings.append(
                     f"Version mismatch: {debian_name} {version} does not satisfy {version_spec}"
@@ -796,9 +805,7 @@ def validate_plan(
         else:
             result.missing_deps[debian_name] = f"Required by upstream ({python_dep})"
             if uncertain:
-                result.warnings.append(
-                    f"Could not resolve {python_dep} (tried {debian_name})"
-                )
+                result.warnings.append(f"Could not resolve {python_dep} (tried {debian_name})")
 
     # Check if any new deps are needed in build order
     # (This is a simplified check - full implementation would update the graph)
@@ -882,9 +889,7 @@ def validate_dependencies_recursive(
         # (Still process it, but don't follow its deps for certain projects)
         skip_deps = False
         for source_proj, target_proj in SOFT_DEPENDENCY_EXCLUSIONS:
-            if project == target_proj and any(
-                p[1] == source_proj for p in queue
-            ):
+            if project == target_proj and any(p[1] == source_proj for p in queue):
                 skip_deps = True
                 break
 

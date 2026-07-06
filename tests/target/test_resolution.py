@@ -317,9 +317,7 @@ class TestResolverMatching:
 class TestResolverUniverse:
     """Test search universe construction."""
 
-    def test_universe_from_releases_repo(
-        self, tmp_path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_universe_from_releases_repo(self, tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Universe loads identities from openstack/releases metadata."""
         monkeypatch.setattr(
             "packastack.upstream.releases.load_openstack_packages",
@@ -328,9 +326,7 @@ class TestResolverUniverse:
                 "nova": "nova",
             },
         )
-        resolver = TargetResolver(
-            releases_repo=tmp_path, openstack_target="dalmatian"
-        )
+        resolver = TargetResolver(releases_repo=tmp_path, openstack_target="dalmatian")
         universe = resolver._get_search_universe(None)
 
         by_source = {i.source_package: i for i in universe}
@@ -346,12 +342,8 @@ class TestResolverUniverse:
         def boom(repo, target):
             raise OSError("disk error")
 
-        monkeypatch.setattr(
-            "packastack.upstream.releases.load_openstack_packages", boom
-        )
-        resolver = TargetResolver(
-            releases_repo=tmp_path, openstack_target="dalmatian"
-        )
+        monkeypatch.setattr("packastack.upstream.releases.load_openstack_packages", boom)
+        resolver = TargetResolver(releases_repo=tmp_path, openstack_target="dalmatian")
         assert resolver._get_search_universe(None) == []
 
     def test_universe_scope_filters_releases(
@@ -362,9 +354,7 @@ class TestResolverUniverse:
             "packastack.upstream.releases.load_openstack_packages",
             lambda repo, target: {"nova": "nova"},
         )
-        resolver = TargetResolver(
-            releases_repo=tmp_path, openstack_target="dalmatian"
-        )
+        resolver = TargetResolver(releases_repo=tmp_path, openstack_target="dalmatian")
         universe = resolver._get_search_universe(Scope.DELIVERABLE)
         assert len(universe) == 1
 
@@ -392,9 +382,7 @@ class TestResolverUniverse:
                 "python-glanceclient": "python-glanceclient",
             },
         )
-        resolver = TargetResolver(
-            releases_repo=tmp_path, openstack_target="dalmatian"
-        )
+        resolver = TargetResolver(releases_repo=tmp_path, openstack_target="dalmatian")
         expr = parse_target_expr("~client")
 
         result = resolver.resolve(expr)

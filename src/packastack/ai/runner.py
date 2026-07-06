@@ -89,15 +89,12 @@ def _expand_templates(system_prompt: str) -> str:
     return system_prompt.replace(_SKILLS_MENU_PLACEHOLDER, render_skills_menu())
 
 
-def _assemble_context(
-    skill: Skill, inputs: CollectorInputs
-) -> str:
+def _assemble_context(skill: Skill, inputs: CollectorInputs) -> str:
     """Assemble the user message by running each requested collector."""
     requires = skill.metadata.get("requires_context") or []
     if not isinstance(requires, list):
         raise ValueError(
-            f"Skill {skill.name}: requires_context must be a list, got "
-            f"{type(requires).__name__}"
+            f"Skill {skill.name}: requires_context must be a list, got {type(requires).__name__}"
         )
 
     blocks: list[str] = []

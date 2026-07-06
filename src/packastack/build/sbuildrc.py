@@ -302,7 +302,9 @@ def parse_sbuild_output_for_paths(output: str) -> SbuildPaths:
                     path = Path(path_str)
                     if path.exists() or (path.parent != Path() and path.parent.exists()):
                         result.build_dir = path if path.is_dir() else path.parent
-                        logger.debug("Found build dir hint from sbuild output: %s", result.build_dir)
+                        logger.debug(
+                            "Found build dir hint from sbuild output: %s", result.build_dir
+                        )
                         break
 
     return result

@@ -37,7 +37,11 @@ class TestRefreshUbuntuArchive:
 
     @responses.activate
     def test_fetches_packages_successfully(
-        self, temp_home: Path, mock_config: Path, mock_cache_dirs: dict[str, Path], sample_packages_gz: bytes
+        self,
+        temp_home: Path,
+        mock_config: Path,
+        mock_cache_dirs: dict[str, Path],
+        sample_packages_gz: bytes,
     ) -> None:
         # Set up mock response for a single package index
         url = "http://archive.ubuntu.com/ubuntu/dists/noble/main/binary-amd64/Packages.gz"
@@ -65,15 +69,34 @@ class TestRefreshUbuntuArchive:
         assert exit_code == 0
 
         # Check file was created
-        dest = mock_cache_dirs["ubuntu_archive_cache"] / "indexes" / "noble" / "release" / "main" / "binary-amd64" / "Packages.gz"
+        dest = (
+            mock_cache_dirs["ubuntu_archive_cache"]
+            / "indexes"
+            / "noble"
+            / "release"
+            / "main"
+            / "binary-amd64"
+            / "Packages.gz"
+        )
         assert dest.exists()
 
     @responses.activate
     def test_respects_ttl(
-        self, temp_home: Path, mock_config: Path, mock_cache_dirs: dict[str, Path], sample_packages_gz: bytes
+        self,
+        temp_home: Path,
+        mock_config: Path,
+        mock_cache_dirs: dict[str, Path],
+        sample_packages_gz: bytes,
     ) -> None:
         # Create existing metadata that is within TTL
-        dest_dir = mock_cache_dirs["ubuntu_archive_cache"] / "indexes" / "noble" / "release" / "main" / "binary-amd64"
+        dest_dir = (
+            mock_cache_dirs["ubuntu_archive_cache"]
+            / "indexes"
+            / "noble"
+            / "release"
+            / "main"
+            / "binary-amd64"
+        )
         dest_dir.mkdir(parents=True, exist_ok=True)
         dest = dest_dir / "Packages.gz"
         dest.write_bytes(sample_packages_gz)
@@ -107,10 +130,21 @@ class TestRefreshUbuntuArchive:
 
     @responses.activate
     def test_force_ignores_ttl(
-        self, temp_home: Path, mock_config: Path, mock_cache_dirs: dict[str, Path], sample_packages_gz: bytes
+        self,
+        temp_home: Path,
+        mock_config: Path,
+        mock_cache_dirs: dict[str, Path],
+        sample_packages_gz: bytes,
     ) -> None:
         # Create existing metadata that is within TTL
-        dest_dir = mock_cache_dirs["ubuntu_archive_cache"] / "indexes" / "noble" / "release" / "main" / "binary-amd64"
+        dest_dir = (
+            mock_cache_dirs["ubuntu_archive_cache"]
+            / "indexes"
+            / "noble"
+            / "release"
+            / "main"
+            / "binary-amd64"
+        )
         dest_dir.mkdir(parents=True, exist_ok=True)
         dest = dest_dir / "Packages.gz"
         dest.write_bytes(sample_packages_gz)
@@ -145,10 +179,21 @@ class TestRefreshUbuntuArchive:
         assert len(responses.calls) == 1
 
     def test_offline_mode_with_existing_file(
-        self, temp_home: Path, mock_config: Path, mock_cache_dirs: dict[str, Path], sample_packages_gz: bytes
+        self,
+        temp_home: Path,
+        mock_config: Path,
+        mock_cache_dirs: dict[str, Path],
+        sample_packages_gz: bytes,
     ) -> None:
         # Create existing file
-        dest_dir = mock_cache_dirs["ubuntu_archive_cache"] / "indexes" / "noble" / "release" / "main" / "binary-amd64"
+        dest_dir = (
+            mock_cache_dirs["ubuntu_archive_cache"]
+            / "indexes"
+            / "noble"
+            / "release"
+            / "main"
+            / "binary-amd64"
+        )
         dest_dir.mkdir(parents=True, exist_ok=True)
         dest = dest_dir / "Packages.gz"
         dest.write_bytes(sample_packages_gz)
@@ -189,7 +234,11 @@ class TestRefreshUbuntuArchive:
 
     @responses.activate
     def test_partial_failure_returns_exit_2(
-        self, temp_home: Path, mock_config: Path, mock_cache_dirs: dict[str, Path], sample_packages_gz: bytes
+        self,
+        temp_home: Path,
+        mock_config: Path,
+        mock_cache_dirs: dict[str, Path],
+        sample_packages_gz: bytes,
     ) -> None:
         # One succeeds, one fails
         responses.add(
@@ -252,7 +301,12 @@ class TestRefreshCommand:
 
     @responses.activate
     def test_parses_comma_separated_options(
-        self, temp_home: Path, mock_config: Path, mock_cache_dirs: dict[str, Path], sample_packages_gz: bytes, non_tty_stdout: None
+        self,
+        temp_home: Path,
+        mock_config: Path,
+        mock_cache_dirs: dict[str, Path],
+        sample_packages_gz: bytes,
+        non_tty_stdout: None,
     ) -> None:
         # Register responses for all combinations
         # Note: 'all' arch is filtered out since binary-all doesn't exist
@@ -301,7 +355,12 @@ class TestRefreshCommand:
 
     @responses.activate
     def test_writes_summary_json(
-        self, temp_home: Path, mock_config: Path, mock_cache_dirs: dict[str, Path], sample_packages_gz: bytes, non_tty_stdout: None
+        self,
+        temp_home: Path,
+        mock_config: Path,
+        mock_cache_dirs: dict[str, Path],
+        sample_packages_gz: bytes,
+        non_tty_stdout: None,
     ) -> None:
         url = "http://archive.ubuntu.com/ubuntu/dists/noble/main/binary-amd64/Packages.gz"
         responses.add(responses.GET, url, body=sample_packages_gz, status=200)
@@ -331,7 +390,12 @@ class TestRefreshCommand:
 
     @responses.activate
     def test_resolves_devel_series(
-        self, temp_home: Path, mock_config: Path, mock_cache_dirs: dict[str, Path], sample_packages_gz: bytes, non_tty_stdout: None
+        self,
+        temp_home: Path,
+        mock_config: Path,
+        mock_cache_dirs: dict[str, Path],
+        sample_packages_gz: bytes,
+        non_tty_stdout: None,
     ) -> None:
         url = "http://archive.ubuntu.com/ubuntu/dists/resolute/main/binary-amd64/Packages.gz"
         responses.add(responses.GET, url, body=sample_packages_gz, status=200)

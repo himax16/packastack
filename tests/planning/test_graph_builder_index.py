@@ -5,7 +5,9 @@ from packastack.planning.graph_builder import build_graph_from_index
 def make_index_with_deps():
     idx = PackageIndex()
     # Source 'a' provides binary 'a-bin' and depends on 'b-bin'
-    a = BinaryPackage(name="a-bin", version="1.0", architecture="all", source="a", depends=["b-bin (>= 1.0)"])
+    a = BinaryPackage(
+        name="a-bin", version="1.0", architecture="all", source="a", depends=["b-bin (>= 1.0)"]
+    )
     b = BinaryPackage(name="b-bin", version="1.0", architecture="all", source="b", depends=[])
     idx.add_package(a, component="main", pocket="release")
     idx.add_package(b, component="main", pocket="release")

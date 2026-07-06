@@ -175,12 +175,14 @@ def refresh_ubuntu_archive(
             url = fetcher.build_url(config.mirror, config.ubuntu_series, pocket, component, arch)
 
             if run:
-                run.log_event({
-                    "event": "fetch.start",
-                    "url": url,
-                    "dest": str(dest_path),
-                    "offline": config.offline,
-                })
+                run.log_event(
+                    {
+                        "event": "fetch.start",
+                        "url": url,
+                        "dest": str(dest_path),
+                        "offline": config.offline,
+                    }
+                )
 
             # Check TTL unless force is set
             existing_meta = load_metadata(dest_path)
@@ -193,16 +195,18 @@ def refresh_ubuntu_archive(
                     if age_seconds < config.ttl_seconds:
                         activity("refresh", f"Skipping {pocket}/{component}/{arch} (within TTL)")
                         if run:
-                            run.log_event({
-                                "event": "fetch.skip_ttl",
-                                "url": url,
-                                "age_seconds": age_seconds,
-                                "ttl_seconds": config.ttl_seconds,
-                            })
+                            run.log_event(
+                                {
+                                    "event": "fetch.skip_ttl",
+                                    "url": url,
+                                    "age_seconds": age_seconds,
+                                    "ttl_seconds": config.ttl_seconds,
+                                }
+                            )
                         successes += 1
                         progress.advance(task)
                         continue
-                except (KeyError, ValueError):
+                except KeyError, ValueError:
                     pass  # Invalid metadata, proceed with fetch
 
             # Fetch the index
@@ -218,7 +222,9 @@ def refresh_ubuntu_archive(
                 if config.offline and "not found" in result.error.lower():
                     activity("refresh", f"Missing in offline mode: {pocket}/{component}/{arch}")
                     if run:
-                        run.log_event({"event": "fetch.offline_missing", "url": url, "error": result.error})
+                        run.log_event(
+                            {"event": "fetch.offline_missing", "url": url, "error": result.error}
+                        )
                     offline_missing += 1
                 else:
                     activity("refresh", f"Failed: {pocket}/{component}/{arch} - {result.error}")
@@ -243,13 +249,15 @@ def refresh_ubuntu_archive(
             status = "cached (304)" if result.was_cached else "fetched"
             activity("refresh", f"{status}: {pocket}/{component}/{arch}")
             if run:
-                run.log_event({
-                    "event": "fetch.success",
-                    "url": url,
-                    "was_cached": result.was_cached,
-                    "sha256": result.sha256,
-                    "size": result.size,
-                })
+                run.log_event(
+                    {
+                        "event": "fetch.success",
+                        "url": url,
+                        "was_cached": result.was_cached,
+                        "sha256": result.sha256,
+                        "size": result.size,
+                    }
+                )
             successes += 1
             progress.advance(task)
 
@@ -266,14 +274,26 @@ def refresh_ubuntu_archive(
 
 
 def refresh(
-    ubuntu_series: str = typer.Option("devel", "-u", "--ubuntu-series", help="Ubuntu series to refresh"),
-    pockets: str = typer.Option("release,updates,security", "-p", "--pockets", help="Comma-separated pockets"),
-    components: str = typer.Option("main,universe", "-c", "--components", help="Comma-separated components"),
+    ubuntu_series: str = typer.Option(
+        "devel", "-u", "--ubuntu-series", help="Ubuntu series to refresh"
+    ),
+    pockets: str = typer.Option(
+        "release,updates,security", "-p", "--pockets", help="Comma-separated pockets"
+    ),
+    components: str = typer.Option(
+        "main,universe", "-c", "--components", help="Comma-separated components"
+    ),
     arches: str = typer.Option("host,all", "-a", "--arches", help="Comma-separated arches"),
-    mirror: str = typer.Option("http://archive.ubuntu.com/ubuntu", "-m", "--mirror", help="Ubuntu mirror URL"),
-    ttl: str = typer.Option("6h", "-T", "--ttl", help="TTL for cached indexes (e.g., 6h, 1d, 30m)"),
+    mirror: str = typer.Option(
+        "http://archive.ubuntu.com/ubuntu", "-m", "--mirror", help="Ubuntu mirror URL"
+    ),
+    ttl: str = typer.Option(
+        "6h", "-T", "--ttl", help="TTL for cached indexes (e.g., 6h, 1d, 30m)"
+    ),
     force: bool = typer.Option(False, "-f", "--force", help="Ignore TTL and force fetch"),
-    offline: bool = typer.Option(False, "-o", "--offline", help="Run in offline mode (no network requests)"),
+    offline: bool = typer.Option(
+        False, "-o", "--offline", help="Run in offline mode (no network requests)"
+    ),
 ) -> None:
     """Refresh Ubuntu archive Packages.gz indexes.
 
@@ -329,7 +349,9 @@ def refresh(
                 cache_root = paths["cache_root"]
                 packages, _errors = refresh_managed_packages(cache_root, run=run)
                 if packages:
-                    activity("refresh", f"Updated managed packages list ({len(packages)} packages)")
+                    activity(
+                        "refresh", f"Updated managed packages list ({len(packages)} packages)"
+                    )
             except Exception as e:  # pragma: no cover
                 activity("refresh", f"Warning: Could not refresh managed packages: {e}")
                 run.log_event({"event": "pkg_scripts.warning", "error": str(e)})
@@ -339,17 +361,19 @@ def refresh(
         component_list = [c.strip() for c in components.split(",") if c.strip()]
         arch_list = [a.strip() for a in arches.split(",") if a.strip()]
 
-        run.log_event({
-            "event": "refresh.start",
-            "series": resolved_series,
-            "pockets": pocket_list,
-            "components": component_list,
-            "arches": arch_list,
-            "mirror": mirror,
-            "ttl_seconds": ttl_seconds,
-            "force": force,
-            "offline": offline,
-        })
+        run.log_event(
+            {
+                "event": "refresh.start",
+                "series": resolved_series,
+                "pockets": pocket_list,
+                "components": component_list,
+                "arches": arch_list,
+                "mirror": mirror,
+                "ttl_seconds": ttl_seconds,
+                "force": force,
+                "offline": offline,
+            }
+        )
 
         # Perform refresh
         refresh_config = RefreshConfig.from_lists(

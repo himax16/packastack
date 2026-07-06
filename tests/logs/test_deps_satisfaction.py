@@ -19,8 +19,20 @@ def sample_report():
                     "name": "python3-foo",
                     "relation": ">=",
                     "version": "1.0",
-                    "dev": {"found": True, "version": "1.0", "component": "main", "satisfied": True, "reason": "ok"},
-                    "prev_lts": {"found": True, "version": "1.0", "component": "main", "satisfied": True, "reason": "ok"},
+                    "dev": {
+                        "found": True,
+                        "version": "1.0",
+                        "component": "main",
+                        "satisfied": True,
+                        "reason": "ok",
+                    },
+                    "prev_lts": {
+                        "found": True,
+                        "version": "1.0",
+                        "component": "main",
+                        "satisfied": True,
+                        "reason": "ok",
+                    },
                     "cloud_archive_required": False,
                     "mir_warning": False,
                 }

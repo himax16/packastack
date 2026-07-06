@@ -18,7 +18,6 @@
 
 """Tests for build manifest module."""
 
-
 from packastack.planning.build_manifest import (
     BuildManifest,
     PackageVersion,
@@ -288,7 +287,9 @@ class TestResolveVersionForPackage:
         mock_release = MagicMock()
         mock_release.version = "29.1.0"
 
-        with patch("packastack.upstream.releases.load_project_releases", return_value=[mock_release]):
+        with patch(
+            "packastack.upstream.releases.load_project_releases", return_value=[mock_release]
+        ):
             version, _revision, _epoch, source = resolve_version_for_package(
                 source_package="nova",
                 build_type=BuildType.RELEASE,

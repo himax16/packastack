@@ -138,10 +138,7 @@ def generate_chroot_setup_commands() -> list[str]:
         List of shell commands to run in the chroot during setup.
     """
     return [
-        (
-            f'echo "deb [trusted=yes] file:{CHROOT_REPO_MOUNT} local main"'
-            f" > {CHROOT_SOURCES_LIST}"
-        ),
+        (f'echo "deb [trusted=yes] file:{CHROOT_REPO_MOUNT} local main" > {CHROOT_SOURCES_LIST}'),
         (
             "apt-get update"
             f" -o Dir::Etc::sourcelist={CHROOT_SOURCES_LIST}"
@@ -179,10 +176,7 @@ def generate_proposed_setup_commands(
     """
     pocket = f"{series}-proposed"
     return [
-        (
-            f'echo "deb {mirror} {pocket} {" ".join(components)}"'
-            f" > {CHROOT_PROPOSED_SOURCES}"
-        ),
+        (f'echo "deb {mirror} {pocket} {" ".join(components)}" > {CHROOT_PROPOSED_SOURCES}'),
         (
             "{ "
             "echo 'Package: *'; "
@@ -273,9 +267,7 @@ def build_sbuild_command(config: SbuildConfig) -> list[str]:
         repo_ready = False
         if config.chroot_name:
             try:
-                repo_ready = configure_repo_mount(
-                    config.chroot_name, config.local_repo_root
-                )
+                repo_ready = configure_repo_mount(config.chroot_name, config.local_repo_root)
             except RepoMountError as exc:
                 log.warning("Could not configure repo mount: %s", exc)
 
@@ -355,9 +347,10 @@ def run_sbuild(config: SbuildConfig, timeout: int = 3600) -> SbuildResult:
 
     try:
         # Run sbuild and capture output to files
-        with stdout_log.open("w", encoding="utf-8") as stdout_f, stderr_log.open(
-            "w", encoding="utf-8"
-        ) as stderr_f:
+        with (
+            stdout_log.open("w", encoding="utf-8") as stdout_f,
+            stderr_log.open("w", encoding="utf-8") as stderr_f,
+        ):
             result = subprocess.run(
                 cmd,
                 cwd=config.output_dir,

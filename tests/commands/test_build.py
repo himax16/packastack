@@ -79,7 +79,9 @@ def _create_mock_registry(project: str = "nova") -> MagicMock:
     return mock_registry
 
 
-def _make_resolved_target(pkg: str, upstream: str | None = None, source: str = "local") -> ResolvedTarget:
+def _make_resolved_target(
+    pkg: str, upstream: str | None = None, source: str = "local"
+) -> ResolvedTarget:
     """Create a ResolvedTarget for testing."""
     return ResolvedTarget(
         source_package=pkg,
@@ -98,6 +100,7 @@ def _make_plan_result(packages: list[str] | None = None):
         A PlanResult with the given packages in build_order and upload_order.
     """
     from packastack.planning.graph import PlanResult
+
     if packages is None:
         packages = ["nova"]
     return PlanResult(
@@ -191,8 +194,10 @@ class TestResolveBuildTypeFromCli:
     def test_invalid_type_raises(self) -> None:
         """Test invalid type raises BadParameter."""
         import typer
+
         with pytest.raises(typer.BadParameter):
             build._resolve_build_type_from_cli("invalid")
+
 
 class TestSetWorkspace:
     """Tests for _set_workspace helper."""
@@ -253,9 +258,7 @@ class TestBuildSingleModeResumeBuildId:
         with ExitStack() as stack:
             stack.enter_context(patch("packastack.commands.build.RunContext", mock_cls))
             # _run_build will be called inside the context — mock it to exit cleanly
-            stack.enter_context(
-                patch.object(build, "_run_build", return_value=build.EXIT_SUCCESS)
-            )
+            stack.enter_context(patch.object(build, "_run_build", return_value=build.EXIT_SUCCESS))
             # sys.exit is called at the end — catch it
             stack.enter_context(pytest.raises(SystemExit))
 
@@ -378,6 +381,7 @@ class TestRunBuildPhases:
         """Test that package not found returns CONFIG_ERROR."""
         # Create a plan result that returns CONFIG_ERROR for a nonexistent package
         from packastack.planning.graph import PlanResult
+
         mock_plan_result = PlanResult(
             build_order=[],
             upload_order=[],
@@ -388,7 +392,11 @@ class TestRunBuildPhases:
         with (
             patch.object(build, "load_config", return_value={}),
             patch.object(build, "resolve_paths", return_value=mock_paths),
-            patch.object(plan_module, "run_plan_for_package", return_value=(mock_plan_result, build.EXIT_CONFIG_ERROR)),
+            patch.object(
+                plan_module,
+                "run_plan_for_package",
+                return_value=(mock_plan_result, build.EXIT_CONFIG_ERROR),
+            ),
         ):
             result = _call_run_build(
                 run=mock_run,
@@ -428,6 +436,7 @@ class TestRunBuildPhases:
 
         # Create a valid PlanResult
         from packastack.planning.graph import PlanResult
+
         mock_plan_result = PlanResult(
             build_order=["nova"],
             upload_order=["nova"],
@@ -477,7 +486,9 @@ class TestRunBuildPhases:
             patch.object(build, "load_config", return_value={"defaults": {}}),
             patch.object(build, "resolve_paths", return_value=mock_paths),
             patch.object(build, "_update_openstack_repos"),
-            patch.object(plan_module, "run_plan_for_package", return_value=(_make_plan_result(), 0)),
+            patch.object(
+                plan_module, "run_plan_for_package", return_value=(_make_plan_result(), 0)
+            ),
             patch(
                 "packastack.build.single_build.build_single_package",
                 return_value=MagicMock(
@@ -525,7 +536,9 @@ class TestRunBuildPhases:
             patch.object(build, "load_config", return_value={"defaults": {}}),
             patch.object(build, "resolve_paths", return_value=mock_paths),
             patch.object(build, "_update_openstack_repos"),
-            patch.object(plan_module, "run_plan_for_package", return_value=(_make_plan_result(), 0)),
+            patch.object(
+                plan_module, "run_plan_for_package", return_value=(_make_plan_result(), 0)
+            ),
             patch(
                 "packastack.build.single_build.build_single_package",
                 return_value=MagicMock(
@@ -587,8 +600,14 @@ class TestRunBuildPhases:
             patch.object(build, "get_current_development_series", return_value="caracal"),
             patch.object(build, "load_openstack_packages", return_value={"nova": "nova"}),
             # Mock auto type resolution to return RELEASE
-            patch.object(build, "_resolve_build_type_auto", return_value=(BuildType.RELEASE, "release_available")),
-            patch.object(plan_module, "run_plan_for_package", return_value=(_make_plan_result(), 0)),
+            patch.object(
+                build,
+                "_resolve_build_type_auto",
+                return_value=(BuildType.RELEASE, "release_available"),
+            ),
+            patch.object(
+                plan_module, "run_plan_for_package", return_value=(_make_plan_result(), 0)
+            ),
         ):
             result = _call_run_build(
                 run=mock_run,
@@ -621,7 +640,9 @@ class TestRunBuildPhases:
             patch.object(build, "load_config", return_value={"defaults": {}}),
             patch.object(build, "resolve_paths", return_value=mock_paths),
             patch.object(build, "_update_openstack_repos"),
-            patch.object(plan_module, "run_plan_for_package", return_value=(_make_plan_result(), 0)),
+            patch.object(
+                plan_module, "run_plan_for_package", return_value=(_make_plan_result(), 0)
+            ),
         ):
             result = _call_run_build(
                 run=mock_run,
@@ -667,7 +688,9 @@ class TestRunBuildPhases:
             patch.object(build, "load_config", return_value={"defaults": {}}),
             patch.object(build, "resolve_paths", return_value=mock_paths),
             patch.object(build, "_update_openstack_repos"),
-            patch.object(plan_module, "run_plan_for_package", return_value=(_make_plan_result(), 0)),
+            patch.object(
+                plan_module, "run_plan_for_package", return_value=(_make_plan_result(), 0)
+            ),
         ):
             result = _call_run_build(
                 run=mock_run,
@@ -814,31 +837,54 @@ class TestFetchPhase:
             stack.enter_context(patch.object(build, "load_config", return_value={"defaults": {}}))
             stack.enter_context(patch.object(build, "resolve_paths", return_value=mock_paths))
             stack.enter_context(patch.object(build, "_update_openstack_repos"))
-            stack.enter_context(patch.object(plan_module, "run_plan_for_package", return_value=(_make_plan_result(), 0)))
-            stack.enter_context(patch(
-                "packastack.build.single_build.build_single_package",
-                return_value=MagicMock(
-                    success=False,
-                    exit_code=build.EXIT_FETCH_FAILED,
-                    error="Clone failed: network error",
-                ),
-            ))
-            stack.enter_context(patch(
-                "packastack.build.single_build.setup_build_context",
-                return_value=(MagicMock(success=True), MagicMock()),
-            ))
+            stack.enter_context(
+                patch.object(
+                    plan_module, "run_plan_for_package", return_value=(_make_plan_result(), 0)
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.build.single_build.build_single_package",
+                    return_value=MagicMock(
+                        success=False,
+                        exit_code=build.EXIT_FETCH_FAILED,
+                        error="Clone failed: network error",
+                    ),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.build.single_build.setup_build_context",
+                    return_value=(MagicMock(success=True), MagicMock()),
+                )
+            )
 
             result = _call_run_build(
-                run=mock_run, package="nova", target="devel", ubuntu_series="devel",
-                cloud_archive="", build_type_str="release",
-                force=False, offline=False, validate_plan_only=False, plan_upload=False,
-                upload=False, binary=False, builder="sbuild", build_deps=True, no_spinner=True, yes=False,
+                run=mock_run,
+                package="nova",
+                target="devel",
+                ubuntu_series="devel",
+                cloud_archive="",
+                build_type_str="release",
+                force=False,
+                offline=False,
+                validate_plan_only=False,
+                plan_upload=False,
+                upload=False,
+                binary=False,
+                builder="sbuild",
+                build_deps=True,
+                no_spinner=True,
+                yes=False,
                 workspace_ref=lambda w: None,
             )
 
         assert result == build.EXIT_FETCH_FAILED
 
-@pytest.mark.skip(reason="Tarball fallback tests need refactoring for build_single_package - tarball logic moved to single_build.py")
+
+@pytest.mark.skip(
+    reason="Tarball fallback tests need refactoring for build_single_package - tarball logic moved to single_build.py"
+)
 class TestReleaseTarballFetch:
     """Tests for release tarball fetching order.
 
@@ -852,7 +898,9 @@ class TestReleaseTarballFetch:
         pass  # pragma: no cover
 
 
-@pytest.mark.skip(reason="Needs refactoring for run_plan_for_package mock pattern - see test_validate_plan_only_returns_success for working example")
+@pytest.mark.skip(
+    reason="Needs refactoring for run_plan_for_package mock pattern - see test_validate_plan_only_returns_success for working example"
+)
 class TestFullBuildPhases:
     """Tests for complete build phases."""
 
@@ -936,32 +984,110 @@ class TestFullBuildPhases:
             stack.enter_context(patch.object(build, "load_config", return_value={"defaults": {}}))
             stack.enter_context(patch.object(build, "resolve_paths", return_value=mock_paths))
             stack.enter_context(patch.object(build, "resolve_series", return_value="noble"))
-            stack.enter_context(patch.object(build, "get_current_development_series", return_value="caracal"))
+            stack.enter_context(
+                patch.object(build, "get_current_development_series", return_value="caracal")
+            )
             stack.enter_context(patch.object(build, "get_previous_series", return_value="bobcat"))
             stack.enter_context(patch.object(build, "load_package_index", return_value=mock_index))
-            stack.enter_context(patch.object(build, "load_openstack_packages", return_value={"nova": "nova"}))
-            stack.enter_context(patch.object(build, "check_required_tools", return_value=mock_tool_result))
-            stack.enter_context(patch.object(single_build_module.GitFetcher, "fetch_and_checkout", return_value=mock_fetch_result))
-            stack.enter_context(patch("packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series", return_value=(True, [], None)))
-            stack.enter_context(patch("packastack.upstream.source.select_upstream_source", return_value=mock_upstream))
-            stack.enter_context(patch("packastack.upstream.source.apply_signature_policy", return_value=[]))
-            stack.enter_context(patch.object(tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result))
-            stack.enter_context(patch("packastack.debpkg.changelog.get_current_version", return_value="1.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.parse_version", return_value=MagicMock(upstream="1.0")))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_release_version", return_value="29.0.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_changelog_message", return_value="New release."))
-            stack.enter_context(patch("packastack.debpkg.changelog.update_changelog", return_value=True))
-            stack.enter_context(patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[]))
-            stack.enter_context(patch("packastack.debpkg.gbp.pq_import", return_value=mock_pq_result))
-            stack.enter_context(patch("packastack.debpkg.gbp.ensure_upstream_branch", return_value=MagicMock(success=True, branch_name="upstream-caracal", created=False, error="")))
-            stack.enter_context(patch("packastack.debpkg.gbp.import_orig", return_value=MagicMock(success=True, output="", upstream_version="")))
-            stack.enter_context(patch("packastack.debpkg.gbp.build_source", return_value=mock_build_result))
+            stack.enter_context(
+                patch.object(build, "load_openstack_packages", return_value={"nova": "nova"})
+            )
+            stack.enter_context(
+                patch.object(build, "check_required_tools", return_value=mock_tool_result)
+            )
+            stack.enter_context(
+                patch.object(
+                    single_build_module.GitFetcher,
+                    "fetch_and_checkout",
+                    return_value=mock_fetch_result,
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series",
+                    return_value=(True, [], None),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.upstream.source.select_upstream_source", return_value=mock_upstream
+                )
+            )
+            stack.enter_context(
+                patch("packastack.upstream.source.apply_signature_policy", return_value=[])
+            )
+            stack.enter_context(
+                patch.object(
+                    tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.get_current_version", return_value="1.0-0ubuntu1"
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.parse_version",
+                    return_value=MagicMock(upstream="1.0"),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_release_version",
+                    return_value="29.0.0-0ubuntu1",
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_changelog_message",
+                    return_value="New release.",
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.changelog.update_changelog", return_value=True)
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[])
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.pq_import", return_value=mock_pq_result)
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.gbp.ensure_upstream_branch",
+                    return_value=MagicMock(
+                        success=True, branch_name="upstream-caracal", created=False, error=""
+                    ),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.gbp.import_orig",
+                    return_value=MagicMock(success=True, output="", upstream_version=""),
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.build_source", return_value=mock_build_result)
+            )
 
             result = _call_run_build(
-                run=mock_run, package="nova", target="devel", ubuntu_series="devel",
-                cloud_archive="", build_type_str="release",
-                force=False, offline=False, validate_plan_only=False, plan_upload=False,
-                upload=False, binary=False, builder="sbuild", build_deps=True, no_spinner=True, yes=False,
+                run=mock_run,
+                package="nova",
+                target="devel",
+                ubuntu_series="devel",
+                cloud_archive="",
+                build_type_str="release",
+                force=False,
+                offline=False,
+                validate_plan_only=False,
+                plan_upload=False,
+                upload=False,
+                binary=False,
+                builder="sbuild",
+                build_deps=True,
+                no_spinner=True,
+                yes=False,
                 workspace_ref=lambda w: None,
             )
 
@@ -1025,35 +1151,121 @@ class TestFullBuildPhases:
             stack.enter_context(patch.object(build, "load_config", return_value={"defaults": {}}))
             stack.enter_context(patch.object(build, "resolve_paths", return_value=mock_paths))
             stack.enter_context(patch.object(build, "resolve_series", return_value="noble"))
-            stack.enter_context(patch.object(build, "get_current_development_series", return_value="caracal"))
+            stack.enter_context(
+                patch.object(build, "get_current_development_series", return_value="caracal")
+            )
             stack.enter_context(patch.object(build, "get_previous_series", return_value="bobcat"))
             stack.enter_context(patch.object(build, "load_package_index", return_value=mock_index))
-            stack.enter_context(patch.object(build, "load_openstack_packages", return_value={"nova": "nova"}))
-            stack.enter_context(patch.object(build, "check_required_tools", return_value=mock_tool_result))
-            stack.enter_context(patch.object(single_build_module.GitFetcher, "fetch_and_checkout", return_value=mock_fetch_result))
-            stack.enter_context(patch("packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series", return_value=(True, [], None)))
-            stack.enter_context(patch("packastack.upstream.source.select_upstream_source", return_value=mock_upstream))
-            stack.enter_context(patch("packastack.upstream.source.apply_signature_policy", return_value=[]))
-            stack.enter_context(patch.object(tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result))
-            stack.enter_context(patch("packastack.debpkg.changelog.get_current_version", return_value="1.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.parse_version", return_value=MagicMock(upstream="1.0")))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_release_version", return_value="29.0.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_changelog_message", return_value="New release."))
-            stack.enter_context(patch("packastack.debpkg.changelog.update_changelog", return_value=True))
-            stack.enter_context(patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[]))
-            stack.enter_context(patch("packastack.debpkg.gbp.pq_import", return_value=mock_pq_result))
-            stack.enter_context(patch("packastack.debpkg.gbp.ensure_upstream_branch", return_value=MagicMock(success=True, branch_name="upstream-caracal", created=False, error="")))
-            stack.enter_context(patch("packastack.debpkg.gbp.import_orig", return_value=MagicMock(success=True, output="", upstream_version="")))
-            stack.enter_context(patch("packastack.debpkg.gbp.build_source", return_value=mock_build_result))
+            stack.enter_context(
+                patch.object(build, "load_openstack_packages", return_value={"nova": "nova"})
+            )
+            stack.enter_context(
+                patch.object(build, "check_required_tools", return_value=mock_tool_result)
+            )
+            stack.enter_context(
+                patch.object(
+                    single_build_module.GitFetcher,
+                    "fetch_and_checkout",
+                    return_value=mock_fetch_result,
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series",
+                    return_value=(True, [], None),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.upstream.source.select_upstream_source", return_value=mock_upstream
+                )
+            )
+            stack.enter_context(
+                patch("packastack.upstream.source.apply_signature_policy", return_value=[])
+            )
+            stack.enter_context(
+                patch.object(
+                    tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.get_current_version", return_value="1.0-0ubuntu1"
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.parse_version",
+                    return_value=MagicMock(upstream="1.0"),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_release_version",
+                    return_value="29.0.0-0ubuntu1",
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_changelog_message",
+                    return_value="New release.",
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.changelog.update_changelog", return_value=True)
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[])
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.pq_import", return_value=mock_pq_result)
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.gbp.ensure_upstream_branch",
+                    return_value=MagicMock(
+                        success=True, branch_name="upstream-caracal", created=False, error=""
+                    ),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.gbp.import_orig",
+                    return_value=MagicMock(success=True, output="", upstream_version=""),
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.build_source", return_value=mock_build_result)
+            )
             stack.enter_context(patch.object(build, "is_sbuild_available", return_value=True))
             stack.enter_context(patch.object(build, "run_sbuild", return_value=mock_sbuild_result))
-            stack.enter_context(patch.object(build, "ensure_schroot", return_value=MagicMock(name="packastack-noble-amd64", exists=True, created=False, error="")))
+            stack.enter_context(
+                patch.object(
+                    build,
+                    "ensure_schroot",
+                    return_value=MagicMock(
+                        name="packastack-noble-amd64", exists=True, created=False, error=""
+                    ),
+                )
+            )
 
             result = _call_run_build(
-                run=mock_run, package="nova", target="devel", ubuntu_series="devel",
-                cloud_archive="", build_type_str="release",
-                force=False, offline=False, validate_plan_only=False, plan_upload=False,
-                upload=True, binary=True, builder="sbuild", build_deps=True, no_spinner=True, yes=False,
+                run=mock_run,
+                package="nova",
+                target="devel",
+                ubuntu_series="devel",
+                cloud_archive="",
+                build_type_str="release",
+                force=False,
+                offline=False,
+                validate_plan_only=False,
+                plan_upload=False,
+                upload=True,
+                binary=True,
+                builder="sbuild",
+                build_deps=True,
+                no_spinner=True,
+                yes=False,
                 workspace_ref=lambda w: None,
             )
 
@@ -1091,32 +1303,110 @@ class TestFullBuildPhases:
             stack.enter_context(patch.object(build, "load_config", return_value={"defaults": {}}))
             stack.enter_context(patch.object(build, "resolve_paths", return_value=mock_paths))
             stack.enter_context(patch.object(build, "resolve_series", return_value="noble"))
-            stack.enter_context(patch.object(build, "get_current_development_series", return_value="caracal"))
+            stack.enter_context(
+                patch.object(build, "get_current_development_series", return_value="caracal")
+            )
             stack.enter_context(patch.object(build, "get_previous_series", return_value="bobcat"))
             stack.enter_context(patch.object(build, "load_package_index", return_value=mock_index))
-            stack.enter_context(patch.object(build, "load_openstack_packages", return_value={"nova": "nova"}))
-            stack.enter_context(patch.object(build, "check_required_tools", return_value=mock_tool_result))
-            stack.enter_context(patch.object(single_build_module.GitFetcher, "fetch_and_checkout", return_value=mock_fetch_result))
-            stack.enter_context(patch("packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series", return_value=(True, [], None)))
-            stack.enter_context(patch("packastack.upstream.source.select_upstream_source", return_value=mock_upstream))
-            stack.enter_context(patch("packastack.upstream.source.apply_signature_policy", return_value=[]))
-            stack.enter_context(patch.object(tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result))
-            stack.enter_context(patch("packastack.debpkg.changelog.get_current_version", return_value="1.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.parse_version", return_value=MagicMock(upstream="1.0")))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_release_version", return_value="29.0.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_changelog_message", return_value="New release."))
-            stack.enter_context(patch("packastack.debpkg.changelog.update_changelog", return_value=True))
-            stack.enter_context(patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[]))
-            stack.enter_context(patch("packastack.debpkg.gbp.pq_import", return_value=mock_pq_result))
-            stack.enter_context(patch("packastack.debpkg.gbp.ensure_upstream_branch", return_value=MagicMock(success=True, branch_name="upstream-caracal", created=False, error="")))
-            stack.enter_context(patch("packastack.debpkg.gbp.import_orig", return_value=MagicMock(success=True, output="", upstream_version="")))
-            stack.enter_context(patch("packastack.debpkg.gbp.build_source", return_value=mock_build_result))
+            stack.enter_context(
+                patch.object(build, "load_openstack_packages", return_value={"nova": "nova"})
+            )
+            stack.enter_context(
+                patch.object(build, "check_required_tools", return_value=mock_tool_result)
+            )
+            stack.enter_context(
+                patch.object(
+                    single_build_module.GitFetcher,
+                    "fetch_and_checkout",
+                    return_value=mock_fetch_result,
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series",
+                    return_value=(True, [], None),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.upstream.source.select_upstream_source", return_value=mock_upstream
+                )
+            )
+            stack.enter_context(
+                patch("packastack.upstream.source.apply_signature_policy", return_value=[])
+            )
+            stack.enter_context(
+                patch.object(
+                    tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.get_current_version", return_value="1.0-0ubuntu1"
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.parse_version",
+                    return_value=MagicMock(upstream="1.0"),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_release_version",
+                    return_value="29.0.0-0ubuntu1",
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_changelog_message",
+                    return_value="New release.",
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.changelog.update_changelog", return_value=True)
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[])
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.pq_import", return_value=mock_pq_result)
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.gbp.ensure_upstream_branch",
+                    return_value=MagicMock(
+                        success=True, branch_name="upstream-caracal", created=False, error=""
+                    ),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.gbp.import_orig",
+                    return_value=MagicMock(success=True, output="", upstream_version=""),
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.build_source", return_value=mock_build_result)
+            )
 
             result = _call_run_build(
-                run=mock_run, package="nova", target="devel", ubuntu_series="devel",
-                cloud_archive="", build_type_str="release",
-                force=False, offline=False, validate_plan_only=False, plan_upload=False,
-                upload=False, binary=False, builder="sbuild", build_deps=True, no_spinner=True, yes=False,
+                run=mock_run,
+                package="nova",
+                target="devel",
+                ubuntu_series="devel",
+                cloud_archive="",
+                build_type_str="release",
+                force=False,
+                offline=False,
+                validate_plan_only=False,
+                plan_upload=False,
+                upload=False,
+                binary=False,
+                builder="sbuild",
+                build_deps=True,
+                no_spinner=True,
+                yes=False,
                 workspace_ref=lambda w: None,
             )
 
@@ -1153,29 +1443,93 @@ class TestFullBuildPhases:
             stack.enter_context(patch.object(build, "load_config", return_value={"defaults": {}}))
             stack.enter_context(patch.object(build, "resolve_paths", return_value=mock_paths))
             stack.enter_context(patch.object(build, "resolve_series", return_value="noble"))
-            stack.enter_context(patch.object(build, "get_current_development_series", return_value="caracal"))
+            stack.enter_context(
+                patch.object(build, "get_current_development_series", return_value="caracal")
+            )
             stack.enter_context(patch.object(build, "get_previous_series", return_value="bobcat"))
             stack.enter_context(patch.object(build, "load_package_index", return_value=mock_index))
-            stack.enter_context(patch.object(build, "load_openstack_packages", return_value={"nova": "nova"}))
-            stack.enter_context(patch.object(build, "check_required_tools", return_value=mock_tool_result))
-            stack.enter_context(patch.object(single_build_module.GitFetcher, "fetch_and_checkout", return_value=mock_fetch_result))
-            stack.enter_context(patch("packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series", return_value=(True, [], None)))
-            stack.enter_context(patch("packastack.upstream.source.select_upstream_source", return_value=mock_upstream))
-            stack.enter_context(patch("packastack.upstream.source.apply_signature_policy", return_value=[]))
-            stack.enter_context(patch.object(tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result))
-            stack.enter_context(patch("packastack.debpkg.changelog.get_current_version", return_value="1.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.parse_version", return_value=MagicMock(upstream="1.0")))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_release_version", return_value="29.0.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_changelog_message", return_value="New release."))
-            stack.enter_context(patch("packastack.debpkg.changelog.update_changelog", return_value=True))
-            stack.enter_context(patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[]))
-            stack.enter_context(patch("packastack.debpkg.gbp.pq_import", return_value=mock_pq_result))
+            stack.enter_context(
+                patch.object(build, "load_openstack_packages", return_value={"nova": "nova"})
+            )
+            stack.enter_context(
+                patch.object(build, "check_required_tools", return_value=mock_tool_result)
+            )
+            stack.enter_context(
+                patch.object(
+                    single_build_module.GitFetcher,
+                    "fetch_and_checkout",
+                    return_value=mock_fetch_result,
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series",
+                    return_value=(True, [], None),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.upstream.source.select_upstream_source", return_value=mock_upstream
+                )
+            )
+            stack.enter_context(
+                patch("packastack.upstream.source.apply_signature_policy", return_value=[])
+            )
+            stack.enter_context(
+                patch.object(
+                    tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.get_current_version", return_value="1.0-0ubuntu1"
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.parse_version",
+                    return_value=MagicMock(upstream="1.0"),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_release_version",
+                    return_value="29.0.0-0ubuntu1",
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_changelog_message",
+                    return_value="New release.",
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.changelog.update_changelog", return_value=True)
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[])
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.pq_import", return_value=mock_pq_result)
+            )
 
             result = _call_run_build(
-                run=mock_run, package="nova", target="devel", ubuntu_series="devel",
-                cloud_archive="", build_type_str="release",
-                force=False, offline=False, validate_plan_only=False, plan_upload=False,
-                upload=False, binary=False, builder="sbuild", build_deps=True, no_spinner=True, yes=False,
+                run=mock_run,
+                package="nova",
+                target="devel",
+                ubuntu_series="devel",
+                cloud_archive="",
+                build_type_str="release",
+                force=False,
+                offline=False,
+                validate_plan_only=False,
+                plan_upload=False,
+                upload=False,
+                binary=False,
+                builder="sbuild",
+                build_deps=True,
+                no_spinner=True,
+                yes=False,
                 workspace_ref=lambda w: None,
             )
 
@@ -1215,30 +1569,94 @@ class TestFullBuildPhases:
             stack.enter_context(patch.object(build, "load_config", return_value={"defaults": {}}))
             stack.enter_context(patch.object(build, "resolve_paths", return_value=mock_paths))
             stack.enter_context(patch.object(build, "resolve_series", return_value="noble"))
-            stack.enter_context(patch.object(build, "get_current_development_series", return_value="caracal"))
+            stack.enter_context(
+                patch.object(build, "get_current_development_series", return_value="caracal")
+            )
             stack.enter_context(patch.object(build, "get_previous_series", return_value="bobcat"))
             stack.enter_context(patch.object(build, "load_package_index", return_value=mock_index))
-            stack.enter_context(patch.object(build, "load_openstack_packages", return_value={"nova": "nova"}))
-            stack.enter_context(patch.object(build, "check_required_tools", return_value=mock_tool_result))
-            stack.enter_context(patch.object(single_build_module.GitFetcher, "fetch_and_checkout", return_value=mock_fetch_result))
-            stack.enter_context(patch("packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series", return_value=(True, [], None)))
-            stack.enter_context(patch("packastack.upstream.source.select_upstream_source", return_value=mock_upstream))
-            stack.enter_context(patch("packastack.upstream.source.apply_signature_policy", return_value=[]))
-            stack.enter_context(patch.object(tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result))
-            stack.enter_context(patch("packastack.debpkg.changelog.get_current_version", return_value="1.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.parse_version", return_value=MagicMock(upstream="1.0")))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_release_version", return_value="29.0.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_changelog_message", return_value="New release."))
-            stack.enter_context(patch("packastack.debpkg.changelog.update_changelog", return_value=True))
-            stack.enter_context(patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[]))
-            stack.enter_context(patch("packastack.debpkg.gbp.pq_import", return_value=mock_pq_result))
+            stack.enter_context(
+                patch.object(build, "load_openstack_packages", return_value={"nova": "nova"})
+            )
+            stack.enter_context(
+                patch.object(build, "check_required_tools", return_value=mock_tool_result)
+            )
+            stack.enter_context(
+                patch.object(
+                    single_build_module.GitFetcher,
+                    "fetch_and_checkout",
+                    return_value=mock_fetch_result,
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series",
+                    return_value=(True, [], None),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.upstream.source.select_upstream_source", return_value=mock_upstream
+                )
+            )
+            stack.enter_context(
+                patch("packastack.upstream.source.apply_signature_policy", return_value=[])
+            )
+            stack.enter_context(
+                patch.object(
+                    tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.get_current_version", return_value="1.0-0ubuntu1"
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.parse_version",
+                    return_value=MagicMock(upstream="1.0"),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_release_version",
+                    return_value="29.0.0-0ubuntu1",
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_changelog_message",
+                    return_value="New release.",
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.changelog.update_changelog", return_value=True)
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[])
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.pq_import", return_value=mock_pq_result)
+            )
             stack.enter_context(patch.object(build, "pq_export", return_value=mock_export_result))
 
             result = _call_run_build(
-                run=mock_run, package="nova", target="devel", ubuntu_series="devel",
-                cloud_archive="", build_type_str="release",
-                force=False, offline=False, validate_plan_only=False, plan_upload=False,
-                upload=False, binary=False, builder="sbuild", build_deps=True, no_spinner=True, yes=False,
+                run=mock_run,
+                package="nova",
+                target="devel",
+                ubuntu_series="devel",
+                cloud_archive="",
+                build_type_str="release",
+                force=False,
+                offline=False,
+                validate_plan_only=False,
+                plan_upload=False,
+                upload=False,
+                binary=False,
+                builder="sbuild",
+                build_deps=True,
+                no_spinner=True,
+                yes=False,
                 workspace_ref=lambda w: None,
             )
 
@@ -1294,34 +1712,110 @@ class TestFullBuildPhases:
             stack.enter_context(patch.object(build, "load_config", return_value={"defaults": {}}))
             stack.enter_context(patch.object(build, "resolve_paths", return_value=mock_paths))
             stack.enter_context(patch.object(build, "resolve_series", return_value="noble"))
-            stack.enter_context(patch.object(build, "get_current_development_series", return_value="caracal"))
+            stack.enter_context(
+                patch.object(build, "get_current_development_series", return_value="caracal")
+            )
             stack.enter_context(patch.object(build, "get_previous_series", return_value="bobcat"))
             stack.enter_context(patch.object(build, "load_package_index", return_value=mock_index))
-            stack.enter_context(patch.object(build, "load_openstack_packages", return_value={"nova": "nova"}))
-            stack.enter_context(patch.object(build, "check_required_tools", return_value=mock_tool_result))
-            stack.enter_context(patch.object(single_build_module.GitFetcher, "fetch_and_checkout", return_value=mock_fetch_result))
-            stack.enter_context(patch("packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series", return_value=(True, [], None)))
-            stack.enter_context(patch("packastack.upstream.source.select_upstream_source", return_value=mock_upstream))
-            stack.enter_context(patch("packastack.upstream.source.apply_signature_policy", return_value=[]))
-            stack.enter_context(patch.object(tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result))
-            stack.enter_context(patch("packastack.debpkg.changelog.get_current_version", return_value="1.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.parse_version", return_value=MagicMock(upstream="1.0")))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_release_version", return_value="29.0.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_changelog_message", return_value="New release."))
-            stack.enter_context(patch("packastack.debpkg.changelog.update_changelog", return_value=True))
-            stack.enter_context(patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[]))
+            stack.enter_context(
+                patch.object(build, "load_openstack_packages", return_value={"nova": "nova"})
+            )
+            stack.enter_context(
+                patch.object(build, "check_required_tools", return_value=mock_tool_result)
+            )
+            stack.enter_context(
+                patch.object(
+                    single_build_module.GitFetcher,
+                    "fetch_and_checkout",
+                    return_value=mock_fetch_result,
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series",
+                    return_value=(True, [], None),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.upstream.source.select_upstream_source", return_value=mock_upstream
+                )
+            )
+            stack.enter_context(
+                patch("packastack.upstream.source.apply_signature_policy", return_value=[])
+            )
+            stack.enter_context(
+                patch.object(
+                    tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.get_current_version", return_value="1.0-0ubuntu1"
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.parse_version",
+                    return_value=MagicMock(upstream="1.0"),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_release_version",
+                    return_value="29.0.0-0ubuntu1",
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_changelog_message",
+                    return_value="New release.",
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.changelog.update_changelog", return_value=True)
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[])
+            )
             mock_pq_import = stack.enter_context(patch.object(build, "pq_import"))
             mock_pq_import.side_effect = [mock_pq_result, mock_pq_result_tm]
             stack.enter_context(patch.object(build, "pq_export", return_value=mock_export_result))
-            stack.enter_context(patch("packastack.debpkg.gbp.ensure_upstream_branch", return_value=MagicMock(success=True, branch_name="upstream-caracal", created=False, error="")))
-            stack.enter_context(patch("packastack.debpkg.gbp.import_orig", return_value=MagicMock(success=True, output="", upstream_version="")))
-            stack.enter_context(patch("packastack.debpkg.gbp.build_source", return_value=mock_build_result))
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.gbp.ensure_upstream_branch",
+                    return_value=MagicMock(
+                        success=True, branch_name="upstream-caracal", created=False, error=""
+                    ),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.gbp.import_orig",
+                    return_value=MagicMock(success=True, output="", upstream_version=""),
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.build_source", return_value=mock_build_result)
+            )
 
             result = _call_run_build(
-                run=mock_run, package="nova", target="devel", ubuntu_series="devel",
-                cloud_archive="", build_type_str="release",
-                force=False, offline=False, validate_plan_only=False, plan_upload=False,
-                upload=False, binary=False, builder="sbuild", build_deps=True, no_spinner=True, yes=False,
+                run=mock_run,
+                package="nova",
+                target="devel",
+                ubuntu_series="devel",
+                cloud_archive="",
+                build_type_str="release",
+                force=False,
+                offline=False,
+                validate_plan_only=False,
+                plan_upload=False,
+                upload=False,
+                binary=False,
+                builder="sbuild",
+                build_deps=True,
+                no_spinner=True,
+                yes=False,
                 workspace_ref=lambda w: None,
             )
 
@@ -1356,28 +1850,93 @@ class TestFullBuildPhases:
             stack.enter_context(patch.object(build, "load_config", return_value={"defaults": {}}))
             stack.enter_context(patch.object(build, "resolve_paths", return_value=mock_paths))
             stack.enter_context(patch.object(build, "resolve_series", return_value="noble"))
-            stack.enter_context(patch.object(build, "get_current_development_series", return_value="caracal"))
+            stack.enter_context(
+                patch.object(build, "get_current_development_series", return_value="caracal")
+            )
             stack.enter_context(patch.object(build, "get_previous_series", return_value="bobcat"))
             stack.enter_context(patch.object(build, "load_package_index", return_value=mock_index))
-            stack.enter_context(patch.object(build, "load_openstack_packages", return_value={"nova": "nova"}))
-            stack.enter_context(patch.object(build, "check_required_tools", return_value=mock_tool_result))
-            stack.enter_context(patch.object(single_build_module.GitFetcher, "fetch_and_checkout", return_value=mock_fetch_result))
-            stack.enter_context(patch("packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series", return_value=(True, [], None)))
-            stack.enter_context(patch("packastack.upstream.source.select_upstream_source", return_value=mock_upstream))
-            stack.enter_context(patch("packastack.upstream.source.apply_signature_policy", return_value=[]))
-            stack.enter_context(patch.object(tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result))
-            stack.enter_context(patch("packastack.debpkg.changelog.get_current_version", return_value="1.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.parse_version", return_value=MagicMock(upstream="1.0")))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_release_version", return_value="29.0.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_changelog_message", return_value="New release."))
-            stack.enter_context(patch("packastack.debpkg.changelog.update_changelog", return_value=True))
-            stack.enter_context(patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[mock_upstreamed]))
+            stack.enter_context(
+                patch.object(build, "load_openstack_packages", return_value={"nova": "nova"})
+            )
+            stack.enter_context(
+                patch.object(build, "check_required_tools", return_value=mock_tool_result)
+            )
+            stack.enter_context(
+                patch.object(
+                    single_build_module.GitFetcher,
+                    "fetch_and_checkout",
+                    return_value=mock_fetch_result,
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series",
+                    return_value=(True, [], None),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.upstream.source.select_upstream_source", return_value=mock_upstream
+                )
+            )
+            stack.enter_context(
+                patch("packastack.upstream.source.apply_signature_policy", return_value=[])
+            )
+            stack.enter_context(
+                patch.object(
+                    tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.get_current_version", return_value="1.0-0ubuntu1"
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.parse_version",
+                    return_value=MagicMock(upstream="1.0"),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_release_version",
+                    return_value="29.0.0-0ubuntu1",
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_changelog_message",
+                    return_value="New release.",
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.changelog.update_changelog", return_value=True)
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.gbp.check_upstreamed_patches",
+                    return_value=[mock_upstreamed],
+                )
+            )
 
             result = _call_run_build(
-                run=mock_run, package="nova", target="devel", ubuntu_series="devel",
-                cloud_archive="", build_type_str="release",
-                force=False, offline=False, validate_plan_only=False, plan_upload=False,
-                upload=False, binary=False, builder="sbuild", build_deps=True, no_spinner=True, yes=False,
+                run=mock_run,
+                package="nova",
+                target="devel",
+                ubuntu_series="devel",
+                cloud_archive="",
+                build_type_str="release",
+                force=False,
+                offline=False,
+                validate_plan_only=False,
+                plan_upload=False,
+                upload=False,
+                binary=False,
+                builder="sbuild",
+                build_deps=True,
+                no_spinner=True,
+                yes=False,
                 workspace_ref=lambda w: None,
             )
 
@@ -1398,20 +1957,51 @@ class TestFullBuildPhases:
             stack.enter_context(patch.object(build, "load_config", return_value={"defaults": {}}))
             stack.enter_context(patch.object(build, "resolve_paths", return_value=mock_paths))
             stack.enter_context(patch.object(build, "resolve_series", return_value="noble"))
-            stack.enter_context(patch.object(build, "get_current_development_series", return_value="caracal"))
+            stack.enter_context(
+                patch.object(build, "get_current_development_series", return_value="caracal")
+            )
             stack.enter_context(patch.object(build, "get_previous_series", return_value="bobcat"))
             stack.enter_context(patch.object(build, "load_package_index", return_value=mock_index))
-            stack.enter_context(patch.object(build, "load_openstack_packages", return_value={"nova": "nova"}))
-            stack.enter_context(patch.object(build, "check_required_tools", return_value=mock_tool_result))
-            stack.enter_context(patch.object(single_build_module.GitFetcher, "fetch_and_checkout", return_value=mock_fetch_result))
-            stack.enter_context(patch("packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series", return_value=(True, [], None)))
-            stack.enter_context(patch("packastack.upstream.source.select_upstream_source", return_value=None))
+            stack.enter_context(
+                patch.object(build, "load_openstack_packages", return_value={"nova": "nova"})
+            )
+            stack.enter_context(
+                patch.object(build, "check_required_tools", return_value=mock_tool_result)
+            )
+            stack.enter_context(
+                patch.object(
+                    single_build_module.GitFetcher,
+                    "fetch_and_checkout",
+                    return_value=mock_fetch_result,
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series",
+                    return_value=(True, [], None),
+                )
+            )
+            stack.enter_context(
+                patch("packastack.upstream.source.select_upstream_source", return_value=None)
+            )
 
             result = _call_run_build(
-                run=mock_run, package="nova", target="devel", ubuntu_series="devel",
-                cloud_archive="", build_type_str="release",
-                force=False, offline=False, validate_plan_only=False, plan_upload=False,
-                upload=False, binary=False, builder="sbuild", build_deps=True, no_spinner=True, yes=False,
+                run=mock_run,
+                package="nova",
+                target="devel",
+                ubuntu_series="devel",
+                cloud_archive="",
+                build_type_str="release",
+                force=False,
+                offline=False,
+                validate_plan_only=False,
+                plan_upload=False,
+                upload=False,
+                binary=False,
+                builder="sbuild",
+                build_deps=True,
+                no_spinner=True,
+                yes=False,
                 workspace_ref=lambda w: None,
             )
 
@@ -1440,22 +2030,61 @@ class TestFullBuildPhases:
             stack.enter_context(patch.object(build, "load_config", return_value={"defaults": {}}))
             stack.enter_context(patch.object(build, "resolve_paths", return_value=mock_paths))
             stack.enter_context(patch.object(build, "resolve_series", return_value="noble"))
-            stack.enter_context(patch.object(build, "get_current_development_series", return_value="caracal"))
+            stack.enter_context(
+                patch.object(build, "get_current_development_series", return_value="caracal")
+            )
             stack.enter_context(patch.object(build, "get_previous_series", return_value="bobcat"))
             stack.enter_context(patch.object(build, "load_package_index", return_value=mock_index))
-            stack.enter_context(patch.object(build, "load_openstack_packages", return_value={"nova": "nova"}))
-            stack.enter_context(patch.object(build, "check_required_tools", return_value=mock_tool_result))
-            stack.enter_context(patch.object(single_build_module.GitFetcher, "fetch_and_checkout", return_value=mock_fetch_result))
-            stack.enter_context(patch("packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series", return_value=(True, [], None)))
-            stack.enter_context(patch("packastack.upstream.source.select_upstream_source", return_value=mock_upstream))
-            stack.enter_context(patch("packastack.upstream.source.apply_signature_policy", return_value=[]))
-            stack.enter_context(patch.object(tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result))
+            stack.enter_context(
+                patch.object(build, "load_openstack_packages", return_value={"nova": "nova"})
+            )
+            stack.enter_context(
+                patch.object(build, "check_required_tools", return_value=mock_tool_result)
+            )
+            stack.enter_context(
+                patch.object(
+                    single_build_module.GitFetcher,
+                    "fetch_and_checkout",
+                    return_value=mock_fetch_result,
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series",
+                    return_value=(True, [], None),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.upstream.source.select_upstream_source", return_value=mock_upstream
+                )
+            )
+            stack.enter_context(
+                patch("packastack.upstream.source.apply_signature_policy", return_value=[])
+            )
+            stack.enter_context(
+                patch.object(
+                    tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result
+                )
+            )
 
             result = _call_run_build(
-                run=mock_run, package="nova", target="devel", ubuntu_series="devel",
-                cloud_archive="", build_type_str="release",
-                force=False, offline=False, validate_plan_only=False, plan_upload=False,
-                upload=False, binary=False, builder="sbuild", build_deps=True, no_spinner=True, yes=False,
+                run=mock_run,
+                package="nova",
+                target="devel",
+                ubuntu_series="devel",
+                cloud_archive="",
+                build_type_str="release",
+                force=False,
+                offline=False,
+                validate_plan_only=False,
+                plan_upload=False,
+                upload=False,
+                binary=False,
+                builder="sbuild",
+                build_deps=True,
+                no_spinner=True,
+                yes=False,
                 workspace_ref=lambda w: None,
             )
 
@@ -1518,46 +2147,145 @@ class TestFullBuildPhases:
             stack.enter_context(patch.object(build, "load_config", return_value={"defaults": {}}))
             stack.enter_context(patch.object(build, "resolve_paths", return_value=mock_paths))
             stack.enter_context(patch.object(build, "resolve_series", return_value="noble"))
-            stack.enter_context(patch.object(build, "get_current_development_series", return_value="caracal"))
+            stack.enter_context(
+                patch.object(build, "get_current_development_series", return_value="caracal")
+            )
             stack.enter_context(patch.object(build, "get_previous_series", return_value="bobcat"))
-            stack.enter_context(patch.object(build, "is_snapshot_eligible", return_value=(True, "", "")))
+            stack.enter_context(
+                patch.object(build, "is_snapshot_eligible", return_value=(True, "", ""))
+            )
             stack.enter_context(patch.object(build, "load_package_index", return_value=mock_index))
             # Use dict mapping to exercise validate-deps handling of real load_openstack_packages output
-            stack.enter_context(patch.object(build, "load_openstack_packages", return_value={"nova": "nova"}))
-            stack.enter_context(patch.object(build, "check_required_tools", return_value=mock_tool_result))
-            stack.enter_context(patch.object(single_build_module.GitFetcher, "fetch_and_checkout", return_value=mock_fetch_result))
-            stack.enter_context(patch("packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series", return_value=(True, [], None)))
-            stack.enter_context(patch("packastack.upstream.source.select_upstream_source", return_value=mock_upstream))
-            stack.enter_context(patch("packastack.upstream.source.apply_signature_policy", return_value=[]))
-            stack.enter_context(patch.object(build, "acquire_upstream_snapshot", return_value=mock_snapshot_result))
+            stack.enter_context(
+                patch.object(build, "load_openstack_packages", return_value={"nova": "nova"})
+            )
+            stack.enter_context(
+                patch.object(build, "check_required_tools", return_value=mock_tool_result)
+            )
+            stack.enter_context(
+                patch.object(
+                    single_build_module.GitFetcher,
+                    "fetch_and_checkout",
+                    return_value=mock_fetch_result,
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series",
+                    return_value=(True, [], None),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.upstream.source.select_upstream_source", return_value=mock_upstream
+                )
+            )
+            stack.enter_context(
+                patch("packastack.upstream.source.apply_signature_policy", return_value=[])
+            )
+            stack.enter_context(
+                patch.object(build, "acquire_upstream_snapshot", return_value=mock_snapshot_result)
+            )
             # Ensure validate-deps executes with an upstream repo and missing dependency resolution
             upstream_repo = mock_fetch_result.path / "upstream"
             upstream_repo.mkdir(parents=True, exist_ok=True)
             mock_snapshot_result.repo_path = upstream_repo
             mock_upstream_deps = MagicMock(runtime=[("netaddr", ">=0.7.0")], test=[], build=[])
-            stack.enter_context(patch.object(build, "extract_upstream_deps", return_value=mock_upstream_deps))
-            stack.enter_context(patch("packastack.planning.validated_plan.map_python_to_debian", return_value=("python3-netaddr", False)))
-            stack.enter_context(patch("packastack.planning.validated_plan.resolve_dependency_with_spec", return_value=(None, "", False)))
-            stack.enter_context(patch("packastack.debpkg.changelog.get_current_version", return_value="1.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.parse_version", return_value=MagicMock(upstream="1.0")))
-            stack.enter_context(patch.object(build, "increment_upstream_version", return_value="1.0.1"))
-            stack.enter_context(patch.object(build, "generate_snapshot_version", return_value="1.0.1~git20241227.abc1234-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_changelog_message", return_value="Snapshot."))
-            stack.enter_context(patch("packastack.debpkg.changelog.update_changelog", return_value=True))
-            stack.enter_context(patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[]))
-            stack.enter_context(patch("packastack.debpkg.gbp.pq_import", return_value=mock_pq_result))
-            stack.enter_context(patch("packastack.debpkg.gbp.ensure_upstream_branch", return_value=MagicMock(success=True, branch_name="upstream-caracal", created=False, error="")))
-            stack.enter_context(patch("packastack.debpkg.gbp.import_orig", return_value=MagicMock(success=True, output="", upstream_version="")))
-            stack.enter_context(patch("packastack.debpkg.gbp.build_source", return_value=mock_build_result))
-            stack.enter_context(patch.object(build.localrepo, "publish_artifacts", return_value=mock_publish_result))
-            stack.enter_context(patch.object(build.localrepo, "regenerate_indexes", return_value=mock_index_result))
+            stack.enter_context(
+                patch.object(build, "extract_upstream_deps", return_value=mock_upstream_deps)
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.planning.validated_plan.map_python_to_debian",
+                    return_value=("python3-netaddr", False),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.planning.validated_plan.resolve_dependency_with_spec",
+                    return_value=(None, "", False),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.get_current_version", return_value="1.0-0ubuntu1"
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.parse_version",
+                    return_value=MagicMock(upstream="1.0"),
+                )
+            )
+            stack.enter_context(
+                patch.object(build, "increment_upstream_version", return_value="1.0.1")
+            )
+            stack.enter_context(
+                patch.object(
+                    build,
+                    "generate_snapshot_version",
+                    return_value="1.0.1~git20241227.abc1234-0ubuntu1",
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_changelog_message",
+                    return_value="Snapshot.",
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.changelog.update_changelog", return_value=True)
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[])
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.pq_import", return_value=mock_pq_result)
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.gbp.ensure_upstream_branch",
+                    return_value=MagicMock(
+                        success=True, branch_name="upstream-caracal", created=False, error=""
+                    ),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.gbp.import_orig",
+                    return_value=MagicMock(success=True, output="", upstream_version=""),
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.build_source", return_value=mock_build_result)
+            )
+            stack.enter_context(
+                patch.object(
+                    build.localrepo, "publish_artifacts", return_value=mock_publish_result
+                )
+            )
+            stack.enter_context(
+                patch.object(build.localrepo, "regenerate_indexes", return_value=mock_index_result)
+            )
             stack.enter_context(patch.object(build, "get_host_arch", return_value="amd64"))
 
             result = _call_run_build(
-                run=mock_run, package="nova", target="devel", ubuntu_series="devel",
-                cloud_archive="", build_type_str="snapshot",
-                force=False, offline=False, validate_plan_only=False, plan_upload=False,
-                upload=False, binary=False, builder="sbuild", build_deps=True, no_spinner=True, yes=False,
+                run=mock_run,
+                package="nova",
+                target="devel",
+                ubuntu_series="devel",
+                cloud_archive="",
+                build_type_str="snapshot",
+                force=False,
+                offline=False,
+                validate_plan_only=False,
+                plan_upload=False,
+                upload=False,
+                binary=False,
+                builder="sbuild",
+                build_deps=True,
+                no_spinner=True,
+                yes=False,
                 workspace_ref=lambda w: None,
             )
 
@@ -1657,36 +2385,118 @@ class TestBuildWithUpstreamedPatchesForce:
             stack.enter_context(patch.object(build, "load_config", return_value={"defaults": {}}))
             stack.enter_context(patch.object(build, "resolve_paths", return_value=mock_paths))
             stack.enter_context(patch.object(build, "resolve_series", return_value="noble"))
-            stack.enter_context(patch.object(build, "get_current_development_series", return_value="caracal"))
+            stack.enter_context(
+                patch.object(build, "get_current_development_series", return_value="caracal")
+            )
             stack.enter_context(patch.object(build, "get_previous_series", return_value="bobcat"))
-            stack.enter_context(patch.object(build, "is_snapshot_eligible", return_value=(True, "", "")))
+            stack.enter_context(
+                patch.object(build, "is_snapshot_eligible", return_value=(True, "", ""))
+            )
             stack.enter_context(patch.object(build, "load_package_index", return_value=mock_index))
-            stack.enter_context(patch.object(build, "load_openstack_packages", return_value={"nova": "nova"}))
-            stack.enter_context(patch.object(build, "check_required_tools", return_value=mock_tool_result))
-            stack.enter_context(patch.object(single_build_module.GitFetcher, "fetch_and_checkout", return_value=mock_fetch_result))
-            stack.enter_context(patch("packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series", return_value=(True, [], None)))
-            stack.enter_context(patch("packastack.upstream.source.select_upstream_source", return_value=mock_upstream))
-            stack.enter_context(patch("packastack.upstream.source.apply_signature_policy", return_value=[]))
-            stack.enter_context(patch.object(tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result))
-            stack.enter_context(patch("packastack.debpkg.changelog.get_current_version", return_value="28.0.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.parse_version", return_value=MagicMock(upstream="28.0.0")))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_release_version", return_value="29.0.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_changelog_message", return_value="New release."))
-            stack.enter_context(patch("packastack.debpkg.changelog.update_changelog", return_value=True))
+            stack.enter_context(
+                patch.object(build, "load_openstack_packages", return_value={"nova": "nova"})
+            )
+            stack.enter_context(
+                patch.object(build, "check_required_tools", return_value=mock_tool_result)
+            )
+            stack.enter_context(
+                patch.object(
+                    single_build_module.GitFetcher,
+                    "fetch_and_checkout",
+                    return_value=mock_fetch_result,
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series",
+                    return_value=(True, [], None),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.upstream.source.select_upstream_source", return_value=mock_upstream
+                )
+            )
+            stack.enter_context(
+                patch("packastack.upstream.source.apply_signature_policy", return_value=[])
+            )
+            stack.enter_context(
+                patch.object(
+                    tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.get_current_version",
+                    return_value="28.0.0-0ubuntu1",
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.parse_version",
+                    return_value=MagicMock(upstream="28.0.0"),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_release_version",
+                    return_value="29.0.0-0ubuntu1",
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_changelog_message",
+                    return_value="New release.",
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.changelog.update_changelog", return_value=True)
+            )
             # Return upstreamed patches
-            stack.enter_context(patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=mock_upstreamed))
-            stack.enter_context(patch("packastack.debpkg.gbp.pq_import", return_value=mock_pq_result))
-            stack.enter_context(patch("packastack.debpkg.gbp.ensure_upstream_branch", return_value=MagicMock(success=True, branch_name="upstream-caracal", created=False, error="")))
-            stack.enter_context(patch("packastack.debpkg.gbp.import_orig", return_value=MagicMock(success=True, output="", upstream_version="")))
-            stack.enter_context(patch("packastack.debpkg.gbp.build_source", return_value=mock_build_result))
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.gbp.check_upstreamed_patches", return_value=mock_upstreamed
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.pq_import", return_value=mock_pq_result)
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.gbp.ensure_upstream_branch",
+                    return_value=MagicMock(
+                        success=True, branch_name="upstream-caracal", created=False, error=""
+                    ),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.gbp.import_orig",
+                    return_value=MagicMock(success=True, output="", upstream_version=""),
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.build_source", return_value=mock_build_result)
+            )
 
             # force=True should allow build to continue
             result = _call_run_build(
-                run=mock_run, package="nova", target="devel", ubuntu_series="devel",
-                cloud_archive="", build_type_str="release",
+                run=mock_run,
+                package="nova",
+                target="devel",
+                ubuntu_series="devel",
+                cloud_archive="",
+                build_type_str="release",
                 force=True,  # Force to continue with upstreamed patches
-                offline=False, validate_plan_only=False, plan_upload=False,
-                upload=False, binary=False, builder="sbuild", build_deps=True, no_spinner=True, yes=False,
+                offline=False,
+                validate_plan_only=False,
+                plan_upload=False,
+                upload=False,
+                binary=False,
+                builder="sbuild",
+                build_deps=True,
+                no_spinner=True,
+                yes=False,
                 workspace_ref=lambda w: None,
             )
 
@@ -1765,35 +2575,114 @@ class TestBuildWithUpstreamedPatchesForce:
             stack.enter_context(patch.object(build, "load_config", return_value={"defaults": {}}))
             stack.enter_context(patch.object(build, "resolve_paths", return_value=mock_paths))
             stack.enter_context(patch.object(build, "resolve_series", return_value="noble"))
-            stack.enter_context(patch.object(build, "get_current_development_series", return_value="caracal"))
+            stack.enter_context(
+                patch.object(build, "get_current_development_series", return_value="caracal")
+            )
             stack.enter_context(patch.object(build, "get_previous_series", return_value="bobcat"))
-            stack.enter_context(patch.object(build, "is_snapshot_eligible", return_value=(True, "", "")))
+            stack.enter_context(
+                patch.object(build, "is_snapshot_eligible", return_value=(True, "", ""))
+            )
             stack.enter_context(patch.object(build, "load_package_index", return_value=mock_index))
-            stack.enter_context(patch.object(build, "load_openstack_packages", return_value={"nova": "nova"}))
-            stack.enter_context(patch.object(build, "check_required_tools", return_value=mock_tool_result))
-            stack.enter_context(patch.object(single_build_module.GitFetcher, "fetch_and_checkout", return_value=mock_fetch_result))
-            stack.enter_context(patch("packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series", return_value=(True, [], None)))
-            stack.enter_context(patch("packastack.upstream.source.select_upstream_source", return_value=mock_upstream))
-            stack.enter_context(patch("packastack.upstream.source.apply_signature_policy", return_value=[]))
-            stack.enter_context(patch.object(tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result))
-            stack.enter_context(patch("packastack.debpkg.changelog.get_current_version", return_value="28.0.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.parse_version", return_value=MagicMock(upstream="28.0.0")))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_release_version", return_value="29.0.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_changelog_message", return_value="New release."))
-            stack.enter_context(patch("packastack.debpkg.changelog.update_changelog", return_value=True))
-            stack.enter_context(patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[]))
+            stack.enter_context(
+                patch.object(build, "load_openstack_packages", return_value={"nova": "nova"})
+            )
+            stack.enter_context(
+                patch.object(build, "check_required_tools", return_value=mock_tool_result)
+            )
+            stack.enter_context(
+                patch.object(
+                    single_build_module.GitFetcher,
+                    "fetch_and_checkout",
+                    return_value=mock_fetch_result,
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series",
+                    return_value=(True, [], None),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.upstream.source.select_upstream_source", return_value=mock_upstream
+                )
+            )
+            stack.enter_context(
+                patch("packastack.upstream.source.apply_signature_policy", return_value=[])
+            )
+            stack.enter_context(
+                patch.object(
+                    tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.get_current_version",
+                    return_value="28.0.0-0ubuntu1",
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.parse_version",
+                    return_value=MagicMock(upstream="28.0.0"),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_release_version",
+                    return_value="29.0.0-0ubuntu1",
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_changelog_message",
+                    return_value="New release.",
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.changelog.update_changelog", return_value=True)
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[])
+            )
             mock_pq_import = stack.enter_context(patch.object(build, "pq_import"))
             mock_pq_import.side_effect = [mock_pq_result, mock_pq_result_tm]
             stack.enter_context(patch.object(build, "pq_export", return_value=mock_export_result))
-            stack.enter_context(patch("packastack.debpkg.gbp.ensure_upstream_branch", return_value=MagicMock(success=True, branch_name="upstream-caracal", created=False, error="")))
-            stack.enter_context(patch("packastack.debpkg.gbp.import_orig", return_value=MagicMock(success=True, output="", upstream_version="")))
-            stack.enter_context(patch("packastack.debpkg.gbp.build_source", return_value=mock_build_result))
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.gbp.ensure_upstream_branch",
+                    return_value=MagicMock(
+                        success=True, branch_name="upstream-caracal", created=False, error=""
+                    ),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.gbp.import_orig",
+                    return_value=MagicMock(success=True, output="", upstream_version=""),
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.build_source", return_value=mock_build_result)
+            )
 
             result = _call_run_build(
-                run=mock_run, package="nova", target="devel", ubuntu_series="devel",
-                cloud_archive="", build_type_str="release",
-                force=False, offline=False, validate_plan_only=False, plan_upload=False,
-                upload=False, binary=False, builder="sbuild", build_deps=True, no_spinner=True, yes=False,
+                run=mock_run,
+                package="nova",
+                target="devel",
+                ubuntu_series="devel",
+                cloud_archive="",
+                build_type_str="release",
+                force=False,
+                offline=False,
+                validate_plan_only=False,
+                plan_upload=False,
+                upload=False,
+                binary=False,
+                builder="sbuild",
+                build_deps=True,
+                no_spinner=True,
+                yes=False,
                 workspace_ref=lambda w: None,
             )
 
@@ -1888,35 +2777,108 @@ class TestSnapshotAcquisitionIntegration:
             stack.enter_context(patch.object(build, "load_config", return_value={"defaults": {}}))
             stack.enter_context(patch.object(build, "resolve_paths", return_value=mock_paths))
             stack.enter_context(patch.object(build, "resolve_series", return_value="noble"))
-            stack.enter_context(patch.object(build, "get_current_development_series", return_value="caracal"))
+            stack.enter_context(
+                patch.object(build, "get_current_development_series", return_value="caracal")
+            )
             stack.enter_context(patch.object(build, "get_previous_series", return_value="bobcat"))
-            stack.enter_context(patch.object(build, "is_snapshot_eligible", return_value=(True, "", "")))
+            stack.enter_context(
+                patch.object(build, "is_snapshot_eligible", return_value=(True, "", ""))
+            )
             stack.enter_context(patch.object(build, "load_package_index", return_value=mock_index))
-            stack.enter_context(patch.object(build, "load_openstack_packages", return_value={"nova": "nova"}))
-            stack.enter_context(patch.object(build, "check_required_tools", return_value=mock_tool_result))
-            stack.enter_context(patch.object(single_build_module.GitFetcher, "fetch_and_checkout", return_value=mock_fetch_result))
-            stack.enter_context(patch("packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series", return_value=(True, [], None)))
-            stack.enter_context(patch("packastack.upstream.source.apply_signature_policy", return_value=[]))
-            stack.enter_context(patch("packastack.debpkg.changelog.get_current_version", return_value="28.0.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.parse_version", return_value=MagicMock(upstream="28.0.0")))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_release_version", return_value="29.0.0.dev5-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_changelog_message", return_value="Snapshot."))
-            stack.enter_context(patch("packastack.debpkg.changelog.update_changelog", return_value=True))
-            stack.enter_context(patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[]))
-            stack.enter_context(patch("packastack.debpkg.gbp.pq_import", return_value=mock_pq_result))
+            stack.enter_context(
+                patch.object(build, "load_openstack_packages", return_value={"nova": "nova"})
+            )
+            stack.enter_context(
+                patch.object(build, "check_required_tools", return_value=mock_tool_result)
+            )
+            stack.enter_context(
+                patch.object(
+                    single_build_module.GitFetcher,
+                    "fetch_and_checkout",
+                    return_value=mock_fetch_result,
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series",
+                    return_value=(True, [], None),
+                )
+            )
+            stack.enter_context(
+                patch("packastack.upstream.source.apply_signature_policy", return_value=[])
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.get_current_version",
+                    return_value="28.0.0-0ubuntu1",
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.parse_version",
+                    return_value=MagicMock(upstream="28.0.0"),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_release_version",
+                    return_value="29.0.0.dev5-0ubuntu1",
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_changelog_message",
+                    return_value="Snapshot.",
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.changelog.update_changelog", return_value=True)
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[])
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.pq_import", return_value=mock_pq_result)
+            )
             stack.enter_context(patch.object(build, "pq_export", return_value=mock_export_result))
-            stack.enter_context(patch("packastack.debpkg.gbp.ensure_upstream_branch", return_value=MagicMock(success=True, branch_name="upstream-caracal", created=False, error="")))
-            stack.enter_context(patch("packastack.debpkg.gbp.import_orig", return_value=MagicMock(success=True, output="", upstream_version="")))
-            stack.enter_context(patch("packastack.debpkg.gbp.build_source", return_value=mock_build_result))
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.gbp.ensure_upstream_branch",
+                    return_value=MagicMock(
+                        success=True, branch_name="upstream-caracal", created=False, error=""
+                    ),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.gbp.import_orig",
+                    return_value=MagicMock(success=True, output="", upstream_version=""),
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.build_source", return_value=mock_build_result)
+            )
             mock_acquire = stack.enter_context(
                 patch.object(build, "acquire_upstream_snapshot", return_value=mock_snapshot_result)
             )
 
             result = _call_run_build(
-                run=mock_run, package="nova", target="devel", ubuntu_series="devel",
-                cloud_archive="", build_type_str="snapshot",
-                force=False, offline=False, validate_plan_only=False, plan_upload=False,
-                upload=False, binary=False, builder="sbuild", build_deps=True, no_spinner=True, yes=False,
+                run=mock_run,
+                package="nova",
+                target="devel",
+                ubuntu_series="devel",
+                cloud_archive="",
+                build_type_str="snapshot",
+                force=False,
+                offline=False,
+                validate_plan_only=False,
+                plan_upload=False,
+                upload=False,
+                binary=False,
+                builder="sbuild",
+                build_deps=True,
+                no_spinner=True,
+                yes=False,
                 workspace_ref=lambda w: None,
             )
 
@@ -1965,17 +2927,48 @@ class TestSnapshotAcquisitionIntegration:
             stack.enter_context(patch.object(build, "load_config", return_value={"defaults": {}}))
             stack.enter_context(patch.object(build, "resolve_paths", return_value=mock_paths))
             stack.enter_context(patch.object(build, "resolve_series", return_value="noble"))
-            stack.enter_context(patch.object(build, "get_current_development_series", return_value="caracal"))
+            stack.enter_context(
+                patch.object(build, "get_current_development_series", return_value="caracal")
+            )
             stack.enter_context(patch.object(build, "get_previous_series", return_value="bobcat"))
-            stack.enter_context(patch.object(build, "is_snapshot_eligible", return_value=(True, "", "")))
+            stack.enter_context(
+                patch.object(build, "is_snapshot_eligible", return_value=(True, "", ""))
+            )
             stack.enter_context(patch.object(build, "load_package_index", return_value=mock_index))
-            stack.enter_context(patch.object(build, "load_openstack_packages", return_value={"nova": "nova"}))
-            stack.enter_context(patch.object(build, "check_required_tools", return_value=mock_tool_result))
-            stack.enter_context(patch.object(single_build_module.GitFetcher, "fetch_and_checkout", return_value=mock_fetch_result))
-            stack.enter_context(patch("packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series", return_value=(True, [], None)))
-            stack.enter_context(patch("packastack.upstream.source.apply_signature_policy", return_value=[]))
-            stack.enter_context(patch("packastack.debpkg.changelog.get_current_version", return_value="28.0.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.parse_version", return_value=MagicMock(upstream="28.0.0")))
+            stack.enter_context(
+                patch.object(build, "load_openstack_packages", return_value={"nova": "nova"})
+            )
+            stack.enter_context(
+                patch.object(build, "check_required_tools", return_value=mock_tool_result)
+            )
+            stack.enter_context(
+                patch.object(
+                    single_build_module.GitFetcher,
+                    "fetch_and_checkout",
+                    return_value=mock_fetch_result,
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series",
+                    return_value=(True, [], None),
+                )
+            )
+            stack.enter_context(
+                patch("packastack.upstream.source.apply_signature_policy", return_value=[])
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.get_current_version",
+                    return_value="28.0.0-0ubuntu1",
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.parse_version",
+                    return_value=MagicMock(upstream="28.0.0"),
+                )
+            )
             stack.enter_context(
                 patch.object(build, "acquire_upstream_snapshot", return_value=mock_snapshot_result)
             )
@@ -1985,10 +2978,22 @@ class TestSnapshotAcquisitionIntegration:
             )
 
             result = _call_run_build(
-                run=mock_run, package="nova", target="devel", ubuntu_series="devel",
-                cloud_archive="", build_type_str="snapshot",
-                force=False, offline=False, validate_plan_only=False, plan_upload=False,
-                upload=False, binary=False, builder="sbuild", build_deps=True, no_spinner=True, yes=False,
+                run=mock_run,
+                package="nova",
+                target="devel",
+                ubuntu_series="devel",
+                cloud_archive="",
+                build_type_str="snapshot",
+                force=False,
+                offline=False,
+                validate_plan_only=False,
+                plan_upload=False,
+                upload=False,
+                binary=False,
+                builder="sbuild",
+                build_deps=True,
+                no_spinner=True,
+                yes=False,
                 workspace_ref=lambda w: None,
             )
 
@@ -2090,28 +3095,97 @@ class TestLocalRepoPublishingIntegration:
             stack.enter_context(patch.object(build, "load_config", return_value={"defaults": {}}))
             stack.enter_context(patch.object(build, "resolve_paths", return_value=mock_paths))
             stack.enter_context(patch.object(build, "resolve_series", return_value="noble"))
-            stack.enter_context(patch.object(build, "get_current_development_series", return_value="caracal"))
+            stack.enter_context(
+                patch.object(build, "get_current_development_series", return_value="caracal")
+            )
             stack.enter_context(patch.object(build, "get_previous_series", return_value="bobcat"))
-            stack.enter_context(patch.object(build, "is_snapshot_eligible", return_value=(True, "", "")))
+            stack.enter_context(
+                patch.object(build, "is_snapshot_eligible", return_value=(True, "", ""))
+            )
             stack.enter_context(patch.object(build, "load_package_index", return_value=mock_index))
-            stack.enter_context(patch.object(build, "load_openstack_packages", return_value={"nova": "nova"}))
-            stack.enter_context(patch.object(build, "check_required_tools", return_value=mock_tool_result))
-            stack.enter_context(patch.object(single_build_module.GitFetcher, "fetch_and_checkout", return_value=mock_fetch_result))
-            stack.enter_context(patch("packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series", return_value=(True, [], None)))
-            stack.enter_context(patch("packastack.upstream.source.select_upstream_source", return_value=mock_upstream))
-            stack.enter_context(patch("packastack.upstream.source.apply_signature_policy", return_value=[]))
-            stack.enter_context(patch.object(tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result))
-            stack.enter_context(patch("packastack.debpkg.changelog.get_current_version", return_value="28.0.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.parse_version", return_value=MagicMock(upstream="28.0.0")))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_release_version", return_value="29.0.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_changelog_message", return_value="New release."))
-            stack.enter_context(patch("packastack.debpkg.changelog.update_changelog", return_value=True))
-            stack.enter_context(patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[]))
-            stack.enter_context(patch("packastack.debpkg.gbp.pq_import", return_value=mock_pq_result))
+            stack.enter_context(
+                patch.object(build, "load_openstack_packages", return_value={"nova": "nova"})
+            )
+            stack.enter_context(
+                patch.object(build, "check_required_tools", return_value=mock_tool_result)
+            )
+            stack.enter_context(
+                patch.object(
+                    single_build_module.GitFetcher,
+                    "fetch_and_checkout",
+                    return_value=mock_fetch_result,
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series",
+                    return_value=(True, [], None),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.upstream.source.select_upstream_source", return_value=mock_upstream
+                )
+            )
+            stack.enter_context(
+                patch("packastack.upstream.source.apply_signature_policy", return_value=[])
+            )
+            stack.enter_context(
+                patch.object(
+                    tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.get_current_version",
+                    return_value="28.0.0-0ubuntu1",
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.parse_version",
+                    return_value=MagicMock(upstream="28.0.0"),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_release_version",
+                    return_value="29.0.0-0ubuntu1",
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_changelog_message",
+                    return_value="New release.",
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.changelog.update_changelog", return_value=True)
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[])
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.pq_import", return_value=mock_pq_result)
+            )
             stack.enter_context(patch.object(build, "pq_export", return_value=mock_export_result))
-            stack.enter_context(patch("packastack.debpkg.gbp.ensure_upstream_branch", return_value=MagicMock(success=True, branch_name="upstream-caracal", created=False, error="")))
-            stack.enter_context(patch("packastack.debpkg.gbp.import_orig", return_value=MagicMock(success=True, output="", upstream_version="")))
-            stack.enter_context(patch("packastack.debpkg.gbp.build_source", return_value=mock_build_result))
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.gbp.ensure_upstream_branch",
+                    return_value=MagicMock(
+                        success=True, branch_name="upstream-caracal", created=False, error=""
+                    ),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.gbp.import_orig",
+                    return_value=MagicMock(success=True, output="", upstream_version=""),
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.build_source", return_value=mock_build_result)
+            )
 
             # Mock the localrepo module with proper result objects
             mock_publish_result = MagicMock()
@@ -2119,7 +3193,10 @@ class TestLocalRepoPublishingIntegration:
             mock_publish_result.published_paths = []
             mock_publish_result.error = ""
             stack.enter_context(
-                patch("packastack.commands.build.localrepo.publish_artifacts", return_value=mock_publish_result)
+                patch(
+                    "packastack.commands.build.localrepo.publish_artifacts",
+                    return_value=mock_publish_result,
+                )
             )
 
             mock_index_result = MagicMock()
@@ -2128,14 +3205,29 @@ class TestLocalRepoPublishingIntegration:
             mock_index_result.packages_file = None
             mock_index_result.error = ""
             stack.enter_context(
-                patch("packastack.commands.build.localrepo.regenerate_indexes", return_value=mock_index_result)
+                patch(
+                    "packastack.commands.build.localrepo.regenerate_indexes",
+                    return_value=mock_index_result,
+                )
             )
 
             result = _call_run_build(
-                run=mock_run, package="nova", target="devel", ubuntu_series="devel",
-                cloud_archive="", build_type_str="release",
-                force=False, offline=False, validate_plan_only=False, plan_upload=False,
-                upload=False, binary=False, builder="sbuild", build_deps=True, no_spinner=True, yes=False,
+                run=mock_run,
+                package="nova",
+                target="devel",
+                ubuntu_series="devel",
+                cloud_archive="",
+                build_type_str="release",
+                force=False,
+                offline=False,
+                validate_plan_only=False,
+                plan_upload=False,
+                upload=False,
+                binary=False,
+                builder="sbuild",
+                build_deps=True,
+                no_spinner=True,
+                yes=False,
                 workspace_ref=lambda w: None,
             )
 
@@ -2204,28 +3296,97 @@ class TestLocalRepoPublishingIntegration:
             stack.enter_context(patch.object(build, "load_config", return_value={"defaults": {}}))
             stack.enter_context(patch.object(build, "resolve_paths", return_value=mock_paths))
             stack.enter_context(patch.object(build, "resolve_series", return_value="noble"))
-            stack.enter_context(patch.object(build, "get_current_development_series", return_value="caracal"))
+            stack.enter_context(
+                patch.object(build, "get_current_development_series", return_value="caracal")
+            )
             stack.enter_context(patch.object(build, "get_previous_series", return_value="bobcat"))
-            stack.enter_context(patch.object(build, "is_snapshot_eligible", return_value=(True, "", "")))
+            stack.enter_context(
+                patch.object(build, "is_snapshot_eligible", return_value=(True, "", ""))
+            )
             stack.enter_context(patch.object(build, "load_package_index", return_value=mock_index))
-            stack.enter_context(patch.object(build, "load_openstack_packages", return_value={"nova": "nova"}))
-            stack.enter_context(patch.object(build, "check_required_tools", return_value=mock_tool_result))
-            stack.enter_context(patch.object(single_build_module.GitFetcher, "fetch_and_checkout", return_value=mock_fetch_result))
-            stack.enter_context(patch("packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series", return_value=(True, [], None)))
-            stack.enter_context(patch("packastack.upstream.source.select_upstream_source", return_value=mock_upstream))
-            stack.enter_context(patch("packastack.upstream.source.apply_signature_policy", return_value=[]))
-            stack.enter_context(patch.object(tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result))
-            stack.enter_context(patch("packastack.debpkg.changelog.get_current_version", return_value="28.0.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.parse_version", return_value=MagicMock(upstream="28.0.0")))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_release_version", return_value="29.0.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_changelog_message", return_value="New release."))
-            stack.enter_context(patch("packastack.debpkg.changelog.update_changelog", return_value=True))
-            stack.enter_context(patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[]))
-            stack.enter_context(patch("packastack.debpkg.gbp.pq_import", return_value=mock_pq_result))
+            stack.enter_context(
+                patch.object(build, "load_openstack_packages", return_value={"nova": "nova"})
+            )
+            stack.enter_context(
+                patch.object(build, "check_required_tools", return_value=mock_tool_result)
+            )
+            stack.enter_context(
+                patch.object(
+                    single_build_module.GitFetcher,
+                    "fetch_and_checkout",
+                    return_value=mock_fetch_result,
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series",
+                    return_value=(True, [], None),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.upstream.source.select_upstream_source", return_value=mock_upstream
+                )
+            )
+            stack.enter_context(
+                patch("packastack.upstream.source.apply_signature_policy", return_value=[])
+            )
+            stack.enter_context(
+                patch.object(
+                    tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.get_current_version",
+                    return_value="28.0.0-0ubuntu1",
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.parse_version",
+                    return_value=MagicMock(upstream="28.0.0"),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_release_version",
+                    return_value="29.0.0-0ubuntu1",
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_changelog_message",
+                    return_value="New release.",
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.changelog.update_changelog", return_value=True)
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[])
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.pq_import", return_value=mock_pq_result)
+            )
             stack.enter_context(patch.object(build, "pq_export", return_value=mock_export_result))
-            stack.enter_context(patch("packastack.debpkg.gbp.ensure_upstream_branch", return_value=MagicMock(success=True, branch_name="upstream-caracal", created=False, error="")))
-            stack.enter_context(patch("packastack.debpkg.gbp.import_orig", return_value=MagicMock(success=True, output="", upstream_version="")))
-            stack.enter_context(patch("packastack.debpkg.gbp.build_source", return_value=mock_build_result))
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.gbp.ensure_upstream_branch",
+                    return_value=MagicMock(
+                        success=True, branch_name="upstream-caracal", created=False, error=""
+                    ),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.gbp.import_orig",
+                    return_value=MagicMock(success=True, output="", upstream_version=""),
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.build_source", return_value=mock_build_result)
+            )
 
             # Mock localrepo - should NOT be called on failed build
             mock_publish_result = MagicMock()
@@ -2233,17 +3394,30 @@ class TestLocalRepoPublishingIntegration:
             mock_publish_result.published_paths = []
             mock_publish_result.error = ""
             mock_publish = stack.enter_context(
-                patch("packastack.commands.build.localrepo.publish_artifacts", return_value=mock_publish_result)
+                patch(
+                    "packastack.commands.build.localrepo.publish_artifacts",
+                    return_value=mock_publish_result,
+                )
             )
-            stack.enter_context(
-                patch("packastack.commands.build.localrepo.regenerate_indexes")
-            )
+            stack.enter_context(patch("packastack.commands.build.localrepo.regenerate_indexes"))
 
             result = _call_run_build(
-                run=mock_run, package="nova", target="devel", ubuntu_series="devel",
-                cloud_archive="", build_type_str="release",
-                force=False, offline=False, validate_plan_only=False, plan_upload=False,
-                upload=False, binary=False, builder="sbuild", build_deps=True, no_spinner=True, yes=False,
+                run=mock_run,
+                package="nova",
+                target="devel",
+                ubuntu_series="devel",
+                cloud_archive="",
+                build_type_str="release",
+                force=False,
+                offline=False,
+                validate_plan_only=False,
+                plan_upload=False,
+                upload=False,
+                binary=False,
+                builder="sbuild",
+                build_deps=True,
+                no_spinner=True,
+                yes=False,
                 workspace_ref=lambda w: None,
             )
 
@@ -2317,47 +3491,121 @@ class TestLocalRepoPublishingIntegration:
             stack.enter_context(patch.object(build, "load_config", return_value={"defaults": {}}))
             stack.enter_context(patch.object(build, "resolve_paths", return_value=mock_paths))
             stack.enter_context(patch.object(build, "resolve_series", return_value="noble"))
-            stack.enter_context(patch.object(build, "get_current_development_series", return_value="caracal"))
+            stack.enter_context(
+                patch.object(build, "get_current_development_series", return_value="caracal")
+            )
             stack.enter_context(patch.object(build, "get_previous_series", return_value="bobcat"))
-            stack.enter_context(patch.object(build, "is_snapshot_eligible", return_value=(True, "", "")))
+            stack.enter_context(
+                patch.object(build, "is_snapshot_eligible", return_value=(True, "", ""))
+            )
             stack.enter_context(patch.object(build, "load_package_index", return_value=mock_index))
-            stack.enter_context(patch.object(build, "load_openstack_packages", return_value={"nova": "nova"}))
-            stack.enter_context(patch.object(build, "check_required_tools", return_value=mock_tool_result))
-            stack.enter_context(patch.object(single_build_module.GitFetcher, "fetch_and_checkout", return_value=mock_fetch_result))
-            stack.enter_context(patch("packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series", return_value=(True, [], None)))
-            stack.enter_context(patch("packastack.upstream.source.select_upstream_source", return_value=mock_upstream))
-            stack.enter_context(patch("packastack.upstream.source.apply_signature_policy", return_value=[]))
-            stack.enter_context(patch.object(tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result))
-            stack.enter_context(patch("packastack.debpkg.changelog.get_current_version", return_value="28.0.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.parse_version", return_value=MagicMock(upstream="28.0.0")))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_release_version", return_value="29.0.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_changelog_message", return_value="New release."))
-            stack.enter_context(patch("packastack.debpkg.changelog.update_changelog", return_value=True))
-            stack.enter_context(patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[]))
-            stack.enter_context(patch("packastack.debpkg.gbp.pq_import", return_value=mock_pq_result))
+            stack.enter_context(
+                patch.object(build, "load_openstack_packages", return_value={"nova": "nova"})
+            )
+            stack.enter_context(
+                patch.object(build, "check_required_tools", return_value=mock_tool_result)
+            )
+            stack.enter_context(
+                patch.object(
+                    single_build_module.GitFetcher,
+                    "fetch_and_checkout",
+                    return_value=mock_fetch_result,
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series",
+                    return_value=(True, [], None),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.upstream.source.select_upstream_source", return_value=mock_upstream
+                )
+            )
+            stack.enter_context(
+                patch("packastack.upstream.source.apply_signature_policy", return_value=[])
+            )
+            stack.enter_context(
+                patch.object(
+                    tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.get_current_version",
+                    return_value="28.0.0-0ubuntu1",
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.parse_version",
+                    return_value=MagicMock(upstream="28.0.0"),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_release_version",
+                    return_value="29.0.0-0ubuntu1",
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_changelog_message",
+                    return_value="New release.",
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.changelog.update_changelog", return_value=True)
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[])
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.pq_import", return_value=mock_pq_result)
+            )
             stack.enter_context(patch.object(build, "pq_export", return_value=mock_export_result))
             stack.enter_context(
                 patch.object(
                     build,
                     "ensure_upstream_branch",
-                    return_value=MagicMock(success=True, branch_name="upstream-caracal", created=False, error=""),
+                    return_value=MagicMock(
+                        success=True, branch_name="upstream-caracal", created=False, error=""
+                    ),
                 )
             )
-            stack.enter_context(patch("packastack.debpkg.gbp.import_orig", return_value=MagicMock(success=True, output="", upstream_version="")))
-            stack.enter_context(patch("packastack.debpkg.gbp.build_source", return_value=mock_build_result))
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.gbp.import_orig",
+                    return_value=MagicMock(success=True, output="", upstream_version=""),
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.build_source", return_value=mock_build_result)
+            )
             stack.enter_context(patch.object(build, "get_host_arch", return_value="amd64"))
 
             mock_publish_result = MagicMock(success=True, published_paths=[], error="")
             mock_publish = stack.enter_context(
-                patch("packastack.commands.build.localrepo.publish_artifacts", return_value=mock_publish_result)
+                patch(
+                    "packastack.commands.build.localrepo.publish_artifacts",
+                    return_value=mock_publish_result,
+                )
             )
 
-            mock_index_result = MagicMock(success=True, package_count=0, packages_file=None, error="")
+            mock_index_result = MagicMock(
+                success=True, package_count=0, packages_file=None, error=""
+            )
             mock_regen = stack.enter_context(
-                patch("packastack.commands.build.localrepo.regenerate_indexes", return_value=mock_index_result)
+                patch(
+                    "packastack.commands.build.localrepo.regenerate_indexes",
+                    return_value=mock_index_result,
+                )
             )
 
-            mock_source_index_result = MagicMock(success=True, source_count=0, sources_file=None, error="")
+            mock_source_index_result = MagicMock(
+                success=True, source_count=0, sources_file=None, error=""
+            )
             mock_source_regen = stack.enter_context(
                 patch(
                     "packastack.commands.build.localrepo.regenerate_source_indexes",
@@ -2487,34 +3735,112 @@ class TestBuildVersionEdgeCases:
             stack.enter_context(patch.object(build, "load_config", return_value={"defaults": {}}))
             stack.enter_context(patch.object(build, "resolve_paths", return_value=mock_paths))
             stack.enter_context(patch.object(build, "resolve_series", return_value="noble"))
-            stack.enter_context(patch.object(build, "get_current_development_series", return_value="caracal"))
+            stack.enter_context(
+                patch.object(build, "get_current_development_series", return_value="caracal")
+            )
             stack.enter_context(patch.object(build, "get_previous_series", return_value="bobcat"))
-            stack.enter_context(patch.object(build, "is_snapshot_eligible", return_value=(True, "", "")))
+            stack.enter_context(
+                patch.object(build, "is_snapshot_eligible", return_value=(True, "", ""))
+            )
             stack.enter_context(patch.object(build, "load_package_index", return_value=mock_index))
-            stack.enter_context(patch.object(build, "load_openstack_packages", return_value={"nova": "nova"}))
-            stack.enter_context(patch.object(build, "check_required_tools", return_value=mock_tool_result))
-            stack.enter_context(patch.object(single_build_module.GitFetcher, "fetch_and_checkout", return_value=mock_fetch_result))
-            stack.enter_context(patch("packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series", return_value=(True, [], None)))
-            stack.enter_context(patch("packastack.upstream.source.select_upstream_source", return_value=mock_upstream))
-            stack.enter_context(patch("packastack.upstream.source.apply_signature_policy", return_value=[]))
-            stack.enter_context(patch.object(tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result))
-            stack.enter_context(patch("packastack.debpkg.changelog.get_current_version", return_value="1:28.0.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.parse_version", return_value=parsed_version))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_release_version", return_value="1:29.0.0-0ubuntu1"))
-            stack.enter_context(patch("packastack.debpkg.changelog.generate_changelog_message", return_value="New release."))
-            stack.enter_context(patch("packastack.debpkg.changelog.update_changelog", return_value=True))
-            stack.enter_context(patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[]))
-            stack.enter_context(patch("packastack.debpkg.gbp.pq_import", return_value=mock_pq_result))
+            stack.enter_context(
+                patch.object(build, "load_openstack_packages", return_value={"nova": "nova"})
+            )
+            stack.enter_context(
+                patch.object(build, "check_required_tools", return_value=mock_tool_result)
+            )
+            stack.enter_context(
+                patch.object(
+                    single_build_module.GitFetcher,
+                    "fetch_and_checkout",
+                    return_value=mock_fetch_result,
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.launchpad_yaml.update_launchpad_yaml_series",
+                    return_value=(True, [], None),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.upstream.source.select_upstream_source", return_value=mock_upstream
+                )
+            )
+            stack.enter_context(
+                patch("packastack.upstream.source.apply_signature_policy", return_value=[])
+            )
+            stack.enter_context(
+                patch.object(
+                    tarball_module, "download_and_verify_tarball", return_value=mock_tarball_result
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.get_current_version",
+                    return_value="1:28.0.0-0ubuntu1",
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.changelog.parse_version", return_value=parsed_version)
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_release_version",
+                    return_value="1:29.0.0-0ubuntu1",
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.changelog.generate_changelog_message",
+                    return_value="New release.",
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.changelog.update_changelog", return_value=True)
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.check_upstreamed_patches", return_value=[])
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.pq_import", return_value=mock_pq_result)
+            )
             stack.enter_context(patch.object(build, "pq_export", return_value=mock_export_result))
-            stack.enter_context(patch("packastack.debpkg.gbp.ensure_upstream_branch", return_value=MagicMock(success=True, branch_name="upstream-caracal", created=False, error="")))
-            stack.enter_context(patch("packastack.debpkg.gbp.import_orig", return_value=MagicMock(success=True, output="", upstream_version="")))
-            stack.enter_context(patch("packastack.debpkg.gbp.build_source", return_value=mock_build_result))
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.gbp.ensure_upstream_branch",
+                    return_value=MagicMock(
+                        success=True, branch_name="upstream-caracal", created=False, error=""
+                    ),
+                )
+            )
+            stack.enter_context(
+                patch(
+                    "packastack.debpkg.gbp.import_orig",
+                    return_value=MagicMock(success=True, output="", upstream_version=""),
+                )
+            )
+            stack.enter_context(
+                patch("packastack.debpkg.gbp.build_source", return_value=mock_build_result)
+            )
 
             result = _call_run_build(
-                run=mock_run, package="nova", target="devel", ubuntu_series="devel",
-                cloud_archive="", build_type_str="release",
-                force=False, offline=False, validate_plan_only=False, plan_upload=False,
-                upload=False, binary=False, builder="sbuild", build_deps=True, no_spinner=True, yes=False,
+                run=mock_run,
+                package="nova",
+                target="devel",
+                ubuntu_series="devel",
+                cloud_archive="",
+                build_type_str="release",
+                force=False,
+                offline=False,
+                validate_plan_only=False,
+                plan_upload=False,
+                upload=False,
+                binary=False,
+                builder="sbuild",
+                build_deps=True,
+                no_spinner=True,
+                yes=False,
                 workspace_ref=lambda w: None,
             )
 
@@ -2566,22 +3892,42 @@ class TestValidatePlanOnly:
             stack.enter_context(patch.object(build, "load_config", return_value={"defaults": {}}))
             stack.enter_context(patch.object(build, "resolve_paths", return_value=mock_paths))
             stack.enter_context(patch.object(build, "resolve_series", return_value="noble"))
-            stack.enter_context(patch.object(build, "get_current_development_series", return_value="caracal"))
+            stack.enter_context(
+                patch.object(build, "get_current_development_series", return_value="caracal")
+            )
             stack.enter_context(patch.object(build, "get_previous_series", return_value="bobcat"))
-            stack.enter_context(patch.object(build, "is_snapshot_eligible", return_value=(True, "", "")))
+            stack.enter_context(
+                patch.object(build, "is_snapshot_eligible", return_value=(True, "", ""))
+            )
             stack.enter_context(patch.object(build, "load_package_index", return_value=mock_index))
-            stack.enter_context(patch.object(build, "load_openstack_packages", return_value={"nova": "nova"}))
-            stack.enter_context(patch.object(build, "check_required_tools", return_value=mock_tool_result))
+            stack.enter_context(
+                patch.object(build, "load_openstack_packages", return_value={"nova": "nova"})
+            )
+            stack.enter_context(
+                patch.object(build, "check_required_tools", return_value=mock_tool_result)
+            )
             # These should not be called in validate_plan_only mode
             mock_fetch = stack.enter_context(
                 patch.object(single_build_module.GitFetcher, "fetch_and_checkout")
             )
 
             result = _call_run_build(
-                run=mock_run, package="nova", target="devel", ubuntu_series="devel",
-                cloud_archive="", build_type_str="release",
-                force=False, offline=False, validate_plan_only=True, plan_upload=False,
-                upload=False, binary=False, builder="sbuild", build_deps=True, no_spinner=True, yes=False,
+                run=mock_run,
+                package="nova",
+                target="devel",
+                ubuntu_series="devel",
+                cloud_archive="",
+                build_type_str="release",
+                force=False,
+                offline=False,
+                validate_plan_only=True,
+                plan_upload=False,
+                upload=False,
+                binary=False,
+                builder="sbuild",
+                build_deps=True,
+                no_spinner=True,
+                yes=False,
                 workspace_ref=lambda w: None,
             )
 
@@ -2589,7 +3935,9 @@ class TestValidatePlanOnly:
         # Git fetch should not be called in validate mode
         mock_fetch.assert_not_called()
 
-    def test_validate_plan_prints_waves(self, tmp_path: Path, mock_paths: dict, mock_run: MagicMock) -> None:
+    def test_validate_plan_prints_waves(
+        self, tmp_path: Path, mock_paths: dict, mock_run: MagicMock
+    ) -> None:
         """Test that validate-plan prints waves when plan_graph is available."""
         pkg_dir = mock_paths["local_apt_repo"] / "nova" / "debian"
         pkg_dir.mkdir(parents=True)
@@ -2606,40 +3954,69 @@ class TestValidatePlanOnly:
             stack.enter_context(patch.object(build, "load_config", return_value={"defaults": {}}))
             stack.enter_context(patch.object(build, "resolve_paths", return_value=mock_paths))
             stack.enter_context(patch.object(build, "resolve_series", return_value="noble"))
-            stack.enter_context(patch.object(build, "get_current_development_series", return_value="caracal"))
+            stack.enter_context(
+                patch.object(build, "get_current_development_series", return_value="caracal")
+            )
             stack.enter_context(patch.object(build, "get_previous_series", return_value="bobcat"))
-            stack.enter_context(patch.object(build, "is_snapshot_eligible", return_value=(True, "", "")))
+            stack.enter_context(
+                patch.object(build, "is_snapshot_eligible", return_value=(True, "", ""))
+            )
             stack.enter_context(patch.object(build, "load_package_index", return_value=mock_index))
-            stack.enter_context(patch.object(build, "load_openstack_packages", return_value={"nova": "nova"}))
-            stack.enter_context(patch.object(build, "check_required_tools", return_value=mock_tool_result))
+            stack.enter_context(
+                patch.object(build, "load_openstack_packages", return_value={"nova": "nova"})
+            )
+            stack.enter_context(
+                patch.object(build, "check_required_tools", return_value=mock_tool_result)
+            )
 
             # Patch run_plan_for_package to return a PlanResult with a PlanGraph
             from packastack.logs.plan_graph import PlanGraph
             from packastack.planning.graph import DependencyGraph
+
             g = DependencyGraph()
             g.add_node("lib", needs_rebuild=True)
             g.add_node("nova", needs_rebuild=True)
             g.add_edge("nova", "lib")
-            plan_graph = PlanGraph.from_dependency_graph(g, run_id="r", target="t", ubuntu_series="u")
+            plan_graph = PlanGraph.from_dependency_graph(
+                g, run_id="r", target="t", ubuntu_series="u"
+            )
 
             from packastack.planning.graph import PlanResult
-            fake_plan_result = PlanResult(build_order=["lib", "nova"], upload_order=[], plan_graph=plan_graph)
 
-            stack.enter_context(patch("packastack.commands.build.run_plan_for_package", return_value=(fake_plan_result, build.EXIT_SUCCESS)))
+            fake_plan_result = PlanResult(
+                build_order=["lib", "nova"], upload_order=[], plan_graph=plan_graph
+            )
+
+            stack.enter_context(
+                patch(
+                    "packastack.commands.build.run_plan_for_package",
+                    return_value=(fake_plan_result, build.EXIT_SUCCESS),
+                )
+            )
 
             result = _call_run_build(
-                run=mock_run, package="nova", target="devel", ubuntu_series="devel",
-                cloud_archive="", build_type_str="release",
-                force=False, offline=False, validate_plan_only=True, plan_upload=False,
-                upload=False, binary=False, builder="sbuild", build_deps=True, no_spinner=True, yes=False,
+                run=mock_run,
+                package="nova",
+                target="devel",
+                ubuntu_series="devel",
+                cloud_archive="",
+                build_type_str="release",
+                force=False,
+                offline=False,
+                validate_plan_only=True,
+                plan_upload=False,
+                upload=False,
+                binary=False,
+                builder="sbuild",
+                build_deps=True,
+                no_spinner=True,
+                yes=False,
                 workspace_ref=lambda w: None,
             )
 
         assert result == build.EXIT_SUCCESS
 
-    def test_plan_upload_mode(
-        self, tmp_path: Path, mock_paths: dict, mock_run: MagicMock
-    ) -> None:
+    def test_plan_upload_mode(self, tmp_path: Path, mock_paths: dict, mock_run: MagicMock) -> None:
         """Test plan-upload mode shows upload order."""
         pkg_dir = mock_paths["local_apt_repo"] / "nova" / "debian"
         pkg_dir.mkdir(parents=True)
@@ -2656,18 +4033,38 @@ class TestValidatePlanOnly:
             stack.enter_context(patch.object(build, "load_config", return_value={"defaults": {}}))
             stack.enter_context(patch.object(build, "resolve_paths", return_value=mock_paths))
             stack.enter_context(patch.object(build, "resolve_series", return_value="noble"))
-            stack.enter_context(patch.object(build, "get_current_development_series", return_value="caracal"))
+            stack.enter_context(
+                patch.object(build, "get_current_development_series", return_value="caracal")
+            )
             stack.enter_context(patch.object(build, "get_previous_series", return_value="bobcat"))
-            stack.enter_context(patch.object(build, "is_snapshot_eligible", return_value=(True, "", "")))
+            stack.enter_context(
+                patch.object(build, "is_snapshot_eligible", return_value=(True, "", ""))
+            )
             stack.enter_context(patch.object(build, "load_package_index", return_value=mock_index))
-            stack.enter_context(patch.object(build, "load_openstack_packages", return_value={"nova": "nova"}))
-            stack.enter_context(patch.object(build, "check_required_tools", return_value=mock_tool_result))
+            stack.enter_context(
+                patch.object(build, "load_openstack_packages", return_value={"nova": "nova"})
+            )
+            stack.enter_context(
+                patch.object(build, "check_required_tools", return_value=mock_tool_result)
+            )
 
             result = _call_run_build(
-                run=mock_run, package="nova", target="devel", ubuntu_series="devel",
-                cloud_archive="", build_type_str="release",
-                force=False, offline=False, validate_plan_only=False, plan_upload=True,
-                upload=False, binary=False, builder="sbuild", build_deps=True, no_spinner=True, yes=False,
+                run=mock_run,
+                package="nova",
+                target="devel",
+                ubuntu_series="devel",
+                cloud_archive="",
+                build_type_str="release",
+                force=False,
+                offline=False,
+                validate_plan_only=False,
+                plan_upload=True,
+                upload=False,
+                binary=False,
+                builder="sbuild",
+                build_deps=True,
+                no_spinner=True,
+                yes=False,
                 workspace_ref=lambda w: None,
             )
 
@@ -2721,18 +4118,38 @@ class TestToolMissing:
             stack.enter_context(patch.object(build, "load_config", return_value={"defaults": {}}))
             stack.enter_context(patch.object(build, "resolve_paths", return_value=mock_paths))
             stack.enter_context(patch.object(build, "resolve_series", return_value="noble"))
-            stack.enter_context(patch.object(build, "get_current_development_series", return_value="caracal"))
+            stack.enter_context(
+                patch.object(build, "get_current_development_series", return_value="caracal")
+            )
             stack.enter_context(patch.object(build, "get_previous_series", return_value="bobcat"))
-            stack.enter_context(patch.object(build, "is_snapshot_eligible", return_value=(True, "", "")))
+            stack.enter_context(
+                patch.object(build, "is_snapshot_eligible", return_value=(True, "", ""))
+            )
             stack.enter_context(patch.object(build, "load_package_index", return_value=mock_index))
-            stack.enter_context(patch.object(build, "load_openstack_packages", return_value={"nova": "nova"}))
-            stack.enter_context(patch.object(build, "check_required_tools", return_value=mock_tool_result))
+            stack.enter_context(
+                patch.object(build, "load_openstack_packages", return_value={"nova": "nova"})
+            )
+            stack.enter_context(
+                patch.object(build, "check_required_tools", return_value=mock_tool_result)
+            )
 
             result = _call_run_build(
-                run=mock_run, package="nova", target="devel", ubuntu_series="devel",
-                cloud_archive="", build_type_str="release",
-                force=False, offline=False, validate_plan_only=False, plan_upload=False,
-                upload=False, binary=False, builder="sbuild", build_deps=True, no_spinner=True, yes=False,
+                run=mock_run,
+                package="nova",
+                target="devel",
+                ubuntu_series="devel",
+                cloud_archive="",
+                build_type_str="release",
+                force=False,
+                offline=False,
+                validate_plan_only=False,
+                plan_upload=False,
+                upload=False,
+                binary=False,
+                builder="sbuild",
+                build_deps=True,
+                no_spinner=True,
+                yes=False,
                 workspace_ref=lambda w: None,
             )
 

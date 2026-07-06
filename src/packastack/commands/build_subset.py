@@ -27,7 +27,7 @@ Provides functionality for building specific subsets of OpenStack packages:
 from __future__ import annotations
 
 import sys
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -58,7 +58,7 @@ if TYPE_CHECKING:
     from packastack.core.run import RunContext as RunContextType
 
 
-class SubsetType(str, Enum):
+class SubsetType(StrEnum):
     """Type of package subset to build."""
 
     LIBRARIES = "libraries"
@@ -98,16 +98,20 @@ def _update_openstack_repos(
     if releases_path:
         try:
             _clone_or_update_releases(releases_path, run, phase=phase)
-            run.log_event({
-                "event": f"{phase}.releases_updated",
-                "path": str(releases_path),
-            })
+            run.log_event(
+                {
+                    "event": f"{phase}.releases_updated",
+                    "path": str(releases_path),
+                }
+            )
         except Exception as e:
             activity(phase, f"Warning: Could not update openstack-releases: {e}")
-            run.log_event({
-                "event": f"{phase}.releases_update_failed",
-                "error": str(e),
-            })
+            run.log_event(
+                {
+                    "event": f"{phase}.releases_update_failed",
+                    "error": str(e),
+                }
+            )
             # Continue even if update fails - we may have cached data
 
     # Update openstack/project-config
@@ -115,16 +119,20 @@ def _update_openstack_repos(
     if project_config_path:
         try:
             _clone_or_update_project_config(project_config_path, run, phase=phase)
-            run.log_event({
-                "event": f"{phase}.project_config_updated",
-                "path": str(project_config_path),
-            })
+            run.log_event(
+                {
+                    "event": f"{phase}.project_config_updated",
+                    "path": str(project_config_path),
+                }
+            )
         except Exception as e:
             activity(phase, f"Warning: Could not update openstack-project-config: {e}")
-            run.log_event({
-                "event": f"{phase}.project_config_update_failed",
-                "error": str(e),
-            })
+            run.log_event(
+                {
+                    "event": f"{phase}.project_config_update_failed",
+                    "error": str(e),
+                }
+            )
             # Continue even if update fails - we may have cached data
 
     activity(phase, "Repository updates complete")
@@ -168,16 +176,10 @@ def _filter_packages_by_subset(
             # CLIENT_LIBRARY are Python client libraries like python-novaclient
             if kind in (DeliverableKind.LIBRARY, DeliverableKind.CLIENT_LIBRARY):
                 filtered.append(package)
-        elif (
-            subset_type == SubsetType.CLIENTS
-            and kind == DeliverableKind.CLIENT_LIBRARY
-        ):
+        elif subset_type == SubsetType.CLIENTS and kind == DeliverableKind.CLIENT_LIBRARY:
             # Include CLIENT_LIBRARY (python-*client packages)
             filtered.append(package)
-        elif (
-            subset_type == SubsetType.SERVICES
-            and kind == DeliverableKind.SERVICE
-        ):
+        elif subset_type == SubsetType.SERVICES and kind == DeliverableKind.SERVICE:
             # Include SERVICE (core services like nova, glance)
             filtered.append(package)
 
@@ -245,11 +247,13 @@ def run_subset_build(
                 resolved_target = target
 
             activity("subset", f"Target: OpenStack {resolved_target}, Ubuntu {ubuntu_series}")
-            run.log_event({
-                "event": "subset.target_resolved",
-                "openstack": resolved_target,
-                "ubuntu": ubuntu_series,
-            })
+            run.log_event(
+                {
+                    "event": "subset.target_resolved",
+                    "openstack": resolved_target,
+                    "ubuntu": ubuntu_series,
+                }
+            )
 
             # Step 3: Discover all available packages
             local_repo = paths.get("local_apt_repo")
@@ -261,10 +265,12 @@ def run_subset_build(
 
             if not discovery.packages:
                 activity("subset", "No packages discovered")
-                run.log_event({
-                    "event": "subset.no_packages",
-                    "errors": discovery.errors,
-                })
+                run.log_event(
+                    {
+                        "event": "subset.no_packages",
+                        "errors": discovery.errors,
+                    }
+                )
                 run.write_summary(
                     status="failed",
                     error="No packages discovered",
@@ -294,22 +300,26 @@ def run_subset_build(
                 if skipped:
                     activity(
                         "subset",
-                        f"Filtered to managed packages: {len(managed_filtered)} of {len(filtered_packages)}"
+                        f"Filtered to managed packages: {len(managed_filtered)} of {len(filtered_packages)}",
                     )
-                    run.log_event({
-                        "event": "subset.managed_packages_filtered",
-                        "managed_count": len(managed_filtered),
-                        "skipped_count": len(skipped),
-                    })
+                    run.log_event(
+                        {
+                            "event": "subset.managed_packages_filtered",
+                            "managed_count": len(managed_filtered),
+                            "skipped_count": len(skipped),
+                        }
+                    )
                     filtered_packages = managed_filtered
 
             if not filtered_packages:
                 activity("subset", f"No {subset_type.value} found in discovered packages")
-                run.log_event({
-                    "event": "subset.no_matching_packages",
-                    "subset_type": subset_type.value,
-                    "total_packages": len(discovery.packages),
-                })
+                run.log_event(
+                    {
+                        "event": "subset.no_matching_packages",
+                        "subset_type": subset_type.value,
+                        "total_packages": len(discovery.packages),
+                    }
+                )
                 run.write_summary(
                     status="success",
                     packages_found=0,
@@ -322,14 +332,16 @@ def run_subset_build(
                 "subset",
                 f"Found {len(filtered_packages)} {subset_type.value} to build: "
                 f"{', '.join(sorted(filtered_packages)[:10])}"
-                f"{'...' if len(filtered_packages) > 10 else ''}"
+                f"{'...' if len(filtered_packages) > 10 else ''}",
             )
-            run.log_event({
-                "event": "subset.packages_filtered",
-                "subset_type": subset_type.value,
-                "count": len(filtered_packages),
-                "packages": sorted(filtered_packages),
-            })
+            run.log_event(
+                {
+                    "event": "subset.packages_filtered",
+                    "subset_type": subset_type.value,
+                    "count": len(filtered_packages),
+                    "packages": sorted(filtered_packages),
+                }
+            )
 
             if dry_run:
                 activity("subset", "Dry run - would build the following packages:")
@@ -391,11 +403,13 @@ def run_subset_build(
             activity("subset", f"Subset build failed: {e}")
             for line in traceback.format_exc().splitlines():
                 activity("subset", f"  {line}")
-            run.log_event({
-                "event": "subset.exception",
-                "error": str(e),
-                "traceback": traceback.format_exc(),
-            })
+            run.log_event(
+                {
+                    "event": "subset.exception",
+                    "error": str(e),
+                    "traceback": traceback.format_exc(),
+                }
+            )
             return EXIT_CONFIG_ERROR
 
 

@@ -85,31 +85,39 @@ def _update_openstack_repos(
     if releases_path:
         try:
             _clone_or_update_releases(releases_path, run, phase="rc")
-            run.log_event({
-                "event": "rc.releases_updated",
-                "path": str(releases_path),
-            })
+            run.log_event(
+                {
+                    "event": "rc.releases_updated",
+                    "path": str(releases_path),
+                }
+            )
         except Exception as e:
             activity("rc", f"Warning: Could not update openstack-releases: {e}")
-            run.log_event({
-                "event": "rc.releases_update_failed",
-                "error": str(e),
-            })
+            run.log_event(
+                {
+                    "event": "rc.releases_update_failed",
+                    "error": str(e),
+                }
+            )
 
     project_config_path = paths.get("openstack_project_config")
     if project_config_path:
         try:
             _clone_or_update_project_config(project_config_path, run, phase="rc")
-            run.log_event({
-                "event": "rc.project_config_updated",
-                "path": str(project_config_path),
-            })
+            run.log_event(
+                {
+                    "event": "rc.project_config_updated",
+                    "path": str(project_config_path),
+                }
+            )
         except Exception as e:
             activity("rc", f"Warning: Could not update openstack-project-config: {e}")
-            run.log_event({
-                "event": "rc.project_config_update_failed",
-                "error": str(e),
-            })
+            run.log_event(
+                {
+                    "event": "rc.project_config_update_failed",
+                    "error": str(e),
+                }
+            )
 
     activity("rc", "Repository updates complete")
     return True
@@ -229,12 +237,14 @@ def run_build_rc(
 
             activity("rc", f"Target: OpenStack {resolved_target}, Ubuntu {ubuntu_series}")
             activity("rc", f"Looking for {rc_label} releases...")
-            run.log_event({
-                "event": "rc.target_resolved",
-                "openstack": resolved_target,
-                "ubuntu": ubuntu_series,
-                "rc_number": rc_number,
-            })
+            run.log_event(
+                {
+                    "event": "rc.target_resolved",
+                    "openstack": resolved_target,
+                    "ubuntu": ubuntu_series,
+                    "rc_number": rc_number,
+                }
+            )
 
             # Step 3: Discover all available packages
             discovery = discover_packages(
@@ -244,10 +254,12 @@ def run_build_rc(
 
             if not discovery.packages:
                 activity("rc", "No packages discovered")
-                run.log_event({
-                    "event": "rc.no_packages",
-                    "errors": discovery.errors,
-                })
+                run.log_event(
+                    {
+                        "event": "rc.no_packages",
+                        "errors": discovery.errors,
+                    }
+                )
                 run.write_summary(
                     status="failed",
                     error="No packages discovered",
@@ -289,10 +301,12 @@ def run_build_rc(
 
             if not rc_packages:
                 activity("rc", f"No packages with {rc_label} releases found for {resolved_target}")
-                run.log_event({
-                    "event": "rc.no_rc_packages",
-                    "total_discovered": len(discovery.packages),
-                })
+                run.log_event(
+                    {
+                        "event": "rc.no_rc_packages",
+                        "total_discovered": len(discovery.packages),
+                    }
+                )
                 run.write_summary(
                     status="success",
                     packages_found=0,
@@ -305,12 +319,14 @@ def run_build_rc(
             activity("rc", f"Found {len(rc_packages)} packages with {rc_label} releases:")
             for pkg_name, rc_version in rc_packages:
                 activity("rc", f"  {pkg_name} ({rc_version})")
-            run.log_event({
-                "event": "rc.packages_found",
-                "rc_label": rc_label,
-                "count": len(rc_packages),
-                "packages": dict(rc_packages),
-            })
+            run.log_event(
+                {
+                    "event": "rc.packages_found",
+                    "rc_label": rc_label,
+                    "count": len(rc_packages),
+                    "packages": dict(rc_packages),
+                }
+            )
 
             if dry_run:
                 activity("rc", "Dry run - no builds will be started")
@@ -368,9 +384,11 @@ def run_build_rc(
             activity("rc", f"RC build failed: {e}")
             for line in traceback.format_exc().splitlines():
                 activity("rc", f"  {line}")
-            run.log_event({
-                "event": "rc.exception",
-                "error": str(e),
-                "traceback": traceback.format_exc(),
-            })
+            run.log_event(
+                {
+                    "event": "rc.exception",
+                    "error": str(e),
+                    "traceback": traceback.format_exc(),
+                }
+            )
             return EXIT_CONFIG_ERROR

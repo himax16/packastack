@@ -78,17 +78,21 @@ def _clone_or_update_releases(
                 repo.git.checkout(default_branch)
                 repo.git.reset("--hard", f"origin/{default_branch}")
                 repo.git.clean("-fdx")
-                run.log_event({
-                    "event": "openstack_releases.reset",
-                    "branch": default_branch,
-                    "path": str(path),
-                })
+                run.log_event(
+                    {
+                        "event": "openstack_releases.reset",
+                        "branch": default_branch,
+                        "path": str(path),
+                    }
+                )
             except git.GitCommandError as e:  # pragma: no cover
                 run.log_event({"event": "openstack_releases.fetch_error", "error": str(e)})
                 raise
     else:
         # Clone fresh
-        run.log_event({"event": "openstack_releases.clone", "url": OPENSTACK_RELEASES_URL, "path": str(path)})
+        run.log_event(
+            {"event": "openstack_releases.clone", "url": OPENSTACK_RELEASES_URL, "path": str(path)}
+        )
         with activity_spinner(phase, f"Cloning openstack-releases to {path}"):
             try:
                 git.Repo.clone_from(OPENSTACK_RELEASES_URL, path)
@@ -117,17 +121,25 @@ def _clone_or_update_project_config(path: Path, run: RunContextType, phase: str 
                 repo.git.checkout(default_branch)
                 repo.git.reset("--hard", f"origin/{default_branch}")
                 repo.git.clean("-fdx")
-                run.log_event({
-                    "event": "openstack_project_config.reset",
-                    "branch": default_branch,
-                    "path": str(path),
-                })
+                run.log_event(
+                    {
+                        "event": "openstack_project_config.reset",
+                        "branch": default_branch,
+                        "path": str(path),
+                    }
+                )
             except git.GitCommandError as e:  # pragma: no cover
                 run.log_event({"event": "openstack_project_config.fetch_error", "error": str(e)})
                 raise
     else:
         # Clone fresh
-        run.log_event({"event": "openstack_project_config.clone", "url": OPENSTACK_PROJECT_CONFIG_URL, "path": str(path)})
+        run.log_event(
+            {
+                "event": "openstack_project_config.clone",
+                "url": OPENSTACK_PROJECT_CONFIG_URL,
+                "path": str(path),
+            }
+        )
         with activity_spinner(phase, f"Cloning openstack-project-config to {path}"):
             try:
                 git.Repo.clone_from(OPENSTACK_PROJECT_CONFIG_URL, path)
@@ -178,7 +190,9 @@ Use `packastack refresh` to update these indexes.
 
 
 def init(
-    prime: bool = typer.Option(False, "-p", "--prime", help="Prime minimal Ubuntu archive metadata after init"),
+    prime: bool = typer.Option(
+        False, "-p", "--prime", help="Prime minimal Ubuntu archive metadata after init"
+    ),
 ) -> None:
     """Initialize Packastack configuration and cache directories.
 
@@ -200,7 +214,9 @@ def init(
             cfg = load_config()
             paths = ensure_directories()
             steps_completed.append("directories_created")
-            run.log_event({"event": "directories.created", "paths": {k: str(v) for k, v in paths.items()}})
+            run.log_event(
+                {"event": "directories.created", "paths": {k: str(v) for k, v in paths.items()}}
+            )
 
         # Step 3: Clone or update openstack-releases
         releases_path = paths["openstack_releases_repo"]
@@ -277,7 +293,9 @@ def init(
                     pockets=["release", "updates", "security"],
                     components=["main", "universe"],
                     arches=["host", "all"],
-                    mirror=cfg.get("mirrors", {}).get("ubuntu_archive", "http://archive.ubuntu.com/ubuntu"),
+                    mirror=cfg.get("mirrors", {}).get(
+                        "ubuntu_archive", "http://archive.ubuntu.com/ubuntu"
+                    ),
                     ttl_seconds=0,  # Force fetch
                     force=True,
                     offline=False,

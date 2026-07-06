@@ -31,7 +31,7 @@ import os
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -46,14 +46,14 @@ if TYPE_CHECKING:
     from packastack.upstream.retirement import RetirementChecker, RetirementInfo
 
 
-class BuildType(str, Enum):
+class BuildType(StrEnum):
     """Build type for a package."""
 
     RELEASE = "release"
     SNAPSHOT = "snapshot"
 
 
-class CycleStage(str, Enum):
+class CycleStage(StrEnum):
     """Stage of the OpenStack release cycle."""
 
     PRE_FINAL = "pre_final"  # Series is in development
@@ -61,7 +61,7 @@ class CycleStage(str, Enum):
     UNKNOWN = "unknown"
 
 
-class DeliverableKind(str, Enum):
+class DeliverableKind(StrEnum):
     """Kind of OpenStack deliverable."""
 
     SERVICE = "service"  # Core services like nova, glance
@@ -74,7 +74,7 @@ class DeliverableKind(str, Enum):
     UNKNOWN = "unknown"
 
 
-class KindConfidence(str, Enum):
+class KindConfidence(StrEnum):
     """Confidence level for deliverable kind inference."""
 
     METADATA = "metadata"  # From deliverable YAML type field
@@ -82,7 +82,7 @@ class KindConfidence(str, Enum):
     DEFAULT = "default"  # Fallback when no information available
 
 
-class ReasonCode(str, Enum):
+class ReasonCode(StrEnum):
     """Reason codes for type selection decisions."""
 
     # Release reasons
@@ -99,7 +99,9 @@ class ReasonCode(str, Enum):
     PRE_FINAL_NO_RELEASE = "PRE_FINAL_NO_RELEASE"  # Pre-final and no release
     NOT_IN_RELEASES = "NOT_IN_RELEASES"  # Project not in openstack/releases
     SNAPSHOT_FORCED = "SNAPSHOT_FORCED"  # User forced snapshot mode
-    CLIENT_LIBRARY_NO_SNAPSHOT = "CLIENT_LIBRARY_NO_SNAPSHOT"  # Libraries/client-libraries always use releases
+    CLIENT_LIBRARY_NO_SNAPSHOT = (
+        "CLIENT_LIBRARY_NO_SNAPSHOT"  # Libraries/client-libraries always use releases
+    )
 
     # Retirement reasons
     RETIRED_PROJECT = "RETIRED_PROJECT"  # Project is retired upstream
@@ -109,7 +111,7 @@ class ReasonCode(str, Enum):
     CYCLE_STAGE_UNKNOWN = "CYCLE_STAGE_UNKNOWN"  # Can't determine cycle stage
 
 
-class PackageStatus(str, Enum):
+class PackageStatus(StrEnum):
     """Status of a package relative to the releases repository."""
 
     ACTIVE = "active"  # Normal package in releases
@@ -119,7 +121,7 @@ class PackageStatus(str, Enum):
     UNKNOWN = "unknown"
 
 
-class UpstreamAuthority(str, Enum):
+class UpstreamAuthority(StrEnum):
     """Authority used for upstream version discovery."""
 
     RELEASES = "releases"  # openstack/releases repository
@@ -452,9 +454,7 @@ class TypeSelectionReport:
         report.missing_upstream = data.get("missing_upstream", [])
         report.missing_packaging = data.get("missing_packaging", [])
         report.needs_upstream_mapping = data.get("needs_upstream_mapping", [])
-        report.packages = [
-            TypeSelectionResult.from_dict(p) for p in data.get("packages", [])
-        ]
+        report.packages = [TypeSelectionResult.from_dict(p) for p in data.get("packages", [])]
         return report
 
 
@@ -562,12 +562,42 @@ def infer_deliverable_kind(
 
     # Heuristic: core services (known list)
     core_services = {
-        "nova", "glance", "cinder", "neutron", "keystone", "swift",
-        "heat", "horizon", "barbican", "designate", "ironic", "magnum",
-        "manila", "mistral", "murano", "octavia", "sahara", "senlin",
-        "trove", "zaqar", "placement", "aodh", "ceilometer", "gnocchi",
-        "panko", "watcher", "vitrage", "blazar", "cyborg", "freezer",
-        "karbor", "masakari", "monasca", "searchlight", "solum", "tacker",
+        "nova",
+        "glance",
+        "cinder",
+        "neutron",
+        "keystone",
+        "swift",
+        "heat",
+        "horizon",
+        "barbican",
+        "designate",
+        "ironic",
+        "magnum",
+        "manila",
+        "mistral",
+        "murano",
+        "octavia",
+        "sahara",
+        "senlin",
+        "trove",
+        "zaqar",
+        "placement",
+        "aodh",
+        "ceilometer",
+        "gnocchi",
+        "panko",
+        "watcher",
+        "vitrage",
+        "blazar",
+        "cyborg",
+        "freezer",
+        "karbor",
+        "masakari",
+        "monasca",
+        "searchlight",
+        "solum",
+        "tacker",
         "zun",
     }
     if deliverable in core_services:
@@ -705,20 +735,20 @@ def select_build_type(
             and watch_config.check_upstream
             and watch_result.mode != DetectedWatchMode.UNKNOWN
         ):
-                uscan_result = run_uscan_dehs(
-                    packaging_repo,
-                    timeout_seconds=watch_config.timeout_seconds,
-                )
-                watch_info.uscan_attempted = True
+            uscan_result = run_uscan_dehs(
+                packaging_repo,
+                timeout_seconds=watch_config.timeout_seconds,
+            )
+            watch_info.uscan_attempted = True
 
-                # Cache the result
-                if uscan_cache is not None:
-                    cache_uscan_result(
-                        source_package,
-                        uscan_result,
-                        uscan_cache,
-                        str(packaging_repo),
-                    )
+            # Cache the result
+            if uscan_cache is not None:
+                cache_uscan_result(
+                    source_package,
+                    uscan_result,
+                    uscan_cache,
+                    str(packaging_repo),
+                )
 
         # Populate watch_info from uscan result
         if uscan_result:
@@ -741,10 +771,14 @@ def select_build_type(
         upstream_resolution = UpstreamResolution(
             authority=authority,
             watch_used=watch_info.parsed,
-            uscan_used=watch_info.uscan_attempted and uscan_result is not None and uscan_result.success,
+            uscan_used=watch_info.uscan_attempted
+            and uscan_result is not None
+            and uscan_result.success,
             reason=reason,
             upstream_version=watch_info.upstream_version or result.latest_version,
-            download_url=uscan_result.upstream_url if uscan_result and uscan_result.success else "",
+            download_url=uscan_result.upstream_url
+            if uscan_result and uscan_result.success
+            else "",
         )
 
         result.watch_info = watch_info
@@ -753,27 +787,47 @@ def select_build_type(
 
     # Decision logic
     if force_snapshot:
-        return _add_watch_info(TypeSelectionResult(
-            source_package=source_package,
-            deliverable=deliverable,
-            release_model=release_model,
-            deliverable_kind=kind,
-            kind_confidence=kind_confidence,
-            has_release_for_cycle=has_releases,
-            has_beta_rc_final=has_beta_rc_final,
-            latest_version=latest_version,
-            cycle_stage=cycle_stage,
-            chosen_type=BuildType.SNAPSHOT,
-            reason_code=ReasonCode.SNAPSHOT_FORCED,
-            reason_human="Snapshot mode forced by user",
-            package_status=package_status,
-        ))
+        return _add_watch_info(
+            TypeSelectionResult(
+                source_package=source_package,
+                deliverable=deliverable,
+                release_model=release_model,
+                deliverable_kind=kind,
+                kind_confidence=kind_confidence,
+                has_release_for_cycle=has_releases,
+                has_beta_rc_final=has_beta_rc_final,
+                latest_version=latest_version,
+                cycle_stage=cycle_stage,
+                chosen_type=BuildType.SNAPSHOT,
+                reason_code=ReasonCode.SNAPSHOT_FORCED,
+                reason_human="Snapshot mode forced by user",
+                package_status=package_status,
+            )
+        )
 
     if project is None:
         # For clients and libraries not in releases, use debian/watch (RELEASE mode)
         # instead of falling back to SNAPSHOT
         if should_prevent_snapshot:
-            return _add_watch_info(TypeSelectionResult(
+            return _add_watch_info(
+                TypeSelectionResult(
+                    source_package=source_package,
+                    deliverable=deliverable,
+                    release_model="",
+                    deliverable_kind=kind,
+                    kind_confidence=kind_confidence,
+                    has_release_for_cycle=False,
+                    has_beta_rc_final=False,
+                    latest_version="",
+                    cycle_stage=cycle_stage,
+                    chosen_type=BuildType.RELEASE,
+                    reason_code=ReasonCode.CLIENT_LIBRARY_NO_SNAPSHOT,
+                    reason_human=f"Client/library package '{deliverable}' uses debian/watch (no snapshots)",
+                    package_status=package_status,
+                )
+            )
+        return _add_watch_info(
+            TypeSelectionResult(
                 source_package=source_package,
                 deliverable=deliverable,
                 release_model="",
@@ -783,50 +837,56 @@ def select_build_type(
                 has_beta_rc_final=False,
                 latest_version="",
                 cycle_stage=cycle_stage,
-                chosen_type=BuildType.RELEASE,
-                reason_code=ReasonCode.CLIENT_LIBRARY_NO_SNAPSHOT,
-                reason_human=f"Client/library package '{deliverable}' uses debian/watch (no snapshots)",
+                chosen_type=BuildType.SNAPSHOT,
+                reason_code=ReasonCode.NOT_IN_RELEASES,
+                reason_human=f"Project '{deliverable}' not found in openstack/releases for {series}",
                 package_status=package_status,
-            ))
-        return _add_watch_info(TypeSelectionResult(
-            source_package=source_package,
-            deliverable=deliverable,
-            release_model="",
-            deliverable_kind=kind,
-            kind_confidence=kind_confidence,
-            has_release_for_cycle=False,
-            has_beta_rc_final=False,
-            latest_version="",
-            cycle_stage=cycle_stage,
-            chosen_type=BuildType.SNAPSHOT,
-            reason_code=ReasonCode.NOT_IN_RELEASES,
-            reason_human=f"Project '{deliverable}' not found in openstack/releases for {series}",
-            package_status=package_status,
-        ))
+            )
+        )
 
     # Post-final series: always prefer release if available
     if cycle_stage == CycleStage.POST_FINAL:
         if has_releases:
-            return _add_watch_info(TypeSelectionResult(
-                source_package=source_package,
-                deliverable=deliverable,
-                release_model=release_model,
-                deliverable_kind=kind,
-                kind_confidence=kind_confidence,
-                has_release_for_cycle=True,
-                has_beta_rc_final=has_beta_rc_final,
-                latest_version=latest_version,
-                cycle_stage=cycle_stage,
-                chosen_type=BuildType.RELEASE,
-                reason_code=ReasonCode.POST_FINAL_RELEASE,
-                reason_human=f"Post-final series: use release {latest_version}",
-                package_status=package_status,
-            ))
+            return _add_watch_info(
+                TypeSelectionResult(
+                    source_package=source_package,
+                    deliverable=deliverable,
+                    release_model=release_model,
+                    deliverable_kind=kind,
+                    kind_confidence=kind_confidence,
+                    has_release_for_cycle=True,
+                    has_beta_rc_final=has_beta_rc_final,
+                    latest_version=latest_version,
+                    cycle_stage=cycle_stage,
+                    chosen_type=BuildType.RELEASE,
+                    reason_code=ReasonCode.POST_FINAL_RELEASE,
+                    reason_human=f"Post-final series: use release {latest_version}",
+                    package_status=package_status,
+                )
+            )
         else:
             # Rare: post-final but no release (edge case)
             # For clients/libraries, try debian/watch instead of snapshot
             if should_prevent_snapshot:
-                return _add_watch_info(TypeSelectionResult(
+                return _add_watch_info(
+                    TypeSelectionResult(
+                        source_package=source_package,
+                        deliverable=deliverable,
+                        release_model=release_model,
+                        deliverable_kind=kind,
+                        kind_confidence=kind_confidence,
+                        has_release_for_cycle=False,
+                        has_beta_rc_final=False,
+                        latest_version="",
+                        cycle_stage=cycle_stage,
+                        chosen_type=BuildType.RELEASE,
+                        reason_code=ReasonCode.CLIENT_LIBRARY_NO_SNAPSHOT,
+                        reason_human="Post-final client/library uses debian/watch (no snapshots)",
+                        package_status=package_status,
+                    )
+                )
+            return _add_watch_info(
+                TypeSelectionResult(
                     source_package=source_package,
                     deliverable=deliverable,
                     release_model=release_model,
@@ -836,26 +896,12 @@ def select_build_type(
                     has_beta_rc_final=False,
                     latest_version="",
                     cycle_stage=cycle_stage,
-                    chosen_type=BuildType.RELEASE,
-                    reason_code=ReasonCode.CLIENT_LIBRARY_NO_SNAPSHOT,
-                    reason_human="Post-final client/library uses debian/watch (no snapshots)",
+                    chosen_type=BuildType.SNAPSHOT,
+                    reason_code=ReasonCode.PRE_FINAL_NO_RELEASE,
+                    reason_human="Post-final but no release available (unusual)",
                     package_status=package_status,
-                ))
-            return _add_watch_info(TypeSelectionResult(
-                source_package=source_package,
-                deliverable=deliverable,
-                release_model=release_model,
-                deliverable_kind=kind,
-                kind_confidence=kind_confidence,
-                has_release_for_cycle=False,
-                has_beta_rc_final=False,
-                latest_version="",
-                cycle_stage=cycle_stage,
-                chosen_type=BuildType.SNAPSHOT,
-                reason_code=ReasonCode.PRE_FINAL_NO_RELEASE,
-                reason_human="Post-final but no release available (unusual)",
-                package_status=package_status,
-            ))
+                )
+            )
 
     # Pre-final or unknown stage
     if has_beta_rc_final:
@@ -865,56 +911,62 @@ def select_build_type(
         if latest_release is not None:
             if latest_release.is_final():
                 # Final release -> RELEASE
-                return _add_watch_info(TypeSelectionResult(
-                    source_package=source_package,
-                    deliverable=deliverable,
-                    release_model=release_model,
-                    deliverable_kind=kind,
-                    kind_confidence=kind_confidence,
-                    has_release_for_cycle=True,
-                    has_beta_rc_final=True,
-                    latest_version=latest_version,
-                    cycle_stage=cycle_stage,
-                    chosen_type=BuildType.RELEASE,
-                    reason_code=ReasonCode.HAS_RELEASE,
-                    reason_human=f"Final release {latest_version} available",
-                    package_status=package_status,
-                ))
+                return _add_watch_info(
+                    TypeSelectionResult(
+                        source_package=source_package,
+                        deliverable=deliverable,
+                        release_model=release_model,
+                        deliverable_kind=kind,
+                        kind_confidence=kind_confidence,
+                        has_release_for_cycle=True,
+                        has_beta_rc_final=True,
+                        latest_version=latest_version,
+                        cycle_stage=cycle_stage,
+                        chosen_type=BuildType.RELEASE,
+                        reason_code=ReasonCode.HAS_RELEASE,
+                        reason_human=f"Final release {latest_version} available",
+                        package_status=package_status,
+                    )
+                )
 
             # Beta or RC release: treat as RELEASE with milestone versioning.
             if latest_release.is_beta() or latest_release.is_rc():
-                return _add_watch_info(TypeSelectionResult(
-                    source_package=source_package,
-                    deliverable=deliverable,
-                    release_model=release_model,
-                    deliverable_kind=kind,
-                    kind_confidence=kind_confidence,
-                    has_release_for_cycle=True,
-                    has_beta_rc_final=True,
-                    latest_version=latest_version,
-                    cycle_stage=cycle_stage,
-                    chosen_type=BuildType.RELEASE,
-                    reason_code=ReasonCode.HAS_RELEASE,
-                    reason_human=f"Beta/RC release {latest_version} available",
-                    package_status=package_status,
-                ))
+                return _add_watch_info(
+                    TypeSelectionResult(
+                        source_package=source_package,
+                        deliverable=deliverable,
+                        release_model=release_model,
+                        deliverable_kind=kind,
+                        kind_confidence=kind_confidence,
+                        has_release_for_cycle=True,
+                        has_beta_rc_final=True,
+                        latest_version=latest_version,
+                        cycle_stage=cycle_stage,
+                        chosen_type=BuildType.RELEASE,
+                        reason_code=ReasonCode.HAS_RELEASE,
+                        reason_human=f"Beta/RC release {latest_version} available",
+                        package_status=package_status,
+                    )
+                )
 
         # Fallback: treat as RELEASE if we can't determine
-        return _add_watch_info(TypeSelectionResult(
-            source_package=source_package,
-            deliverable=deliverable,
-            release_model=release_model,
-            deliverable_kind=kind,
-            kind_confidence=kind_confidence,
-            has_release_for_cycle=True,
-            has_beta_rc_final=True,
-            latest_version=latest_version,
-            cycle_stage=cycle_stage,
-            chosen_type=BuildType.RELEASE,
-            reason_code=ReasonCode.HAS_RELEASE,
-            reason_human=f"Beta/RC/final release {latest_version} available",
-            package_status=package_status,
-        ))
+        return _add_watch_info(
+            TypeSelectionResult(
+                source_package=source_package,
+                deliverable=deliverable,
+                release_model=release_model,
+                deliverable_kind=kind,
+                kind_confidence=kind_confidence,
+                has_release_for_cycle=True,
+                has_beta_rc_final=True,
+                latest_version=latest_version,
+                cycle_stage=cycle_stage,
+                chosen_type=BuildType.RELEASE,
+                reason_code=ReasonCode.HAS_RELEASE,
+                reason_human=f"Beta/RC/final release {latest_version} available",
+                package_status=package_status,
+            )
+        )
 
     if has_releases:
         # Has releases but no beta/RC/final (only pre-releases/alphas)
@@ -922,25 +974,47 @@ def select_build_type(
 
         # cycle-with-intermediary: release at each pre-release
         if release_model == "cycle-with-intermediary":
-            return _add_watch_info(TypeSelectionResult(
-                source_package=source_package,
-                deliverable=deliverable,
-                release_model=release_model,
-                deliverable_kind=kind,
-                kind_confidence=kind_confidence,
-                has_release_for_cycle=True,
-                has_beta_rc_final=False,
-                latest_version=latest_version,
-                cycle_stage=cycle_stage,
-                chosen_type=BuildType.RELEASE,
-                reason_code=ReasonCode.INTERMEDIARY_RELEASE,
-                reason_human=f"cycle-with-intermediary: use release {latest_version}",
-                package_status=package_status,
-            ))
+            return _add_watch_info(
+                TypeSelectionResult(
+                    source_package=source_package,
+                    deliverable=deliverable,
+                    release_model=release_model,
+                    deliverable_kind=kind,
+                    kind_confidence=kind_confidence,
+                    has_release_for_cycle=True,
+                    has_beta_rc_final=False,
+                    latest_version=latest_version,
+                    cycle_stage=cycle_stage,
+                    chosen_type=BuildType.RELEASE,
+                    reason_code=ReasonCode.INTERMEDIARY_RELEASE,
+                    reason_human=f"cycle-with-intermediary: use release {latest_version}",
+                    package_status=package_status,
+                )
+            )
 
         # cycle-trailing: release after main cycle
         if release_model == "cycle-trailing":
-            return _add_watch_info(TypeSelectionResult(
+            return _add_watch_info(
+                TypeSelectionResult(
+                    source_package=source_package,
+                    deliverable=deliverable,
+                    release_model=release_model,
+                    deliverable_kind=kind,
+                    kind_confidence=kind_confidence,
+                    has_release_for_cycle=True,
+                    has_beta_rc_final=False,
+                    latest_version=latest_version,
+                    cycle_stage=cycle_stage,
+                    chosen_type=BuildType.RELEASE,
+                    reason_code=ReasonCode.CYCLE_TRAILING_RELEASE,
+                    reason_human=f"cycle-trailing: use release {latest_version}",
+                    package_status=package_status,
+                )
+            )
+
+        # Default: use snapshot for pre-beta releases
+        return _add_watch_info(
+            TypeSelectionResult(
                 source_package=source_package,
                 deliverable=deliverable,
                 release_model=release_model,
@@ -950,33 +1024,35 @@ def select_build_type(
                 has_beta_rc_final=False,
                 latest_version=latest_version,
                 cycle_stage=cycle_stage,
-                chosen_type=BuildType.RELEASE,
-                reason_code=ReasonCode.CYCLE_TRAILING_RELEASE,
-                reason_human=f"cycle-trailing: use release {latest_version}",
+                chosen_type=BuildType.SNAPSHOT,
+                reason_code=ReasonCode.HAS_PRE_RELEASE_ONLY,
+                reason_human=f"Only pre-beta releases (pre-release {latest_version})",
                 package_status=package_status,
-            ))
-
-        # Default: use snapshot for pre-beta releases
-        return _add_watch_info(TypeSelectionResult(
-            source_package=source_package,
-            deliverable=deliverable,
-            release_model=release_model,
-            deliverable_kind=kind,
-            kind_confidence=kind_confidence,
-            has_release_for_cycle=True,
-            has_beta_rc_final=False,
-            latest_version=latest_version,
-            cycle_stage=cycle_stage,
-            chosen_type=BuildType.SNAPSHOT,
-            reason_code=ReasonCode.HAS_PRE_RELEASE_ONLY,
-            reason_human=f"Only pre-beta releases (pre-release {latest_version})",
-            package_status=package_status,
-        ))
+            )
+        )
 
     # No releases at all
     # For clients/libraries, use debian/watch instead of snapshot
     if should_prevent_snapshot:
-        return _add_watch_info(TypeSelectionResult(
+        return _add_watch_info(
+            TypeSelectionResult(
+                source_package=source_package,
+                deliverable=deliverable,
+                release_model=release_model,
+                deliverable_kind=kind,
+                kind_confidence=kind_confidence,
+                has_release_for_cycle=False,
+                has_beta_rc_final=False,
+                latest_version="",
+                cycle_stage=cycle_stage,
+                chosen_type=BuildType.RELEASE,
+                reason_code=ReasonCode.CLIENT_LIBRARY_NO_SNAPSHOT,
+                reason_human="Client/library package uses debian/watch (no snapshots)",
+                package_status=package_status,
+            )
+        )
+    return _add_watch_info(
+        TypeSelectionResult(
             source_package=source_package,
             deliverable=deliverable,
             release_model=release_model,
@@ -986,30 +1062,28 @@ def select_build_type(
             has_beta_rc_final=False,
             latest_version="",
             cycle_stage=cycle_stage,
-            chosen_type=BuildType.RELEASE,
-            reason_code=ReasonCode.CLIENT_LIBRARY_NO_SNAPSHOT,
-            reason_human="Client/library package uses debian/watch (no snapshots)",
+            chosen_type=BuildType.SNAPSHOT,
+            reason_code=ReasonCode.NO_RELEASE_YET,
+            reason_human="No releases yet for this series",
             package_status=package_status,
-        ))
-    return _add_watch_info(TypeSelectionResult(
-        source_package=source_package,
-        deliverable=deliverable,
-        release_model=release_model,
-        deliverable_kind=kind,
-        kind_confidence=kind_confidence,
-        has_release_for_cycle=False,
-        has_beta_rc_final=False,
-        latest_version="",
-        cycle_stage=cycle_stage,
-        chosen_type=BuildType.SNAPSHOT,
-        reason_code=ReasonCode.NO_RELEASE_YET,
-        reason_human="No releases yet for this series",
-        package_status=package_status,
-    ))
+        )
+    )
 
 
 def _select_type_worker(
-    args: tuple[Path | None, str, str, str, CycleStage, bool, PackageStatus, Path | None, WatchConfig | None, dict | None, Any],
+    args: tuple[
+        Path | None,
+        str,
+        str,
+        str,
+        CycleStage,
+        bool,
+        PackageStatus,
+        Path | None,
+        WatchConfig | None,
+        dict | None,
+        Any,
+    ],
 ) -> TypeSelectionResult:
     """Worker function for parallel type selection."""
     (
@@ -1116,7 +1190,9 @@ def select_build_types_for_packages(
     from packastack.debpkg.watch import load_uscan_cache, save_uscan_cache
     from packastack.upstream.retirement import MappingConfidence, RetirementStatus
 
-    cycle_stage = determine_cycle_stage(releases_repo, series) if releases_repo else CycleStage.UNKNOWN
+    cycle_stage = (
+        determine_cycle_stage(releases_repo, series) if releases_repo else CycleStage.UNKNOWN
+    )
 
     report = TypeSelectionReport(
         run_id=run_id,
@@ -1136,7 +1212,11 @@ def select_build_types_for_packages(
             stale_keys: list[str] = []
             for pkg, entry in uscan_cache.items():
                 repo_path = packaging_repos.get(pkg)
-                if not repo_path or not repo_path.exists() or (entry.packaging_repo_path and entry.packaging_repo_path != str(repo_path)):
+                if (
+                    not repo_path
+                    or not repo_path.exists()
+                    or (entry.packaging_repo_path and entry.packaging_repo_path != str(repo_path))
+                ):
                     stale_keys.append(pkg)
             for key in stale_keys:
                 uscan_cache.pop(key, None)
@@ -1248,7 +1328,11 @@ def select_build_types_for_packages(
     else:
         # Auto mode with optional parallelism
         # Determine which packages to run uscan for (respect max_projects limit)
-        uscan_limit = watch_config.max_projects if watch_config and watch_config.max_projects > 0 else len(packages)
+        uscan_limit = (
+            watch_config.max_projects
+            if watch_config and watch_config.max_projects > 0
+            else len(packages)
+        )
 
         # Separate retired packages from active packages
         retired_results: list[TypeSelectionResult] = []
@@ -1308,19 +1392,21 @@ def select_build_types_for_packages(
                 else:
                     uscan_count += 1
 
-                work_items.append((
-                    releases_repo,
-                    series,
-                    src_pkg,
-                    deliv,
-                    cycle_stage,
-                    force_snapshot,
-                    pkg_status_map.get(src_pkg, PackageStatus.ACTIVE),
-                    pkg_repo,
-                    pkg_watch_config,
-                    uscan_cache,
-                    pkg_retirement_info,
-                ))
+                work_items.append(
+                    (
+                        releases_repo,
+                        series,
+                        src_pkg,
+                        deliv,
+                        cycle_stage,
+                        force_snapshot,
+                        pkg_status_map.get(src_pkg, PackageStatus.ACTIVE),
+                        pkg_repo,
+                        pkg_watch_config,
+                        uscan_cache,
+                        pkg_retirement_info,
+                    )
+                )
 
             with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
                 futures = [executor.submit(_select_type_worker, item) for item in work_items]

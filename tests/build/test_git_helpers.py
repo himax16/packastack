@@ -106,10 +106,14 @@ class TestGetGitAuthorEnv:
 
     def test_uses_debfullname_and_debemail(self, capsys):
         """Test that DEBFULLNAME and DEBEMAIL are used."""
-        with patch.dict(os.environ, {
-            "DEBFULLNAME": "Test User",
-            "DEBEMAIL": "test@example.com",
-        }, clear=True):
+        with patch.dict(
+            os.environ,
+            {
+                "DEBFULLNAME": "Test User",
+                "DEBEMAIL": "test@example.com",
+            },
+            clear=True,
+        ):
             env = get_git_author_env(debug=False)
             assert env["GIT_AUTHOR_NAME"] == "Test User"
             assert env["GIT_COMMITTER_NAME"] == "Test User"
@@ -118,20 +122,28 @@ class TestGetGitAuthorEnv:
 
     def test_falls_back_to_name_and_email(self, capsys):
         """Test fallback to NAME and EMAIL."""
-        with patch.dict(os.environ, {
-            "NAME": "Fallback User",
-            "EMAIL": "fallback@example.com",
-        }, clear=True):
+        with patch.dict(
+            os.environ,
+            {
+                "NAME": "Fallback User",
+                "EMAIL": "fallback@example.com",
+            },
+            clear=True,
+        ):
             env = get_git_author_env(debug=False)
             assert env["GIT_AUTHOR_NAME"] == "Fallback User"
             assert env["GIT_AUTHOR_EMAIL"] == "fallback@example.com"
 
     def test_debfullname_takes_precedence(self, capsys):
         """Test that DEBFULLNAME takes precedence over NAME."""
-        with patch.dict(os.environ, {
-            "DEBFULLNAME": "Debian User",
-            "NAME": "Generic User",
-        }, clear=True):
+        with patch.dict(
+            os.environ,
+            {
+                "DEBFULLNAME": "Debian User",
+                "NAME": "Generic User",
+            },
+            clear=True,
+        ):
             env = get_git_author_env(debug=False)
             assert env["GIT_AUTHOR_NAME"] == "Debian User"
 
@@ -336,8 +348,8 @@ class TestGitCommit:
         with patch("packastack.debpkg.gbp.run_command") as mock_run:
             # git add succeeds (rc=0), git diff --cached --quiet also rc=0 (nothing staged)
             mock_run.side_effect = [
-                (0, "", ""),   # git add
-                (0, "", ""),   # git diff --cached --quiet
+                (0, "", ""),  # git add
+                (0, "", ""),  # git diff --cached --quiet
             ]
             result = git_commit(repo, "d/patches/*: refresh patches", files=["debian/patches"])
         assert result.returncode == 0
@@ -351,8 +363,8 @@ class TestGitCommit:
         repo = self._make_repo(tmp_path)
         with patch("packastack.debpkg.gbp.run_command") as mock_run:
             mock_run.side_effect = [
-                (0, "", ""),    # git add
-                (1, "", ""),    # git diff --cached --quiet (rc=1 means changes staged)
+                (0, "", ""),  # git add
+                (1, "", ""),  # git diff --cached --quiet (rc=1 means changes staged)
                 (0, "1 file changed", ""),  # git commit
             ]
             result = git_commit(repo, "d/patches/*: refresh patches", files=["debian/patches"])
@@ -382,8 +394,8 @@ class TestGitCommit:
         repo = self._make_repo(tmp_path)
         with patch("packastack.debpkg.gbp.run_command") as mock_run:
             mock_run.side_effect = [
-                (0, "", ""),   # git add
-                (1, "", ""),   # git diff --cached --quiet (changes staged)
+                (0, "", ""),  # git add
+                (1, "", ""),  # git diff --cached --quiet (changes staged)
                 (1, "", "error: commit failed"),  # git commit
             ]
             result = git_commit(repo, "msg", files=["debian/patches"])

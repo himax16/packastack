@@ -154,7 +154,7 @@ class TestParsedVersionComparison:
         # Temporarily disable DebianVersion
         with patch.object(version_module, "DebianVersion", None):
             assert v1 == v3  # Uses string comparison fallback
-            assert v1 < v2   # Uses string comparison fallback
+            assert v1 < v2  # Uses string comparison fallback
 
 
 class TestExtractUpstreamVersion:

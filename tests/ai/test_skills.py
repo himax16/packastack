@@ -149,9 +149,7 @@ class TestOverrideDir:
         assert skill.system_prompt.strip() == "Do the thing."
         assert skill.metadata["name"] == "demo"
 
-    def test_override_list_skills(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_override_list_skills(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """list_skills reflects the overridden directory."""
         _write_skill(tmp_path, "alpha", "---\nname: alpha\ndescription: a\n---\nbody\n")
         _write_skill(tmp_path, "beta", "---\nname: beta\ndescription: b\n---\nbody\n")
@@ -165,9 +163,7 @@ class TestOverrideDir:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """list_skills returns [] when the override dir doesn't exist."""
-        monkeypatch.setenv(
-            "PACKASTACK_SKILLS_DIR", str(tmp_path / "missing")
-        )
+        monkeypatch.setenv("PACKASTACK_SKILLS_DIR", str(tmp_path / "missing"))
         assert list_skills() == []
 
 
@@ -190,9 +186,7 @@ class TestFrontmatterParsing:
         with pytest.raises(SkillFormatError, match="closing"):
             load_skill("bad")
 
-    def test_rejects_invalid_yaml(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_rejects_invalid_yaml(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         _write_skill(tmp_path, "bad", "---\nname: [unterminated\n---\nbody\n")
         monkeypatch.setenv("PACKASTACK_SKILLS_DIR", str(tmp_path))
         with pytest.raises(SkillFormatError, match="invalid YAML"):
@@ -214,12 +208,8 @@ class TestFrontmatterParsing:
         with pytest.raises(SkillFormatError, match=r"name.*description"):
             load_skill("bad")
 
-    def test_rejects_empty_body(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        _write_skill(
-            tmp_path, "bad", "---\nname: bad\ndescription: x\n---\n\n"
-        )
+    def test_rejects_empty_body(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        _write_skill(tmp_path, "bad", "---\nname: bad\ndescription: x\n---\n\n")
         monkeypatch.setenv("PACKASTACK_SKILLS_DIR", str(tmp_path))
         with pytest.raises(SkillFormatError, match="empty"):
             load_skill("bad")

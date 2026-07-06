@@ -69,16 +69,18 @@ EXCLUDED_REPO_PATTERNS = [
 ]
 
 # Known repositories that are not source packages
-EXCLUDED_REPOS = frozenset({
-    "packaging-guide",
-    "upload-queue",
-    "ubuntu-openstack-tools",
-    "openstack-mojo-specs",
-    "openstack-charms",
-    "release-tools",
-    "bot-control",
-    "ubuntu",  # Meta repo
-})
+EXCLUDED_REPOS = frozenset(
+    {
+        "packaging-guide",
+        "upload-queue",
+        "ubuntu-openstack-tools",
+        "openstack-mojo-specs",
+        "openstack-charms",
+        "release-tools",
+        "bot-control",
+        "ubuntu",  # Meta repo
+    }
+)
 
 
 @dataclass
@@ -173,7 +175,7 @@ def discover_packages_from_launchpad(
                 # Still need to do cross-referencing
                 _cross_reference_packages(result, releases_repo)
                 return result
-        except (json.JSONDecodeError, KeyError, OSError):
+        except json.JSONDecodeError, KeyError, OSError:
             pass  # Cache invalid, proceed with API query
 
     if Launchpad is None:
@@ -183,15 +185,15 @@ def discover_packages_from_launchpad(
     try:
         # Anonymous login for read-only access
         lp = Launchpad.login_anonymously(
-            'packastack',
-            'production',
-            version='devel',
+            "packastack",
+            "production",
+            version="devel",
         )
     except Exception as e:
         result.errors.append(f"Launchpad login failed: {e}")
         return result
 
-    team_name = 'ubuntu-openstack-dev'
+    team_name = "ubuntu-openstack-dev"
     try:
         team = lp.people[team_name]
     except Exception as e:
@@ -206,14 +208,15 @@ def discover_packages_from_launchpad(
         result.total_repos = 0
 
         from datetime import datetime, timedelta
+
         two_years_ago = datetime.now(UTC) - timedelta(days=730)  # 2 years
 
         for repo in repos:
             result.total_repos += 1
             # Extract package name from repo path
             # Expected format: ~ubuntu-openstack-dev/ubuntu/+source/{package}
-            repo_name = getattr(repo, 'name', '')
-            repo_path = getattr(repo, 'git_https_url', '') or ''
+            repo_name = getattr(repo, "name", "")
+            repo_path = getattr(repo, "git_https_url", "") or ""
 
             # Parse the path to get package name
             pkg_name = _extract_package_from_repo(repo_name, repo_path)
@@ -222,9 +225,11 @@ def discover_packages_from_launchpad(
                 continue
 
             # Check if repo hasn't been modified in 2 years (consider retired)
-            date_last_modified = getattr(repo, 'date_last_modified', None)
+            date_last_modified = getattr(repo, "date_last_modified", None)
             if date_last_modified and date_last_modified < two_years_ago:
-                result.filtered_repos[pkg_name] = f"not modified since {date_last_modified.strftime('%Y-%m-%d')} (>2 years, likely retired)"
+                result.filtered_repos[pkg_name] = (
+                    f"not modified since {date_last_modified.strftime('%Y-%m-%d')} (>2 years, likely retired)"
+                )
                 continue
 
             # Check exclusion patterns
@@ -321,17 +326,16 @@ def _cross_reference_packages(
         in_releases = pkg in releases_all or pkg_base in releases_all
         in_upstreams = False
         if registry:
-            in_upstreams = registry.has_explicit_entry(pkg) or registry.has_explicit_entry(pkg_base)
+            in_upstreams = registry.has_explicit_entry(pkg) or registry.has_explicit_entry(
+                pkg_base
+            )
         if not in_releases and not in_upstreams:
             result.missing_upstream.append(pkg)
 
     # Find releases libs/services without packaging repo
     for deliverable in releases_libs_services:
         # Check both the deliverable name and python- prefixed version
-        has_packaging = (
-            deliverable in discovered_set or
-            f"python-{deliverable}" in discovered_set
-        )
+        has_packaging = deliverable in discovered_set or f"python-{deliverable}" in discovered_set
         if not has_packaging:
             result.missing_packaging.append(deliverable)
 
@@ -376,29 +380,86 @@ def _get_known_openstack_packages() -> list[str]:
     """
     return [
         # Core services
-        "nova", "glance", "cinder", "neutron", "keystone", "swift",
-        "heat", "horizon", "barbican", "designate", "ironic", "magnum",
-        "manila", "mistral", "murano", "octavia", "sahara", "senlin",
-        "trove", "zaqar", "placement", "aodh", "ceilometer", "gnocchi",
+        "nova",
+        "glance",
+        "cinder",
+        "neutron",
+        "keystone",
+        "swift",
+        "heat",
+        "horizon",
+        "barbican",
+        "designate",
+        "ironic",
+        "magnum",
+        "manila",
+        "mistral",
+        "murano",
+        "octavia",
+        "sahara",
+        "senlin",
+        "trove",
+        "zaqar",
+        "placement",
+        "aodh",
+        "ceilometer",
+        "gnocchi",
         # Oslo libraries
-        "oslo.config", "oslo.messaging", "oslo.db", "oslo.log",
-        "oslo.policy", "oslo.utils", "oslo.i18n", "oslo.context",
-        "oslo.serialization", "oslo.concurrency", "oslo.middleware",
-        "oslo.service", "oslo.versionedobjects", "oslo.privsep",
-        "oslo.rootwrap", "oslo.cache", "oslo.reports", "oslo.upgradecheck",
+        "oslo.config",
+        "oslo.messaging",
+        "oslo.db",
+        "oslo.log",
+        "oslo.policy",
+        "oslo.utils",
+        "oslo.i18n",
+        "oslo.context",
+        "oslo.serialization",
+        "oslo.concurrency",
+        "oslo.middleware",
+        "oslo.service",
+        "oslo.versionedobjects",
+        "oslo.privsep",
+        "oslo.rootwrap",
+        "oslo.cache",
+        "oslo.reports",
+        "oslo.upgradecheck",
         # Clients
-        "python-novaclient", "python-glanceclient", "python-cinderclient",
-        "python-neutronclient", "python-keystoneclient", "python-swiftclient",
-        "python-heatclient", "python-openstackclient", "python-barbicanclient",
-        "python-designateclient", "python-ironicclient", "python-magnumclient",
-        "python-manilaclient", "python-mistralclient", "python-muranoclient",
-        "python-octaviaclient", "python-saharaclient", "python-senlinclient",
-        "python-troveclient", "python-zaqarclient", "python-aodhclient",
-        "python-ceilometerclient", "python-gnocchiclient",
+        "python-novaclient",
+        "python-glanceclient",
+        "python-cinderclient",
+        "python-neutronclient",
+        "python-keystoneclient",
+        "python-swiftclient",
+        "python-heatclient",
+        "python-openstackclient",
+        "python-barbicanclient",
+        "python-designateclient",
+        "python-ironicclient",
+        "python-magnumclient",
+        "python-manilaclient",
+        "python-mistralclient",
+        "python-muranoclient",
+        "python-octaviaclient",
+        "python-saharaclient",
+        "python-senlinclient",
+        "python-troveclient",
+        "python-zaqarclient",
+        "python-aodhclient",
+        "python-ceilometerclient",
+        "python-gnocchiclient",
         # Other common packages
-        "osc-lib", "keystoneauth1", "keystonemiddleware",
-        "python-openstacksdk", "tempest", "stevedore", "taskflow",
-        "tooz", "cotyledon", "futurist", "automaton", "cursive",
+        "osc-lib",
+        "keystoneauth1",
+        "keystonemiddleware",
+        "python-openstacksdk",
+        "tempest",
+        "stevedore",
+        "taskflow",
+        "tooz",
+        "cotyledon",
+        "futurist",
+        "automaton",
+        "cursive",
     ]
 
 
@@ -425,7 +486,11 @@ def get_releases_libraries_and_services(releases_repo: Path) -> set[str]:
 
     # Scan the most recent series (highest numbered or alphabetically last)
     series_dirs = sorted(
-        [d for d in deliverables_dir.iterdir() if d.is_dir() and not d.name.startswith((".", "_"))],
+        [
+            d
+            for d in deliverables_dir.iterdir()
+            if d.is_dir() and not d.name.startswith((".", "_"))
+        ],
         reverse=True,
     )
 
@@ -446,7 +511,7 @@ def get_releases_libraries_and_services(releases_repo: Path) -> set[str]:
                 if proj_type in ("library", "service"):
                     libs_services.add(yaml_file.stem)
 
-        except (OSError, yaml.YAMLError):
+        except OSError, yaml.YAMLError:
             continue
 
     return libs_services
@@ -475,7 +540,11 @@ def _get_all_releases_packages(releases_repo: Path) -> set[str]:
 
     # Scan the most recent series
     series_dirs = sorted(
-        [d for d in deliverables_dir.iterdir() if d.is_dir() and not d.name.startswith((".", "_"))],
+        [
+            d
+            for d in deliverables_dir.iterdir()
+            if d.is_dir() and not d.name.startswith((".", "_"))
+        ],
         reverse=True,
     )
 
@@ -497,7 +566,7 @@ def _get_all_releases_packages(releases_repo: Path) -> set[str]:
                     if proj_type == "library":
                         packages.add(f"python-{deliverable}")
 
-        except (OSError, yaml.YAMLError):
+        except OSError, yaml.YAMLError:
             continue
 
     return packages

@@ -79,7 +79,7 @@ def _parse_date(date_str: str) -> date | None:
         parts = date_str.split("-")
         if len(parts) == 3:
             return date(int(parts[0]), int(parts[1]), int(parts[2]))
-    except (ValueError, IndexError):
+    except ValueError, IndexError:
         pass
     return None
 
@@ -288,4 +288,3 @@ def get_lts_codename_for_mode(
     """
     lts = get_base_lts_for_mode(is_cloud_archive, csv_path)
     return lts.codename if lts else ""
-

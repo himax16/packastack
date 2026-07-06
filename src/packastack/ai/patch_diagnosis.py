@@ -111,9 +111,7 @@ def diagnose_patch_failure(
         PatchDiagnosisResult with diagnosis details.
     """
     if not is_ai_available(cfg):
-        return PatchDiagnosisResult(
-            diagnosed=False, error="AI not available (no API key)"
-        )
+        return PatchDiagnosisResult(diagnosed=False, error="AI not available (no API key)")
 
     user_message = build_patch_context(
         patch_name=patch_name,
@@ -302,14 +300,16 @@ def _try_file_deletion_refresh(
     # Stage file deletions and capture the diff
     for fpath in deleted_files:
         rc, _, _stderr = run_command(
-            ["git", "rm", "--quiet", fpath], cwd=pkg_repo,
+            ["git", "rm", "--quiet", fpath],
+            cwd=pkg_repo,
         )
         if rc != 0:
             _revert_working_tree(pkg_repo)
             return None
 
     _, diff_output, _ = run_command(
-        ["git", "diff", "--cached", "HEAD"], cwd=pkg_repo,
+        ["git", "diff", "--cached", "HEAD"],
+        cwd=pkg_repo,
     )
 
     # Revert
@@ -404,9 +404,7 @@ def attempt_mechanical_refresh(
     # files that still exist, the content may have changed upstream
     # causing the old deletion hunks to mismatch.  Regenerate the
     # deletion diff from the current file contents.
-    deletion_result = _try_file_deletion_refresh(
-        patch_name, original, pkg_repo
-    )
+    deletion_result = _try_file_deletion_refresh(patch_name, original, pkg_repo)
     if deletion_result is not None:
         return deletion_result
 
@@ -415,7 +413,10 @@ def attempt_mechanical_refresh(
         (
             "git-ignore-ws",
             [
-                "git", "apply", "--check", "--ignore-whitespace",
+                "git",
+                "apply",
+                "--check",
+                "--ignore-whitespace",
                 str(patch_path),
             ],
             ["git", "apply", "--ignore-whitespace", str(patch_path)],
@@ -430,14 +431,25 @@ def attempt_mechanical_refresh(
         (
             "patch-fuzz",
             [
-                "patch", "-p1", "--dry-run", "-l", "--fuzz=3",
-                "--no-backup-if-mismatch", "--force",
-                "--input", str(patch_path),
+                "patch",
+                "-p1",
+                "--dry-run",
+                "-l",
+                "--fuzz=3",
+                "--no-backup-if-mismatch",
+                "--force",
+                "--input",
+                str(patch_path),
             ],
             [
-                "patch", "-p1", "-l", "--fuzz=3",
-                "--no-backup-if-mismatch", "--force",
-                "--input", str(patch_path),
+                "patch",
+                "-p1",
+                "-l",
+                "--fuzz=3",
+                "--no-backup-if-mismatch",
+                "--force",
+                "--input",
+                str(patch_path),
             ],
         ),
     ]
@@ -466,10 +478,7 @@ def attempt_mechanical_refresh(
         if status_out.strip():
             # Unresolved conflicts — revert and try next strategy
             _revert_working_tree(pkg_repo)
-            errors.append(
-                f"{strategy_name}: merge conflicts in "
-                f"{status_out.strip()}"
-            )
+            errors.append(f"{strategy_name}: merge conflicts in {status_out.strip()}")
             continue
 
         # Stage all changes (including new/deleted files)
@@ -501,8 +510,7 @@ def attempt_mechanical_refresh(
         validation = validate_patch(pkg_repo, refreshed_content, tmp_name)
         if not validation.valid:
             errors.append(
-                f"{strategy_name}: regenerated patch fails strict check: "
-                f"{validation.error}"
+                f"{strategy_name}: regenerated patch fails strict check: {validation.error}"
             )
             continue
 
@@ -520,10 +528,7 @@ def attempt_mechanical_refresh(
     return PatchRefreshResult(
         refreshed=False,
         patch_name=patch_name,
-        error=(
-            "All mechanical refresh strategies failed: "
-            + "; ".join(errors)
-        ),
+        error=("All mechanical refresh strategies failed: " + "; ".join(errors)),
     )
 
 
@@ -559,7 +564,7 @@ def _extract_affected_paths(patch_content: str) -> list[str]:
     for line in patch_content.splitlines():
         for prefix in ("--- a/", "+++ b/"):
             if line.startswith(prefix):
-                p = line[len(prefix):].strip()
+                p = line[len(prefix) :].strip()
                 if p and p != "/dev/null" and p not in paths:
                     paths.append(p)
     return paths
@@ -598,9 +603,7 @@ def refresh_failing_patch(
         PatchRefreshResult with the refreshed patch content on success.
     """
     if not is_ai_available(cfg):
-        return PatchRefreshResult(
-            refreshed=False, error="AI not available (no API key)"
-        )
+        return PatchRefreshResult(refreshed=False, error="AI not available (no API key)")
 
     # Collect full working tree context (git tree, debian/, upstream configs)
     from packastack.ai.build_diagnosis import collect_working_tree_context
@@ -617,9 +620,7 @@ def refresh_failing_patch(
         full = pkg_repo / fpath
         if full.is_file():
             with contextlib.suppress(OSError):
-                affected_files[fpath] = full.read_text(
-                    encoding="utf-8", errors="replace"
-                )
+                affected_files[fpath] = full.read_text(encoding="utf-8", errors="replace")
         else:
             missing_files.append(fpath)
 
@@ -748,9 +749,7 @@ def auto_drop_upstreamed_patches(
             patch_path = pkg_repo / "debian" / "patches" / report.patch_name
             patch_content = ""
             if patch_path.exists():
-                patch_content = patch_path.read_text(
-                    encoding="utf-8", errors="replace"
-                )
+                patch_content = patch_path.read_text(encoding="utf-8", errors="replace")
 
             diagnosis = diagnose_patch_failure(
                 patch_name=report.patch_name,
@@ -777,9 +776,7 @@ def auto_drop_upstreamed_patches(
 
             drop = drop_patch(pkg_repo, report.patch_name)
             if not drop.success:
-                result.errors.append(
-                    f"{report.patch_name}: drop failed: {drop.error}"
-                )
+                result.errors.append(f"{report.patch_name}: drop failed: {drop.error}")
                 continue
 
             # Commit the removal
@@ -801,8 +798,5 @@ def auto_drop_upstreamed_patches(
         except Exception as exc:
             result.errors.append(f"{report.patch_name}: unexpected error: {exc}")
 
-    result.all_dropped = (
-        len(result.dropped) == len(upstreamed_reports)
-        and len(result.dropped) > 0
-    )
+    result.all_dropped = len(result.dropped) == len(upstreamed_reports) and len(result.dropped) > 0
     return result

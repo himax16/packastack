@@ -275,9 +275,7 @@ def update_launchpad_yaml_series(
 
     # Perform update
     try:
-        new_data, updated = update_series_references(
-            config.data, prev_series, target_series
-        )
+        new_data, updated = update_series_references(config.data, prev_series, target_series)
         config.data = new_data
 
         if not save_launchpad_yaml(config):

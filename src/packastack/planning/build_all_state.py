@@ -26,7 +26,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -36,7 +36,7 @@ def _utcnow_iso() -> str:
     return datetime.now(UTC).isoformat()
 
 
-class PackageStatus(str, Enum):
+class PackageStatus(StrEnum):
     """Status of a package in build-all."""
 
     PENDING = "pending"
@@ -47,7 +47,7 @@ class PackageStatus(str, Enum):
     BLOCKED = "blocked"  # Blocked by failed dependency
 
 
-class FailureType(str, Enum):
+class FailureType(StrEnum):
     """Classification of build failures."""
 
     FETCH_FAILED = "fetch_failed"
@@ -200,49 +200,47 @@ class BuildAllState:
     def get_pending_packages(self) -> list[str]:
         """Get packages that are pending build."""
         return [
-            name for name, state in self.packages.items()
-            if state.status == PackageStatus.PENDING
+            name for name, state in self.packages.items() if state.status == PackageStatus.PENDING
         ]
 
     def get_failed_packages(self) -> list[str]:
         """Get packages that failed."""
         return [
-            name for name, state in self.packages.items()
-            if state.status == PackageStatus.FAILED
+            name for name, state in self.packages.items() if state.status == PackageStatus.FAILED
         ]
 
     def get_success_packages(self) -> list[str]:
         """Get packages that succeeded."""
         return [
-            name for name, state in self.packages.items()
-            if state.status == PackageStatus.SUCCESS
+            name for name, state in self.packages.items() if state.status == PackageStatus.SUCCESS
         ]
 
     def get_blocked_packages(self) -> list[str]:
         """Get packages blocked by failed dependencies."""
         return [
-            name for name, state in self.packages.items()
-            if state.status == PackageStatus.BLOCKED
+            name for name, state in self.packages.items() if state.status == PackageStatus.BLOCKED
         ]
 
     def get_skipped_packages(self) -> list[str]:
         """Get packages that were skipped (e.g., repo not found)."""
         return [
-            name for name, state in self.packages.items()
-            if state.status == PackageStatus.SKIPPED
+            name for name, state in self.packages.items() if state.status == PackageStatus.SKIPPED
         ]
 
     def get_failure_count(self) -> int:
         """Get count of failed packages."""
-        return sum(
-            1 for state in self.packages.values()
-            if state.status == PackageStatus.FAILED
-        )
+        return sum(1 for state in self.packages.values() if state.status == PackageStatus.FAILED)
 
     def is_complete(self) -> bool:
         """Check if all packages are processed."""
         return all(
-            state.status in (PackageStatus.SUCCESS, PackageStatus.FAILED, PackageStatus.SKIPPED, PackageStatus.BLOCKED)
+            state.status
+            in (
+                PackageStatus.SUCCESS,
+                PackageStatus.FAILED,
+                PackageStatus.SKIPPED,
+                PackageStatus.BLOCKED,
+            )
             for state in self.packages.values()
         )
 
@@ -401,7 +399,7 @@ def load_state(state_dir: Path) -> BuildAllState | None:
     try:
         data = json.loads(state_file.read_text())
         return BuildAllState.from_dict(data)
-    except (json.JSONDecodeError, KeyError, ValueError):
+    except json.JSONDecodeError, KeyError, ValueError:
         return None
 
 

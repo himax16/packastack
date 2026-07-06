@@ -66,6 +66,7 @@ class RetirementCheckResult:
         source: Source of retirement information
         description: Optional description of retirement reason
     """
+
     is_retired: bool = False
     is_possibly_retired: bool = False
     upstream_project: str | None = None
@@ -150,13 +151,15 @@ def check_retirement_status(
             activity("policy", f"  Reason: {retirement_info.description}")
         activity("policy", "Use --include-retired to override")
 
-        run.log_event({
-            "event": "policy.retired_project",
-            "package": pkg_name,
-            "upstream_project": retirement_info.upstream_project,
-            "source": retirement_info.source,
-            "description": retirement_info.description,
-        })
+        run.log_event(
+            {
+                "event": "policy.retired_project",
+                "package": pkg_name,
+                "upstream_project": retirement_info.upstream_project,
+                "source": retirement_info.source,
+                "description": retirement_info.description,
+            }
+        )
 
         run.write_summary(
             status="skipped",
@@ -170,14 +173,18 @@ def check_retirement_status(
         result.is_possibly_retired = True
         result.source = retirement_info.source
 
-        activity("policy", f"Warning: {pkg_name} may be retired upstream (not released in 3+ cycles)")
+        activity(
+            "policy", f"Warning: {pkg_name} may be retired upstream (not released in 3+ cycles)"
+        )
         activity("policy", f"  Source: {retirement_info.source}")
 
-        run.log_event({
-            "event": "policy.possibly_retired",
-            "package": pkg_name,
-            "source": retirement_info.source,
-        })
+        run.log_event(
+            {
+                "event": "policy.possibly_retired",
+                "package": pkg_name,
+                "source": retirement_info.source,
+            }
+        )
 
     return PhaseResult.ok(), result
 
@@ -192,6 +199,7 @@ class RegistryResolutionResult:
         project_key: Resolved project key from registry
         is_openstack_governed: Whether package is in openstack/releases
     """
+
     registry: UpstreamsRegistry | None = None
     resolved: ResolvedUpstream | None = None
     project_key: str = ""
@@ -241,12 +249,14 @@ def resolve_upstream_registry(
         registry = UpstreamsRegistry()
         result.registry = registry
 
-        run.log_event({
-            "event": "registry.loaded",
-            "version": registry.version,
-            "override_applied": registry.override_applied,
-            "override_path": registry.override_path,
-        })
+        run.log_event(
+            {
+                "event": "registry.loaded",
+                "version": registry.version,
+                "override_applied": registry.override_applied,
+                "override_path": registry.override_path,
+            }
+        )
 
         if registry.override_applied:
             activity("resolve", f"Registry override applied: {registry.override_path}")
@@ -273,7 +283,9 @@ def resolve_upstream_registry(
 
     # Resolve upstream configuration from registry
     try:
-        resolved_upstream = registry.resolve(package, openstack_governed=result.is_openstack_governed)
+        resolved_upstream = registry.resolve(
+            package, openstack_governed=result.is_openstack_governed
+        )
         result.resolved = resolved_upstream
         result.project_key = resolved_upstream.project
 
@@ -281,24 +293,28 @@ def resolve_upstream_registry(
         resolution_source = resolved_upstream.resolution_source
 
         activity("resolve", f"Upstream resolution: {resolution_source.value}")
-        run.log_event({
-            "event": "registry.resolved",
-            "project": package,
-            "project_key": resolved_upstream.project,
-            "resolution_source": resolution_source.value,
-            "upstream_host": upstream_config.upstream.host,
-            "upstream_url": upstream_config.upstream.url,
-        })
+        run.log_event(
+            {
+                "event": "registry.resolved",
+                "project": package,
+                "project_key": resolved_upstream.project,
+                "resolution_source": resolution_source.value,
+                "upstream_host": upstream_config.upstream.host,
+                "upstream_url": upstream_config.upstream.url,
+            }
+        )
 
         # Log tarball and verification config
         tarball_methods = [m.value for m in upstream_config.tarball.prefer]
         activity("policy", f"Tarball prefer: {', '.join(tarball_methods)}")
         activity("policy", f"Signature mode: {upstream_config.signatures.mode.value}")
-        run.log_event({
-            "event": "policy.tarball_verification",
-            "tarball_prefer": tarball_methods,
-            "signature_mode": upstream_config.signatures.mode.value,
-        })
+        run.log_event(
+            {
+                "event": "policy.tarball_verification",
+                "tarball_prefer": tarball_methods,
+                "signature_mode": upstream_config.signatures.mode.value,
+            }
+        )
 
     except ProjectNotFoundError as e:
         activity("resolve", f"Registry error: {e}")
@@ -322,6 +338,7 @@ class PolicyCheckResult:
         preferred_version: Preferred version if snapshot blocked
         forced: Whether --force was used to override
     """
+
     snapshot_eligible: bool = True
     snapshot_reason: str = ""
     preferred_version: str = ""
@@ -406,11 +423,13 @@ def check_policy(
         elif "Warning" in reason:
             activity("policy", f"Warning: {reason}")
 
-        run.log_event({
-            "event": "policy.snapshot",
-            "eligible": eligible,
-            "reason": reason,
-        })
+        run.log_event(
+            {
+                "event": "policy.snapshot",
+                "eligible": eligible,
+                "reason": reason,
+            }
+        )
 
     activity("policy", "Policy check: OK")
     return PhaseResult.ok(), result
@@ -425,6 +444,7 @@ class PackageIndexes:
         cloud_archive: Package index from Cloud Archive (optional)
         local_repo: Package index from local repository (optional)
     """
+
     ubuntu: PackageIndex
     cloud_archive: PackageIndex | None = None
     local_repo: PackageIndex | None = None
@@ -484,7 +504,9 @@ def load_package_indexes(
 
     # Load Ubuntu index
     with activity_spinner("plan", "Loading package indexes"):
-        ubuntu_index = load_package_index(ubuntu_cache, resolved_ubuntu, ubuntu_pockets, ubuntu_components)
+        ubuntu_index = load_package_index(
+            ubuntu_cache, resolved_ubuntu, ubuntu_pockets, ubuntu_components
+        )
     activity("plan", f"Ubuntu index: {len(ubuntu_index.packages)} packages")
     run.log_event({"event": "plan.ubuntu_index", "count": len(ubuntu_index.packages)})
 
@@ -522,6 +544,7 @@ class ToolCheckResult:
         missing_tools: List of missing tool names
         error_message: Formatted message about missing tools
     """
+
     is_complete: bool = True
     missing_tools: list[str] | None = None
     error_message: str = ""
@@ -587,6 +610,7 @@ class SchrootSetupResult:
         created: True if schroot was created during this run
         skipped: True if schroot setup was skipped (not needed)
     """
+
     schroot_name: str = ""
     created: bool = False
     skipped: bool = False
@@ -661,10 +685,12 @@ def ensure_schroot_ready(
         activity("plan", f"Created schroot: {schroot_result.name}")
         result.created = True
 
-    run.log_event({
-        "event": "schroot.ready",
-        "name": schroot_result.name,
-        "created": schroot_result.created,
-    })
+    run.log_event(
+        {
+            "event": "schroot.ready",
+            "name": schroot_result.name,
+            "created": schroot_result.created,
+        }
+    )
 
     return PhaseResult.ok(), result

@@ -49,18 +49,18 @@ th {{ background: #eef2f7; }}
 </style></head>
 <body>
 <h2>Plan Dependency Summary</h2>
-<div>Current LTS: {current_lts or 'unknown'}</div>
+<div>Current LTS: {current_lts or "unknown"}</div>
 <div class='cards'>
-  <div class='card'><div class='label'>Dependencies</div><div class='value'>{totals.get('total',0)}</div></div>
-  <div class='card'><div class='label'>Cloud-archive required</div><div class='value'>{totals.get('cloud_archive_required',0)}</div></div>
-  <div class='card'><div class='label'>MIR warnings</div><div class='value'>{totals.get('mir_warnings',0)}</div></div>
+  <div class='card'><div class='label'>Dependencies</div><div class='value'>{totals.get("total", 0)}</div></div>
+  <div class='card'><div class='label'>Cloud-archive required</div><div class='value'>{totals.get("cloud_archive_required", 0)}</div></div>
+  <div class='card'><div class='label'>MIR warnings</div><div class='value'>{totals.get("mir_warnings", 0)}</div></div>
 </div>
 <table>
   <thead>
     <tr><th>Package</th><th>Deps</th><th>Dev satisfied</th><th>Current LTS satisfied</th><th>Cloud-archive</th><th>MIR</th></tr>
   </thead>
   <tbody>
-    {''.join(rows)}
+    {"".join(rows)}
   </tbody>
 </table>
 </body></html>

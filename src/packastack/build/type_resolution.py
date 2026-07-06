@@ -98,14 +98,18 @@ def resolve_build_type_auto(
         if offline:
             activity("resolve", "ERROR: Auto type selection requires openstack/releases repo")
             activity("resolve", "In offline mode, the releases repo must be pre-cached")
-            run.log_event({
-                "event": "resolve.auto_type_failed",
-                "reason": "releases_repo_missing_offline",
-            })
+            run.log_event(
+                {
+                    "event": "resolve.auto_type_failed",
+                    "reason": "releases_repo_missing_offline",
+                }
+            )
             raise typer.Exit(EXIT_CONFIG_ERROR)
         else:
             # Would fetch here in online mode, but for now just use snapshot
-            activity("resolve", "WARNING: openstack/releases repo not found, defaulting to snapshot")
+            activity(
+                "resolve", "WARNING: openstack/releases repo not found, defaulting to snapshot"
+            )
             return BuildType.SNAPSHOT, "releases_repo_unavailable"
 
     # Get cycle stage
@@ -120,14 +124,16 @@ def resolve_build_type_auto(
         cycle_stage=cycle_stage,
     )
 
-    run.log_event({
-        "event": "resolve.auto_type_selected",
-        "chosen_type": result.chosen_type.value,
-        "reason_code": result.reason_code.value,
-        "reason": result.reason_human,
-        "deliverable": deliverable,
-        "cycle_stage": cycle_stage.value,
-    })
+    run.log_event(
+        {
+            "event": "resolve.auto_type_selected",
+            "chosen_type": result.chosen_type.value,
+            "reason_code": result.reason_code.value,
+            "reason": result.reason_human,
+            "deliverable": deliverable,
+            "cycle_stage": cycle_stage.value,
+        }
+    )
 
     # Reject snapshot builds for client/library packages
     if result.chosen_type == BuildType.SNAPSHOT:
@@ -143,11 +149,13 @@ def resolve_build_type_auto(
                 "Please wait for an official release or use --force to override."
             )
             activity("resolve", f"{error_msg}")
-            run.log_event({
-                "event": "resolve.snapshot_rejected_for_library",
-                "package": source_package,
-                "type": proj_info.type,
-            })
+            run.log_event(
+                {
+                    "event": "resolve.snapshot_rejected_for_library",
+                    "package": source_package,
+                    "type": proj_info.type,
+                }
+            )
             sys.exit(EXIT_CONFIG_ERROR)
 
     activity("resolve", f"Auto-selected: {result.chosen_type.value} ({result.reason_human})")

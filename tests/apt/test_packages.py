@@ -234,9 +234,7 @@ class TestPackageIndex:
 
     def test_get_binaries_for_source(self) -> None:
         index = PackageIndex()
-        pkg1 = BinaryPackage(
-            name="nova-api", version="1.0.0", architecture="amd64", source="nova"
-        )
+        pkg1 = BinaryPackage(name="nova-api", version="1.0.0", architecture="amd64", source="nova")
         pkg2 = BinaryPackage(
             name="nova-compute", version="1.0.0", architecture="amd64", source="nova"
         )
@@ -312,22 +310,26 @@ Filename: pool/main/t/test-src/test-pkg_1.0.0_amd64.deb
             # Create packages in release pocket
             release_dir = cache_dir / "indexes" / "noble" / "release" / "main" / "binary-amd64"
             release_dir.mkdir(parents=True)
-            (release_dir / "Packages.gz").write_bytes(gzip.compress(b"""\
+            (release_dir / "Packages.gz").write_bytes(
+                gzip.compress(b"""\
 Package: pkg-release
 Version: 1.0.0
 Architecture: amd64
 Filename: pool/main/p/pkg/pkg-release_1.0.0_amd64.deb
-"""))
+""")
+            )
 
             # Create packages in updates pocket
             updates_dir = cache_dir / "indexes" / "noble" / "updates" / "main" / "binary-amd64"
             updates_dir.mkdir(parents=True)
-            (updates_dir / "Packages.gz").write_bytes(gzip.compress(b"""\
+            (updates_dir / "Packages.gz").write_bytes(
+                gzip.compress(b"""\
 Package: pkg-updates
 Version: 1.0.1
 Architecture: amd64
 Filename: pool/main/p/pkg/pkg-updates_1.0.1_amd64.deb
-"""))
+""")
+            )
 
             index = load_package_index(
                 cache_dir,
@@ -348,9 +350,7 @@ class TestLoadCloudArchiveIndex:
 
         with tempfile.TemporaryDirectory() as tmpdir:
             cache_dir = Path(tmpdir)
-            index = load_cloud_archive_index(
-                cache_dir, ubuntu_series="noble", pocket="caracal"
-            )
+            index = load_cloud_archive_index(cache_dir, ubuntu_series="noble", pocket="caracal")
             assert index.find_package("anything") is None
 
     def test_load_cloud_archive(self) -> None:
@@ -362,7 +362,13 @@ class TestLoadCloudArchiveIndex:
 
             # Create cloud archive structure
             ca_dir = (
-                cache_dir / "cloud-archive" / "indexes" / "noble" / "caracal" / "main" / "binary-amd64"
+                cache_dir
+                / "cloud-archive"
+                / "indexes"
+                / "noble"
+                / "caracal"
+                / "main"
+                / "binary-amd64"
             )
             ca_dir.mkdir(parents=True)
 
@@ -375,9 +381,7 @@ Filename: pool/main/o/oslo.config/python3-oslo.config_9.0.0_all.deb
 """
             (ca_dir / "Packages.gz").write_bytes(gzip.compress(packages_content))
 
-            index = load_cloud_archive_index(
-                cache_dir, ubuntu_series="noble", pocket="caracal"
-            )
+            index = load_cloud_archive_index(cache_dir, ubuntu_series="noble", pocket="caracal")
             found = index.find_package("python3-oslo.config")
             assert found is not None
             assert found.name == "python3-oslo.config"
@@ -406,9 +410,7 @@ Filename: pool/main/t/test/test-pkg_1.0.0_amd64.deb
 """
             (binary_dir / "Packages.gz").write_bytes(gzip.compress(packages_content))
 
-            index = load_cloud_archive_index(
-                cache_dir, ubuntu_series="noble", pocket="caracal"
-            )
+            index = load_cloud_archive_index(cache_dir, ubuntu_series="noble", pocket="caracal")
             # Should only have package from binary-amd64
             assert index.find_package("test-pkg") is not None
 

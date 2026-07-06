@@ -36,9 +36,7 @@ if TYPE_CHECKING:
     from packastack.core.run import RunContext
 
 # Base URL for raw file access from Launchpad git
-PKG_SCRIPTS_BASE_URL = (
-    "https://git.launchpad.net/~ubuntu-cloud-archive/+git/pkg-scripts/plain"
-)
+PKG_SCRIPTS_BASE_URL = "https://git.launchpad.net/~ubuntu-cloud-archive/+git/pkg-scripts/plain"
 
 # Files containing package lists
 PACKAGE_LIST_FILES = ["current-projects", "dependencies"]
@@ -177,11 +175,13 @@ def refresh_managed_packages(
         activity("pkg-scripts", "Skipping managed packages update (offline mode)")
         packages = load_managed_packages(cache_dir)
         if run:
-            run.log_event({
-                "event": "pkg_scripts.skipped",
-                "reason": "offline",
-                "cached_count": len(packages),
-            })
+            run.log_event(
+                {
+                    "event": "pkg_scripts.skipped",
+                    "reason": "offline",
+                    "cached_count": len(packages),
+                }
+            )
         return packages, []
 
     activity("pkg-scripts", "Fetching managed packages from ubuntu-cloud-archive...")
@@ -192,20 +192,24 @@ def refresh_managed_packages(
         for err in errors:
             activity("pkg-scripts", f"Warning: {err}")
         if run:
-            run.log_event({
-                "event": "pkg_scripts.fetch_errors",
-                "errors": errors,
-            })
+            run.log_event(
+                {
+                    "event": "pkg_scripts.fetch_errors",
+                    "errors": errors,
+                }
+            )
 
     if packages:
         file_path = save_managed_packages(packages, cache_dir)
         activity("pkg-scripts", f"Saved {len(packages)} managed packages to {file_path}")
         if run:
-            run.log_event({
-                "event": "pkg_scripts.saved",
-                "count": len(packages),
-                "path": str(file_path),
-            })
+            run.log_event(
+                {
+                    "event": "pkg_scripts.saved",
+                    "count": len(packages),
+                    "path": str(file_path),
+                }
+            )
     elif not errors:
         activity("pkg-scripts", "Warning: No packages fetched (empty response)")
 

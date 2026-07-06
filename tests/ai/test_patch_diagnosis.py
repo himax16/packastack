@@ -462,9 +462,7 @@ class TestParseRefreshResponse:
         response = AIResponse(
             success=True,
             content=(
-                "DIAGNOSIS: Needs update\n"
-                "ACTION: REFRESH\n"
-                "EXPLANATION: I updated the patch\n"
+                "DIAGNOSIS: Needs update\nACTION: REFRESH\nEXPLANATION: I updated the patch\n"
             ),
         )
         result = _parse_refresh_response(response, "fix.patch")
@@ -474,12 +472,7 @@ class TestParseRefreshResponse:
         """Test empty content between markers is not refreshed."""
         response = AIResponse(
             success=True,
-            content=(
-                "ACTION: REFRESH\n"
-                "--- BEGIN PATCH ---\n"
-                "   \n"
-                "--- END PATCH ---\n"
-            ),
+            content=("ACTION: REFRESH\n--- BEGIN PATCH ---\n   \n--- END PATCH ---\n"),
         )
         result = _parse_refresh_response(response, "fix.patch")
         assert result.refreshed is False
@@ -533,14 +526,7 @@ class TestExtractAffectedPaths:
 
     def test_extracts_paths_from_unified_diff(self) -> None:
         """Test extracts file paths from standard unified diff headers."""
-        patch_content = (
-            "--- a/setup.cfg\n"
-            "+++ b/setup.cfg\n"
-            "@@ -1,3 +1,3 @@\n"
-            " x\n"
-            "-old\n"
-            "+new\n"
-        )
+        patch_content = "--- a/setup.cfg\n+++ b/setup.cfg\n@@ -1,3 +1,3 @@\n x\n-old\n+new\n"
         paths = _extract_affected_paths(patch_content)
         assert paths == ["setup.cfg"]
 
@@ -609,12 +595,7 @@ class TestExtractDep3Header:
 
     def test_preserves_trailing_separator(self) -> None:
         """Test preserves the --- separator line."""
-        patch_content = (
-            "Subject: Fix\n"
-            "---\n"
-            " file.py | 1 +\n"
-            "diff --git a/file.py b/file.py\n"
-        )
+        patch_content = "Subject: Fix\n---\n file.py | 1 +\ndiff --git a/file.py b/file.py\n"
         header = _extract_dep3_header(patch_content)
         assert header.endswith("diff --git a/file.py b/file.py\n") is False
         assert "---\n" in header
@@ -890,9 +871,7 @@ class TestAttemptMechanicalRefresh:
         repo = self._init_repo(tmp_path)
 
         # Create a file with extra lines at the top (shifting offsets)
-        (repo / "file.txt").write_text(
-            "new1\nnew2\nnew3\nline1\nline2\nline3\n"
-        )
+        (repo / "file.txt").write_text("new1\nnew2\nnew3\nline1\nline2\nline3\n")
         run_command(["git", "add", "."], cwd=repo)
         run_command(["git", "commit", "-m", "init"], cwd=repo)
 
@@ -1162,9 +1141,7 @@ class TestRefreshFailingPatch:
             ),
         )
 
-        with patch(
-            "packastack.ai.build_diagnosis.validate_patch"
-        ) as mock_validate:
+        with patch("packastack.ai.build_diagnosis.validate_patch") as mock_validate:
             mock_validate.return_value = MagicMock(valid=True, error="")
             result = refresh_failing_patch(
                 patch_name="fix.patch",
@@ -1270,24 +1247,16 @@ class TestRefreshFailingPatch:
         assert result.patch_content == "good patch\n"
 
     @patch("packastack.ai.patch_diagnosis.call_ai")
-    def test_validation_fails_all_attempts(
-        self, mock_call: MagicMock, tmp_path: Path
-    ) -> None:
+    def test_validation_fails_all_attempts(self, mock_call: MagicMock, tmp_path: Path) -> None:
         """Test returns not refreshed when all validation attempts fail."""
         mock_call.side_effect = [
             AIResponse(
                 success=True,
-                content=(
-                    "ACTION: REFRESH\n"
-                    "--- BEGIN PATCH ---\nbad1\n--- END PATCH ---"
-                ),
+                content=("ACTION: REFRESH\n--- BEGIN PATCH ---\nbad1\n--- END PATCH ---"),
             ),
             AIResponse(
                 success=True,
-                content=(
-                    "ACTION: REFRESH\n"
-                    "--- BEGIN PATCH ---\nbad2\n--- END PATCH ---"
-                ),
+                content=("ACTION: REFRESH\n--- BEGIN PATCH ---\nbad2\n--- END PATCH ---"),
             ),
         ]
 
@@ -1339,9 +1308,7 @@ class TestRefreshFailingPatch:
         assert "name = test" in user_msg
 
     @patch("packastack.ai.patch_diagnosis.call_ai")
-    def test_handles_missing_affected_file(
-        self, mock_call: MagicMock, tmp_path: Path
-    ) -> None:
+    def test_handles_missing_affected_file(self, mock_call: MagicMock, tmp_path: Path) -> None:
         """Test gracefully handles when affected source file doesn't exist."""
         # Don't create the file that the patch references
         patch_content = "--- a/missing.py\n+++ b/missing.py\n@@ -1 +1 @@\n-x\n+y\n"
@@ -1373,10 +1340,7 @@ class TestRefreshFailingPatch:
         mock_call.side_effect = [
             AIResponse(
                 success=True,
-                content=(
-                    "ACTION: REFRESH\n"
-                    "--- BEGIN PATCH ---\nbad\n--- END PATCH ---"
-                ),
+                content=("ACTION: REFRESH\n--- BEGIN PATCH ---\nbad\n--- END PATCH ---"),
             ),
             AIResponse(success=False, error="rate limited"),
         ]
@@ -1408,10 +1372,7 @@ class TestRefreshFailingPatch:
         mock_call.side_effect = [
             AIResponse(
                 success=True,
-                content=(
-                    "ACTION: REFRESH\n"
-                    "--- BEGIN PATCH ---\nbad\n--- END PATCH ---"
-                ),
+                content=("ACTION: REFRESH\n--- BEGIN PATCH ---\nbad\n--- END PATCH ---"),
             ),
             AIResponse(
                 success=True,
@@ -1444,9 +1405,7 @@ class TestRefreshFailingPatch:
     ) -> None:
         """Test includes pyproject.toml when patch targets missing setup.cfg."""
         # Only pyproject.toml exists (setup.cfg was removed in migration)
-        (tmp_path / "pyproject.toml").write_text(
-            "[project]\nname = \"cinder\"\n"
-        )
+        (tmp_path / "pyproject.toml").write_text('[project]\nname = "cinder"\n')
         patch_content = (
             "--- a/setup.cfg\n+++ b/setup.cfg\n"
             "@@ -1,2 +1,3 @@\n [metadata]\n name = cinder\n+version = 1.0\n"
@@ -1481,11 +1440,8 @@ class TestRefreshFailingPatch:
     ) -> None:
         """Test includes pyproject.toml alongside setup.cfg for migration awareness."""
         (tmp_path / "setup.cfg").write_text("[metadata]\nname = test\n")
-        (tmp_path / "pyproject.toml").write_text("[project]\nname = \"test\"\n")
-        patch_content = (
-            "--- a/setup.cfg\n+++ b/setup.cfg\n"
-            "@@ -1 +1 @@\n-old\n+new\n"
-        )
+        (tmp_path / "pyproject.toml").write_text('[project]\nname = "test"\n')
+        patch_content = "--- a/setup.cfg\n+++ b/setup.cfg\n@@ -1 +1 @@\n-old\n+new\n"
 
         mock_call.return_value = AIResponse(
             success=True,
@@ -1513,7 +1469,7 @@ class TestRefreshFailingPatch:
     ) -> None:
         """Test does not include pyproject.toml when patch doesn't touch setup files."""
         (tmp_path / "requirements.txt").write_text("oslo.config>=1.0\n")
-        (tmp_path / "pyproject.toml").write_text("[project]\nname = \"test\"\n")
+        (tmp_path / "pyproject.toml").write_text('[project]\nname = "test"\n')
         patch_content = (
             "--- a/requirements.txt\n+++ b/requirements.txt\n"
             "@@ -1 +1 @@\n-oslo.config>=1.0\n+oslo.config>=2.0\n"
@@ -1539,9 +1495,7 @@ class TestRefreshFailingPatch:
         assert "[project]" not in user_msg
 
     @patch("packastack.ai.patch_diagnosis.call_ai")
-    def test_includes_working_tree_context(
-        self, mock_call: MagicMock, tmp_path: Path
-    ) -> None:
+    def test_includes_working_tree_context(self, mock_call: MagicMock, tmp_path: Path) -> None:
         """Test that the AI receives the full working tree context."""
         patch_content = "--- a/foo.py\n+++ b/foo.py\n@@ -1 +1 @@\n-old\n+new\n"
 

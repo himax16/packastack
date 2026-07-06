@@ -68,9 +68,7 @@ def generate_build_all_reports(
 
     # Get timing info
     durations = [
-        (p.name, p.duration_seconds)
-        for p in state.packages.values()
-        if p.duration_seconds > 0
+        (p.name, p.duration_seconds) for p in state.packages.values() if p.duration_seconds > 0
     ]
     durations.sort(key=lambda x: x[1], reverse=True)
     top_10_longest = durations[:10]
@@ -109,14 +107,10 @@ def generate_build_all_reports(
             if p.status == PackageStatus.FAILED
         },
         "failures_by_type": dict(failures_by_type),
-        "missing_deps": {
-            name: dep.to_dict()
-            for name, dep in state.missing_deps.items()
-        },
+        "missing_deps": {name: dep.to_dict() for name, dep in state.missing_deps.items()},
         "cycles": state.cycles,
         "top_10_longest": [
-            {"package": name, "duration_seconds": dur}
-            for name, dur in top_10_longest
+            {"package": name, "duration_seconds": dur} for name, dur in top_10_longest
         ],
         "build_order": state.build_order,
     }
@@ -187,15 +181,17 @@ def _generate_markdown_report(
         f"| Failed | {failed} |",
         f"| Skipped | {skipped} |",
         f"| Blocked | {blocked} |",
-        f"| Total Build Time | {total_time:.0f}s ({total_time/3600:.1f}h) |",
+        f"| Total Build Time | {total_time:.0f}s ({total_time / 3600:.1f}h) |",
         "",
     ]
 
     if failures_by_type:
-        md_lines.extend([
-            "## Failures by Type",
-            "",
-        ])
+        md_lines.extend(
+            [
+                "## Failures by Type",
+                "",
+            ]
+        )
         for ftype, pkgs in sorted(failures_by_type.items()):
             md_lines.append(f"### {ftype} ({len(pkgs)})")
             md_lines.append("")
@@ -207,12 +203,14 @@ def _generate_markdown_report(
             md_lines.append("")
 
     if state.missing_deps:
-        md_lines.extend([
-            "## Missing Dependencies",
-            "",
-            "| Binary Package | Required By | Suggested Action |",
-            "|----------------|-------------|------------------|",
-        ])
+        md_lines.extend(
+            [
+                "## Missing Dependencies",
+                "",
+                "| Binary Package | Required By | Suggested Action |",
+                "|----------------|-------------|------------------|",
+            ]
+        )
         for name, dep in sorted(state.missing_deps.items()):
             required_by = ", ".join(dep.required_by[:3])
             if len(dep.required_by) > 3:
@@ -221,21 +219,25 @@ def _generate_markdown_report(
         md_lines.append("")
 
     if state.cycles:
-        md_lines.extend([
-            "## Dependency Cycles",
-            "",
-        ])
+        md_lines.extend(
+            [
+                "## Dependency Cycles",
+                "",
+            ]
+        )
         for i, cycle in enumerate(state.cycles, 1):
             md_lines.append(f"{i}. {' -> '.join(cycle)}")
         md_lines.append("")
 
     if top_10_longest:
-        md_lines.extend([
-            "## Top 10 Longest Builds",
-            "",
-            "| Package | Duration |",
-            "|---------|----------|",
-        ])
+        md_lines.extend(
+            [
+                "## Top 10 Longest Builds",
+                "",
+                "| Package | Duration |",
+                "|---------|----------|",
+            ]
+        )
         for name, dur in top_10_longest:
             mins = int(dur // 60)
             secs = int(dur % 60)

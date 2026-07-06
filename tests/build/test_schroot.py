@@ -93,6 +93,7 @@ def test_get_sbuild_chroot_name() -> None:
 
 def test_ensure_schroot_finds_sbuild_registered_name(monkeypatch) -> None:
     """Test that ensure_schroot detects the sbuild-registered chroot name."""
+
     # Alias does not exist, but sbuild-registered name does
     def fake_exists(name: str) -> bool:
         return name == "resolute-amd64-packastack"
@@ -168,9 +169,7 @@ class TestFindSchrootConfig:
         monkeypatch.setattr(schroot, "_CHROOT_CONF_DIR", tmp_path)
         conf = tmp_path / "myschroot-abc123"
         conf.write_text(
-            "[noble-amd64-packastack]\n"
-            "aliases=packastack-noble-amd64\n"
-            "profile=sbuild\n"
+            "[noble-amd64-packastack]\naliases=packastack-noble-amd64\nprofile=sbuild\n"
         )
         assert _find_schroot_config("packastack-noble-amd64") == conf
 
@@ -222,25 +221,17 @@ class TestFstabHasRepoMount:
 
 
 class TestConfigureRepoMount:
-    def _write_chroot_config(
-        self, conf_dir: Path, name: str, fstab: Path
-    ) -> Path:
+    def _write_chroot_config(self, conf_dir: Path, name: str, fstab: Path) -> Path:
         conf = conf_dir / f"{name}-abc123"
-        conf.write_text(
-            f"[{name}]\nprofile=sbuild\n", encoding="utf-8"
-        )
+        conf.write_text(f"[{name}]\nprofile=sbuild\n", encoding="utf-8")
         return conf
 
-    def test_raises_when_config_not_found(
-        self, tmp_path: Path, monkeypatch: Any
-    ) -> None:
+    def test_raises_when_config_not_found(self, tmp_path: Path, monkeypatch: Any) -> None:
         monkeypatch.setattr(schroot, "_CHROOT_CONF_DIR", tmp_path)
         with pytest.raises(RepoMountError, match="Cannot find"):
             configure_repo_mount("nope", tmp_path / "repo")
 
-    def test_noop_when_already_configured(
-        self, tmp_path: Path, monkeypatch: Any
-    ) -> None:
+    def test_noop_when_already_configured(self, tmp_path: Path, monkeypatch: Any) -> None:
         conf_dir = tmp_path / "chroot.d"
         conf_dir.mkdir()
         monkeypatch.setattr(schroot, "_CHROOT_CONF_DIR", conf_dir)
@@ -254,15 +245,12 @@ class TestConfigureRepoMount:
         monkeypatch.setattr(
             schroot,
             "_fstab_has_repo_mount",
-            lambda fpath, rpath: fpath == custom_fstab
-            and rpath == str(repo.resolve()),
+            lambda fpath, rpath: fpath == custom_fstab and rpath == str(repo.resolve()),
         )
 
         assert configure_repo_mount("test-chroot", repo) is True
 
-    def test_raises_when_base_fstab_unreadable(
-        self, tmp_path: Path, monkeypatch: Any
-    ) -> None:
+    def test_raises_when_base_fstab_unreadable(self, tmp_path: Path, monkeypatch: Any) -> None:
         conf_dir = tmp_path / "chroot.d"
         conf_dir.mkdir()
         monkeypatch.setattr(schroot, "_CHROOT_CONF_DIR", conf_dir)
@@ -271,9 +259,7 @@ class TestConfigureRepoMount:
         repo.mkdir()
 
         self._write_chroot_config(conf_dir, "test-chroot", tmp_path)
-        monkeypatch.setattr(
-            schroot, "_fstab_has_repo_mount", lambda *a: False
-        )
+        monkeypatch.setattr(schroot, "_fstab_has_repo_mount", lambda *a: False)
         monkeypatch.setattr(
             schroot,
             "_get_profile_fstab_path",
@@ -283,9 +269,7 @@ class TestConfigureRepoMount:
         with pytest.raises(RepoMountError, match="Cannot read base fstab"):
             configure_repo_mount("test-chroot", repo)
 
-    def test_writes_fstab_and_updates_config(
-        self, tmp_path: Path, monkeypatch: Any
-    ) -> None:
+    def test_writes_fstab_and_updates_config(self, tmp_path: Path, monkeypatch: Any) -> None:
         conf_dir = tmp_path / "chroot.d"
         conf_dir.mkdir()
         monkeypatch.setattr(schroot, "_CHROOT_CONF_DIR", conf_dir)
@@ -296,12 +280,8 @@ class TestConfigureRepoMount:
         base_fstab.write_text("/proc /proc none rw,bind 0 0\n")
 
         self._write_chroot_config(conf_dir, "test-chroot", tmp_path)
-        monkeypatch.setattr(
-            schroot, "_fstab_has_repo_mount", lambda *a: False
-        )
-        monkeypatch.setattr(
-            schroot, "_get_profile_fstab_path", lambda _: base_fstab
-        )
+        monkeypatch.setattr(schroot, "_fstab_has_repo_mount", lambda *a: False)
+        monkeypatch.setattr(schroot, "_get_profile_fstab_path", lambda _: base_fstab)
 
         written_files: dict[str, str] = {}
 
@@ -321,9 +301,7 @@ class TestConfigureRepoMount:
         assert "ro,bind" in content
         assert schroot.REPO_FSTAB_MARKER in content
 
-    def test_raises_on_sudo_failure(
-        self, tmp_path: Path, monkeypatch: Any
-    ) -> None:
+    def test_raises_on_sudo_failure(self, tmp_path: Path, monkeypatch: Any) -> None:
         conf_dir = tmp_path / "chroot.d"
         conf_dir.mkdir()
         monkeypatch.setattr(schroot, "_CHROOT_CONF_DIR", conf_dir)
@@ -334,21 +312,15 @@ class TestConfigureRepoMount:
         base_fstab.write_text("/proc /proc none rw,bind 0 0\n")
 
         self._write_chroot_config(conf_dir, "test-chroot", tmp_path)
-        monkeypatch.setattr(
-            schroot, "_fstab_has_repo_mount", lambda *a: False
-        )
-        monkeypatch.setattr(
-            schroot, "_get_profile_fstab_path", lambda _: base_fstab
-        )
+        monkeypatch.setattr(schroot, "_fstab_has_repo_mount", lambda *a: False)
+        monkeypatch.setattr(schroot, "_get_profile_fstab_path", lambda _: base_fstab)
 
         import subprocess as sp
 
         monkeypatch.setattr(
             schroot,
             "_sudo_write_file",
-            lambda *a: (_ for _ in ()).throw(
-                sp.CalledProcessError(1, "sudo tee")
-            ),
+            lambda *a: (_ for _ in ()).throw(sp.CalledProcessError(1, "sudo tee")),
         )
 
         with pytest.raises(RepoMountError, match="Failed to write"):
@@ -358,13 +330,12 @@ class TestConfigureRepoMount:
 class TestSudoSetFstabKey:
     def test_replaces_existing_key(self, tmp_path: Path, monkeypatch: Any) -> None:
         conf = tmp_path / "conf"
-        conf.write_text(
-            "[chroot]\nprofile=sbuild\nsetup.fstab=/old/path\n"
-        )
+        conf.write_text("[chroot]\nprofile=sbuild\nsetup.fstab=/old/path\n")
 
         written: dict[str, str] = {}
         monkeypatch.setattr(
-            schroot, "_sudo_write_file",
+            schroot,
+            "_sudo_write_file",
             lambda p, c: written.update({str(p): c}),
         )
 
@@ -375,15 +346,14 @@ class TestSudoSetFstabKey:
         assert "/old/path" not in written[str(conf)]
         assert "setup.fstab=/etc/schroot" not in written[str(conf)]
 
-    def test_inserts_after_profile_when_absent(
-        self, tmp_path: Path, monkeypatch: Any
-    ) -> None:
+    def test_inserts_after_profile_when_absent(self, tmp_path: Path, monkeypatch: Any) -> None:
         conf = tmp_path / "conf"
         conf.write_text("[chroot]\nprofile=sbuild\ntype=directory\n")
 
         written: dict[str, str] = {}
         monkeypatch.setattr(
-            schroot, "_sudo_write_file",
+            schroot,
+            "_sudo_write_file",
             lambda p, c: written.update({str(p): c}),
         )
 
@@ -392,15 +362,14 @@ class TestSudoSetFstabKey:
         profile_idx = next(i for i, ln in enumerate(lines) if "profile=" in ln)
         assert lines[profile_idx + 1] == "setup.fstab=new.fstab"
 
-    def test_appends_when_no_profile_line(
-        self, tmp_path: Path, monkeypatch: Any
-    ) -> None:
+    def test_appends_when_no_profile_line(self, tmp_path: Path, monkeypatch: Any) -> None:
         conf = tmp_path / "conf"
         conf.write_text("[chroot]\ntype=directory\n")
 
         written: dict[str, str] = {}
         monkeypatch.setattr(
-            schroot, "_sudo_write_file",
+            schroot,
+            "_sudo_write_file",
             lambda p, c: written.update({str(p): c}),
         )
 
@@ -431,9 +400,7 @@ class TestCombineProcessOutput:
 
 
 class TestCleanupPartialChroot:
-    def test_removes_dir_under_chroots_root(
-        self, tmp_path: Path, monkeypatch: Any
-    ) -> None:
+    def test_removes_dir_under_chroots_root(self, tmp_path: Path, monkeypatch: Any) -> None:
         chroots_root = tmp_path / "chroots"
         target = chroots_root / "packastack-stonking-amd64"
         target.mkdir(parents=True)
@@ -444,25 +411,25 @@ class TestCleanupPartialChroot:
         monkeypatch.setattr(
             schroot.subprocess,
             "run",
-            lambda cmd, **kw: commands.append(cmd)
-            or SimpleNamespace(returncode=0, stdout="", stderr=""),
+            lambda cmd, **kw: (
+                commands.append(cmd) or SimpleNamespace(returncode=0, stdout="", stderr="")
+            ),
         )
 
         schroot._cleanup_partial_chroot(target)
 
         assert commands == [["sudo", "rm", "-rf", str(target)]]
 
-    def test_refuses_paths_outside_chroots_root(
-        self, tmp_path: Path, monkeypatch: Any
-    ) -> None:
+    def test_refuses_paths_outside_chroots_root(self, tmp_path: Path, monkeypatch: Any) -> None:
         monkeypatch.setattr(schroot, "_CHROOTS_ROOT", tmp_path / "chroots")
 
         commands: list[list[str]] = []
         monkeypatch.setattr(
             schroot.subprocess,
             "run",
-            lambda cmd, **kw: commands.append(cmd)
-            or SimpleNamespace(returncode=0, stdout="", stderr=""),
+            lambda cmd, **kw: (
+                commands.append(cmd) or SimpleNamespace(returncode=0, stdout="", stderr="")
+            ),
         )
 
         outside = tmp_path / "elsewhere" / "dir"
@@ -471,9 +438,7 @@ class TestCleanupPartialChroot:
 
         assert commands == []
 
-    def test_noop_when_dir_missing(
-        self, tmp_path: Path, monkeypatch: Any
-    ) -> None:
+    def test_noop_when_dir_missing(self, tmp_path: Path, monkeypatch: Any) -> None:
         chroots_root = tmp_path / "chroots"
         chroots_root.mkdir()
         monkeypatch.setattr(schroot, "_CHROOTS_ROOT", chroots_root)
@@ -482,8 +447,9 @@ class TestCleanupPartialChroot:
         monkeypatch.setattr(
             schroot.subprocess,
             "run",
-            lambda cmd, **kw: commands.append(cmd)
-            or SimpleNamespace(returncode=0, stdout="", stderr=""),
+            lambda cmd, **kw: (
+                commands.append(cmd) or SimpleNamespace(returncode=0, stdout="", stderr="")
+            ),
         )
 
         schroot._cleanup_partial_chroot(chroots_root / "never-created")
@@ -492,14 +458,13 @@ class TestCleanupPartialChroot:
 
 
 class TestRegisterSchrootConfig:
-    def test_writes_sbuild_style_config(
-        self, tmp_path: Path, monkeypatch: Any
-    ) -> None:
+    def test_writes_sbuild_style_config(self, tmp_path: Path, monkeypatch: Any) -> None:
         monkeypatch.setattr(schroot, "_CHROOT_CONF_DIR", tmp_path)
 
         written: dict[str, str] = {}
         monkeypatch.setattr(
-            schroot, "_sudo_write_file",
+            schroot,
+            "_sudo_write_file",
             lambda p, c: written.update({str(p): c}),
         )
 
@@ -511,9 +476,7 @@ class TestRegisterSchrootConfig:
         )
         target = Path("/var/lib/schroot/chroots/packastack-stonking-amd64")
 
-        schroot._register_schroot_config(
-            "packastack-stonking-amd64", config, target
-        )
+        schroot._register_schroot_config("packastack-stonking-amd64", config, target)
 
         conf_path = str(tmp_path / "stonking-amd64-packastack")
         assert conf_path in written
@@ -543,20 +506,17 @@ class TestCreateSchrootMmdebstrap:
         assert ok is False
         assert "mmdebstrap not found" in err
 
-    def test_success_runs_and_registers(
-        self, tmp_path: Path, monkeypatch: Any
-    ) -> None:
-        monkeypatch.setattr(
-            schroot.shutil, "which", lambda name: f"/usr/bin/{name}"
-        )
+    def test_success_runs_and_registers(self, tmp_path: Path, monkeypatch: Any) -> None:
+        monkeypatch.setattr(schroot.shutil, "which", lambda name: f"/usr/bin/{name}")
         monkeypatch.setattr(schroot.os, "geteuid", lambda: 1000)
 
         commands: list[list[str]] = []
         monkeypatch.setattr(
             schroot.subprocess,
             "run",
-            lambda cmd, **kw: commands.append(cmd)
-            or SimpleNamespace(returncode=0, stdout="", stderr=""),
+            lambda cmd, **kw: (
+                commands.append(cmd) or SimpleNamespace(returncode=0, stdout="", stderr="")
+            ),
         )
 
         registered: list[str] = []
@@ -582,12 +542,8 @@ class TestCreateSchrootMmdebstrap:
         assert "deb http://example.com/repo stonking main" in cmd
         assert registered == ["packastack-stonking-amd64"]
 
-    def test_failure_returns_combined_output(
-        self, tmp_path: Path, monkeypatch: Any
-    ) -> None:
-        monkeypatch.setattr(
-            schroot.shutil, "which", lambda name: f"/usr/bin/{name}"
-        )
+    def test_failure_returns_combined_output(self, tmp_path: Path, monkeypatch: Any) -> None:
+        monkeypatch.setattr(schroot.shutil, "which", lambda name: f"/usr/bin/{name}")
         monkeypatch.setattr(schroot.os, "geteuid", lambda: 0)
         monkeypatch.setattr(
             schroot.subprocess,
@@ -605,12 +561,8 @@ class TestCreateSchrootMmdebstrap:
         assert "fatal" in err
         assert "E: apt failed" in err
 
-    def test_registration_failure_reported(
-        self, tmp_path: Path, monkeypatch: Any
-    ) -> None:
-        monkeypatch.setattr(
-            schroot.shutil, "which", lambda name: f"/usr/bin/{name}"
-        )
+    def test_registration_failure_reported(self, tmp_path: Path, monkeypatch: Any) -> None:
+        monkeypatch.setattr(schroot.shutil, "which", lambda name: f"/usr/bin/{name}")
         monkeypatch.setattr(schroot.os, "geteuid", lambda: 0)
         monkeypatch.setattr(
             schroot.subprocess,
@@ -642,12 +594,8 @@ class TestCreateSchrootFallback:
             components=("main", "universe"),
         )
 
-    def test_sbuild_failure_falls_back_to_mmdebstrap(
-        self, monkeypatch: Any
-    ) -> None:
-        monkeypatch.setattr(
-            schroot.shutil, "which", lambda name: f"/usr/bin/{name}"
-        )
+    def test_sbuild_failure_falls_back_to_mmdebstrap(self, monkeypatch: Any) -> None:
+        monkeypatch.setattr(schroot.shutil, "which", lambda name: f"/usr/bin/{name}")
         monkeypatch.setattr(schroot.os, "geteuid", lambda: 0)
         monkeypatch.setattr(
             schroot.subprocess,
@@ -660,9 +608,7 @@ class TestCreateSchrootFallback:
         )
 
         cleanups: list[Path] = []
-        monkeypatch.setattr(
-            schroot, "_cleanup_partial_chroot", lambda p: cleanups.append(p)
-        )
+        monkeypatch.setattr(schroot, "_cleanup_partial_chroot", lambda p: cleanups.append(p))
         monkeypatch.setattr(
             schroot,
             "_create_schroot_mmdebstrap",
@@ -676,12 +622,8 @@ class TestCreateSchrootFallback:
         # Partial dir from the failed sbuild-createchroot attempt is removed
         assert len(cleanups) == 1
 
-    def test_both_tools_fail_reports_both_errors(
-        self, monkeypatch: Any
-    ) -> None:
-        monkeypatch.setattr(
-            schroot.shutil, "which", lambda name: f"/usr/bin/{name}"
-        )
+    def test_both_tools_fail_reports_both_errors(self, monkeypatch: Any) -> None:
+        monkeypatch.setattr(schroot.shutil, "which", lambda name: f"/usr/bin/{name}")
         monkeypatch.setattr(schroot.os, "geteuid", lambda: 0)
         monkeypatch.setattr(
             schroot.subprocess,
@@ -694,9 +636,7 @@ class TestCreateSchrootFallback:
         )
 
         cleanups: list[Path] = []
-        monkeypatch.setattr(
-            schroot, "_cleanup_partial_chroot", lambda p: cleanups.append(p)
-        )
+        monkeypatch.setattr(schroot, "_cleanup_partial_chroot", lambda p: cleanups.append(p))
         monkeypatch.setattr(
             schroot,
             "_create_schroot_mmdebstrap",
@@ -712,9 +652,7 @@ class TestCreateSchrootFallback:
         assert "mmdebstrap not found" in err
         assert len(cleanups) == 2
 
-    def test_missing_sbuild_createchroot_uses_fallback(
-        self, monkeypatch: Any
-    ) -> None:
+    def test_missing_sbuild_createchroot_uses_fallback(self, monkeypatch: Any) -> None:
         monkeypatch.setattr(
             schroot.shutil,
             "which",
@@ -733,9 +671,7 @@ class TestCreateSchrootFallback:
 
 
 class TestConfigureRepoMountFstabName:
-    def test_no_stuttering_prefix_for_alias_names(
-        self, tmp_path: Path, monkeypatch: Any
-    ) -> None:
+    def test_no_stuttering_prefix_for_alias_names(self, tmp_path: Path, monkeypatch: Any) -> None:
         conf_dir = tmp_path / "chroot.d"
         conf_dir.mkdir()
         monkeypatch.setattr(schroot, "_CHROOT_CONF_DIR", conf_dir)
@@ -747,8 +683,7 @@ class TestConfigureRepoMountFstabName:
 
         conf = conf_dir / "stonking-amd64-packastack"
         conf.write_text(
-            "[stonking-amd64-packastack]\nprofile=sbuild\n"
-            "aliases=packastack-stonking-amd64\n",
+            "[stonking-amd64-packastack]\nprofile=sbuild\naliases=packastack-stonking-amd64\n",
             encoding="utf-8",
         )
 
@@ -757,12 +692,14 @@ class TestConfigureRepoMountFstabName:
 
         written: dict[str, str] = {}
         monkeypatch.setattr(
-            schroot, "_sudo_write_file",
+            schroot,
+            "_sudo_write_file",
             lambda p, c: written.update({str(p): c}),
         )
         fstab_keys: list[Path] = []
         monkeypatch.setattr(
-            schroot, "_sudo_set_fstab_key",
+            schroot,
+            "_sudo_set_fstab_key",
             lambda conf_path, fstab: fstab_keys.append(fstab),
         )
 

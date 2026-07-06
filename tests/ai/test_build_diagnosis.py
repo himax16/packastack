@@ -117,9 +117,7 @@ class TestParseBuildResponse:
         response = AIResponse(
             success=True,
             content=(
-                "DIAGNOSIS: Needs fix\n"
-                "ACTION: PATCH\n"
-                "PATCH_FILENAME: fix.patch\n"
+                "DIAGNOSIS: Needs fix\nACTION: PATCH\nPATCH_FILENAME: fix.patch\n"
                 # Missing BEGIN/END markers
             ),
         )
@@ -224,9 +222,7 @@ class TestDiagnoseBuildFailure:
 
     @patch("packastack.ai.build_diagnosis.run_skill")
     @patch("packastack.ai.build_diagnosis.match_triggers")
-    def test_diagnoses_with_patch(
-        self, mock_triggers: Any, mock_run: Any, tmp_path: Path
-    ) -> None:
+    def test_diagnoses_with_patch(self, mock_triggers: Any, mock_run: Any, tmp_path: Path) -> None:
         """Trigger-matched specialist returns a patch."""
         log = tmp_path / "build.log"
         log.write_text("error: ast.Str removed in Python 3.14\n")
@@ -244,9 +240,7 @@ class TestDiagnoseBuildFailure:
             ),
         )
 
-        sbuild = MockSbuildResult(
-            primary_log_path=log, validation_message="Build failed"
-        )
+        sbuild = MockSbuildResult(primary_log_path=log, validation_message="Build failed")
         result = diagnose_build_failure(
             sbuild_result=sbuild,
             pkg_repo=tmp_path,
@@ -298,9 +292,7 @@ class TestDiagnoseBuildFailure:
             )
 
         mock_run.side_effect = fake_run
-        sbuild = MockSbuildResult(
-            primary_log_path=log, validation_message="Build failed"
-        )
+        sbuild = MockSbuildResult(primary_log_path=log, validation_message="Build failed")
         result = diagnose_build_failure(
             sbuild_result=sbuild,
             pkg_repo=tmp_path,
@@ -342,9 +334,7 @@ class TestDiagnoseBuildFailure:
             )
 
         mock_run.side_effect = fake_run
-        sbuild = MockSbuildResult(
-            primary_log_path=log, validation_message="Build failed"
-        )
+        sbuild = MockSbuildResult(primary_log_path=log, validation_message="Build failed")
         result = diagnose_build_failure(
             sbuild_result=sbuild,
             pkg_repo=tmp_path,
@@ -389,9 +379,7 @@ class TestDiagnoseBuildFailure:
             )
 
         mock_run.side_effect = fake_run
-        sbuild = MockSbuildResult(
-            primary_log_path=log, validation_message="Build failed"
-        )
+        sbuild = MockSbuildResult(primary_log_path=log, validation_message="Build failed")
         result = diagnose_build_failure(
             sbuild_result=sbuild,
             pkg_repo=tmp_path,
@@ -440,9 +428,7 @@ class TestDiagnoseBuildFailure:
             )
 
         mock_run.side_effect = fake_run
-        sbuild = MockSbuildResult(
-            primary_log_path=log, validation_message="Build failed"
-        )
+        sbuild = MockSbuildResult(primary_log_path=log, validation_message="Build failed")
         result = diagnose_build_failure(
             sbuild_result=sbuild,
             pkg_repo=tmp_path,
@@ -491,9 +477,7 @@ class TestDiagnoseBuildFailure:
             )
 
         mock_run.side_effect = fake_run
-        sbuild = MockSbuildResult(
-            primary_log_path=log, validation_message="Build failed"
-        )
+        sbuild = MockSbuildResult(primary_log_path=log, validation_message="Build failed")
         result = diagnose_build_failure(
             sbuild_result=sbuild,
             pkg_repo=tmp_path,
@@ -550,9 +534,7 @@ class TestDiagnoseBuildFailure:
                 "router_min_confidence": 0.2,
             }
         }
-        sbuild = MockSbuildResult(
-            primary_log_path=log, validation_message="Build failed"
-        )
+        sbuild = MockSbuildResult(primary_log_path=log, validation_message="Build failed")
         diagnose_build_failure(
             sbuild_result=sbuild,
             pkg_repo=tmp_path,
@@ -646,18 +628,14 @@ class TestSkillResultToDiagnosis:
             SkillResult(
                 success=True,
                 contract="diagnosis",
-                parsed=DiagnosisPayload(
-                    can_drop=False, diagnosis="", explanation="x"
-                ),
+                parsed=DiagnosisPayload(can_drop=False, diagnosis="", explanation="x"),
                 raw="raw",
             )
         )
         assert r.explanation == "x"
 
     def test_failure(self) -> None:
-        r = _skill_result_to_diagnosis(
-            SkillResult(success=False, error="nope")
-        )
+        r = _skill_result_to_diagnosis(SkillResult(success=False, error="nope"))
         assert r.diagnosed is False
         assert r.error == "nope"
 
@@ -780,9 +758,7 @@ class TestRequestPatchCorrection:
         original = BuildDiagnosisResult(
             diagnosed=True, patch_filename="f.patch", patch_content="diff"
         )
-        result = _request_patch_correction(
-            original, "error", {"ai": {"api_key": None}}
-        )
+        result = _request_patch_correction(original, "error", {"ai": {"api_key": None}})
         assert result is None
 
     @patch("packastack.ai.build_diagnosis.call_ai")
@@ -893,9 +869,7 @@ class TestApplyAiPatch:
             patch_content="bad diff",
         )
         with patch("packastack.ai.build_diagnosis.validate_patch") as mock_validate:
-            mock_validate.return_value = PatchValidationResult(
-                valid=False, error="does not apply"
-            )
+            mock_validate.return_value = PatchValidationResult(valid=False, error="does not apply")
             result = apply_ai_patch(tmp_path, diagnosis)
         assert result is False
 
@@ -1041,8 +1015,7 @@ class TestParseDebianEditResponse:
         response = AIResponse(
             success=True,
             content=(
-                "DIAGNOSIS: Need fix\n"
-                "ACTION: DEBIAN_EDIT\n"
+                "DIAGNOSIS: Need fix\nACTION: DEBIAN_EDIT\n"
                 # Missing BEGIN/END markers
             ),
         )
@@ -1105,11 +1078,7 @@ class TestExtractDebianEdits:
 
     def test_skips_non_debian_paths(self) -> None:
         """Test that paths not under debian/ are skipped."""
-        content = (
-            "--- BEGIN DEBIAN EDIT: setup.py ---\n"
-            "evil content\n"
-            "--- END DEBIAN EDIT ---\n"
-        )
+        content = "--- BEGIN DEBIAN EDIT: setup.py ---\nevil content\n--- END DEBIAN EDIT ---\n"
         edits = _extract_debian_edits(content)
         assert len(edits) == 0
 
@@ -1292,9 +1261,7 @@ class TestApplyDebianEdits:
 
     def test_returns_false_with_empty_edits(self, tmp_path: Path) -> None:
         """Test returns False when no edits provided."""
-        diagnosis = BuildDiagnosisResult(
-            diagnosed=True, needs_debian_edit=True, debian_edits={}
-        )
+        diagnosis = BuildDiagnosisResult(diagnosed=True, needs_debian_edit=True, debian_edits={})
         result = apply_debian_edits(tmp_path, diagnosis)
         assert result is False
 
@@ -1418,9 +1385,7 @@ class TestDiagnoseBuildFailureIntegration:
         debian = tmp_path / "debian"
         debian.mkdir()
         (debian / "control").write_text("Source: neutron-fwaas-dashboard\n")
-        (debian / "rules").write_text(
-            "#!/usr/bin/make -f\n%:\n\tdh $@ --with python_distutils\n"
-        )
+        (debian / "rules").write_text("#!/usr/bin/make -f\n%:\n\tdh $@ --with python_distutils\n")
 
         # Force the router→build-patch path without any AI calls for routing.
         monkeypatch.setattr(
@@ -1440,9 +1405,7 @@ class TestDiagnoseBuildFailureIntegration:
             ),
         )
 
-        sbuild = MockSbuildResult(
-            primary_log_path=log, validation_message="Build failed"
-        )
+        sbuild = MockSbuildResult(primary_log_path=log, validation_message="Build failed")
         with patch("packastack.ai.build_diagnosis._git_ls_tree", return_value=""):
             result = diagnose_build_failure(
                 sbuild_result=sbuild,

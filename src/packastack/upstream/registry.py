@@ -127,9 +127,7 @@ class ReleaseSourceConfig:
 class TarballConfig:
     """Tarball acquisition configuration."""
 
-    prefer: list[TarballMethod] = field(
-        default_factory=lambda: [TarballMethod.OFFICIAL]
-    )
+    prefer: list[TarballMethod] = field(default_factory=lambda: [TarballMethod.OFFICIAL])
 
 
 @dataclass
@@ -242,7 +240,7 @@ def get_canonical_registry_path() -> Path:
     try:
         files = importlib.resources.files("packastack.data")
         return Path(files.joinpath("upstreams.yaml"))
-    except (TypeError, FileNotFoundError, AttributeError, ModuleNotFoundError):
+    except TypeError, FileNotFoundError, AttributeError, ModuleNotFoundError:
         # Fallback for development
         return Path(__file__).parent.parent / "data" / "upstreams.yaml"
 
@@ -395,9 +393,7 @@ def load_registry(
     if version is None:
         raise RegistryError("Registry missing required 'version' field")
     if version != REGISTRY_VERSION:
-        raise RegistryError(
-            f"Unsupported registry version {version}, expected {REGISTRY_VERSION}"
-        )
+        raise RegistryError(f"Unsupported registry version {version}, expected {REGISTRY_VERSION}")
 
     defaults = base_data.get("defaults", {})
     projects = base_data.get("projects", {})
@@ -665,9 +661,7 @@ class UpstreamsRegistry:
             )
         elif openstack_governed:
             # Use defaults for OpenStack-governed project
-            config = _apply_defaults_to_project(
-                project, {}, self._load_result.defaults
-            )
+            config = _apply_defaults_to_project(project, {}, self._load_result.defaults)
             result = ResolvedUpstream(
                 project=project,
                 config=config,

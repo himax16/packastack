@@ -113,9 +113,7 @@ Description: Nova compute
 """
         )
 
-        result = build_graph_from_control(
-            ["nova", "oslo.config"], tmp_path
-        )
+        result = build_graph_from_control(["nova", "oslo.config"], tmp_path)
 
         assert "nova" in result.graph.nodes
         assert "oslo.config" in result.graph.nodes

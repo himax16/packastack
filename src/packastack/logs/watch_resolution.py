@@ -108,7 +108,10 @@ class WatchResolutionReport:
 
         if entry.uscan_attempted:
             self.uscan_attempted_count += 1
-            if entry.uscan_status == "success" or entry.uscan_status in ("up_to_date", "newer_available"):
+            if entry.uscan_status == "success" or entry.uscan_status in (
+                "up_to_date",
+                "newer_available",
+            ):
                 self.uscan_success_count += 1
             if entry.uscan_error:
                 self.uscan_error_count += 1
@@ -188,7 +191,11 @@ def build_watch_resolution_report(
             newer_available = pkg.watch_info.newer_available
 
         if pkg.upstream_resolution:
-            authority = pkg.upstream_resolution.authority.value if hasattr(pkg.upstream_resolution.authority, 'value') else str(pkg.upstream_resolution.authority)
+            authority = (
+                pkg.upstream_resolution.authority.value
+                if hasattr(pkg.upstream_resolution.authority, "value")
+                else str(pkg.upstream_resolution.authority)
+            )
             download_url = pkg.upstream_resolution.download_url
 
         entry = WatchResolutionEntry(
@@ -276,29 +283,37 @@ def render_html(report: WatchResolutionReport, output_path: Path) -> Path:
     mode_rows = []
     for mode, count in sorted(report.counts_by_mode.items(), key=lambda x: -x[1]):
         mode_rows.append(f"<tr><td>{esc(mode)}</td><td>{count}</td></tr>")
-    mode_table = f"""
+    mode_table = (
+        f"""
     <table class="breakdown-table">
         <thead><tr><th>Watch Mode</th><th>Count</th></tr></thead>
-        <tbody>{''.join(mode_rows)}</tbody>
+        <tbody>{"".join(mode_rows)}</tbody>
     </table>
-    """ if mode_rows else "<p>No data</p>"
+    """
+        if mode_rows
+        else "<p>No data</p>"
+    )
 
     # Build uscan status breakdown
     status_rows = []
     for status, count in sorted(report.counts_by_uscan_status.items(), key=lambda x: -x[1]):
         status_rows.append(f"<tr><td>{esc(status)}</td><td>{count}</td></tr>")
-    status_table = f"""
+    status_table = (
+        f"""
     <table class="breakdown-table">
         <thead><tr><th>Uscan Status</th><th>Count</th></tr></thead>
-        <tbody>{''.join(status_rows)}</tbody>
+        <tbody>{"".join(status_rows)}</tbody>
     </table>
-    """ if status_rows else "<p>No uscan runs</p>"
+    """
+        if status_rows
+        else "<p>No uscan runs</p>"
+    )
 
     # Build main table rows
     table_rows = []
     for entry in report.entries:
-        newer_badge = '<span class="badge badge-new">NEW</span>' if entry.newer_available else ''
-        error_badge = '<span class="badge badge-error">ERR</span>' if entry.uscan_error else ''
+        newer_badge = '<span class="badge badge-new">NEW</span>' if entry.newer_available else ""
+        error_badge = '<span class="badge badge-error">ERR</span>' if entry.uscan_error else ""
 
         row_class = ""
         if entry.newer_available:
@@ -322,8 +337,8 @@ def render_html(report: WatchResolutionReport, output_path: Path) -> Path:
                 <details>
                     <summary>Details</summary>
                     <p>Reason: {esc(entry.reason_code)}</p>
-                    {f'<p>Error: {esc(entry.uscan_error)}</p>' if entry.uscan_error else ''}
-                    {f'<p>URL: <a href="{esc(entry.download_url)}">{esc(entry.download_url[:60])}...</a></p>' if entry.download_url else ''}
+                    {f"<p>Error: {esc(entry.uscan_error)}</p>" if entry.uscan_error else ""}
+                    {f'<p>URL: <a href="{esc(entry.download_url)}">{esc(entry.download_url[:60])}...</a></p>' if entry.download_url else ""}
                 </details>
             </td>
         </tr>
@@ -347,7 +362,7 @@ def render_html(report: WatchResolutionReport, output_path: Path) -> Path:
             </tr>
         </thead>
         <tbody>
-            {''.join(table_rows)}
+            {"".join(table_rows)}
         </tbody>
     </table>
     """

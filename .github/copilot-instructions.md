@@ -96,23 +96,46 @@ python -m packastack.cli  # Run CLI directly
 **ALL code changes must be PEP8 compliant and pass linting checks before being considered final.**
 
 After making any code changes, always run:
-1. `uv run ruff check --fix packastack/ tests/` - Auto-fix linting and formatting issues
-2. `uv run ruff check packastack/ tests/` - Verify all checks pass
-3. `uv run pytest` - Run all tests to ensure nothing broke
+1. `tox -e fmt` - Auto-fix lint issues and format code
+2. `tox -e pep8` - Verify all checks pass (CI gate, no modifications)
+3. `tox -e mypy` - Type-check with mypy (strict mode)
+4. `tox -e unit` - Run all tests to ensure nothing broke
 
-**Important:** Always use `uv run` prefix when running ruff, pytest, or any other development tools to ensure the correct virtual environment is used.
+Or run everything at once: `tox`
 
-Run tests:
+**Tox environments** (defined in `tox.ini`):
+
+| Env | Description | Modifies code? |
+| --- | --- | --- |
+| `tox -e fmt` | Auto-fix lint (`ruff check --fix`) + format (`ruff format`) | Yes |
+| `tox -e pep8` | Check-only: format diff + lint check | No |
+| `tox -e mypy` | Type-check `src/` and `tests/` with mypy | No |
+| `tox -e unit` | Run `pytest` via `uv run` with dev dependencies | No |
+| `tox -e cover` | Run tests with `coverage`, produce HTML/XML/term reports | No |
+
+Pass extra args to pytest via `{posargs}`:
 ```bash
-uv run pytest                        # Run all tests
-uv run pytest --cov-report=html      # Generate HTML coverage report
-uv run pytest -v tests/debian/       # Run tests for specific module
+tox -e unit -- tests/debian/ -k "test_version"
+```
+
+**Important:** The `fmt` and `pep8` envs use bare `ruff` (installed as a tox dep).
+The `mypy`, `unit`, and `cover` envs use `uv run --frozen --isolated --extra=dev`
+to ensure the correct virtual environment is used.
+
+Run individual commands without tox:
+```bash
+uv run ruff check --fix packastack/ tests/  # Auto-fix linting and formatting
+uv run ruff check packastack/ tests/        # Verify all checks pass
+uv run pytest                                # Run all tests
+uv run pytest --cov-report=html              # Generate HTML coverage report
+uv run pytest -v tests/debian/               # Run tests for specific module
+uv run mypy src/packastack tests             # Type-check with mypy
 ```
 
 Coverage is enforced at 100% - builds will fail if coverage drops below this threshold.
 
-### Project Uses Python 3.12
-See `.python-version` - ensure compatibility with `>=3.12` features when adding code.
+### Project Uses Python 3.14
+See `.python-version` - ensure compatibility with `>=3.14` features when adding code.
 
 ## Key Dependencies
 - **GitPython** (`git` module): All Git operations go through this library

@@ -146,9 +146,7 @@ class TestSbuildLogTail:
     ) -> None:
         log = tmp_path / "build.log"
         log.write_text("nothing relevant", encoding="utf-8")
-        monkeypatch.setattr(
-            collectors, "extract_sbuild_failure_section", lambda *a, **k: ""
-        )
+        monkeypatch.setattr(collectors, "extract_sbuild_failure_section", lambda *a, **k: "")
         sr = SimpleNamespace(
             primary_log_path=log,
             stderr_log_path=None,
@@ -178,9 +176,7 @@ class TestDebianFileCollectors:
         (tmp_path / "debian").mkdir()
         lines = "\n".join(f"line{i}" for i in range(20))
         (tmp_path / "debian" / "control").write_text(lines, encoding="utf-8")
-        block = debian_control(
-            _inputs(tmp_path, cfg={"ai": {"max_file_lines": 5}})
-        )
+        block = debian_control(_inputs(tmp_path, cfg={"ai": {"max_file_lines": 5}}))
         assert "truncated" in block
 
 
@@ -197,12 +193,8 @@ class TestWorkingTree:
             calls["max_file_lines"] = max_file_lines
             return "== tree =="
 
-        monkeypatch.setattr(
-            build_diagnosis, "collect_working_tree_context", fake
-        )
-        result = working_tree(
-            _inputs(tmp_path, cfg={"ai": {"max_file_lines": 7}})
-        )
+        monkeypatch.setattr(build_diagnosis, "collect_working_tree_context", fake)
+        result = working_tree(_inputs(tmp_path, cfg={"ai": {"max_file_lines": 7}}))
         assert result == "== tree =="
         assert calls == {"pkg_repo": tmp_path, "max_file_lines": 7}
 
@@ -226,9 +218,7 @@ class TestPatchSubject:
         assert "hunk #1 FAILED" in block
 
     def test_renders_patch_only(self, tmp_path: Path) -> None:
-        block = patch_subject(
-            _inputs(tmp_path, patch_name="foo.patch", patch_content="body")
-        )
+        block = patch_subject(_inputs(tmp_path, patch_name="foo.patch", patch_content="body"))
         assert "gbp pq import error output" not in block
 
     def test_renders_error_only(self, tmp_path: Path) -> None:
@@ -257,16 +247,12 @@ class TestPatchAffectedFiles:
         assert "print('hi')" in block
 
     def test_only_missing(self, tmp_path: Path) -> None:
-        block = patch_affected_files(
-            _inputs(tmp_path, missing_files=["a.py"])
-        )
+        block = patch_affected_files(_inputs(tmp_path, missing_files=["a.py"]))
         assert "a.py" in block
         assert "Current source file contents" not in block
 
     def test_only_affected(self, tmp_path: Path) -> None:
-        block = patch_affected_files(
-            _inputs(tmp_path, affected_files={"a.py": "x"})
-        )
+        block = patch_affected_files(_inputs(tmp_path, affected_files={"a.py": "x"}))
         assert "NO LONGER EXIST" not in block
         assert "Current source file contents" in block
 

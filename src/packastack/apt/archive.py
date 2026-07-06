@@ -42,7 +42,9 @@ class FetchResult:
     path: Path
     etag: str | None = None
     last_modified: str | None = None
-    fetched_utc: str = field(default_factory=lambda: datetime.datetime.now(datetime.UTC).isoformat())
+    fetched_utc: str = field(
+        default_factory=lambda: datetime.datetime.now(datetime.UTC).isoformat()
+    )
     sha256: str = ""
     size: int = 0
     was_cached: bool = False
@@ -165,7 +167,7 @@ def validate_gzip(path: Path) -> bool:
             while f.read(65536):
                 pass
         return True
-    except (gzip.BadGzipFile, OSError, EOFError):
+    except gzip.BadGzipFile, OSError, EOFError:
         return False
 
 
@@ -313,7 +315,9 @@ class CloudArchiveFetcher(ArchiveFetcher):
 
 if __name__ == "__main__":
     fetcher = ArchiveFetcher()
-    url = fetcher.build_url("http://archive.ubuntu.com/ubuntu", "noble", "release", "main", "amd64")
+    url = fetcher.build_url(
+        "http://archive.ubuntu.com/ubuntu", "noble", "release", "main", "amd64"
+    )
     print(f"Ubuntu Archive URL: {url}")
 
     ca_fetcher = CloudArchiveFetcher()

@@ -132,6 +132,7 @@ class TestFetchManagedPackages:
 
     def test_returns_errors_on_failure(self) -> None:
         """Test that fetch errors are returned."""
+
         def mock_urlopen(url: str, timeout: int = 30) -> None:
             raise Exception("Network error")
 

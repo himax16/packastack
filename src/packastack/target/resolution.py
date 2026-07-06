@@ -89,8 +89,7 @@ class TargetExpr:
             raise ValueError("Identifier must not be empty")
         if not re.match(r"^[A-Za-z0-9._+/-]+$", self.identifier):
             raise ValueError(
-                f"Invalid identifier '{self.identifier}': "
-                "only [A-Za-z0-9._+-/] allowed"
+                f"Invalid identifier '{self.identifier}': only [A-Za-z0-9._+-/] allowed"
             )
 
 
@@ -148,8 +147,7 @@ def parse_target_expr(raw: str) -> TargetExpr:
             scope = Scope(scope_str.lower())
         except ValueError:
             raise ValueError(
-                f"Invalid scope '{scope_str}'. "
-                f"Valid scopes: {', '.join(s.value for s in Scope)}"
+                f"Invalid scope '{scope_str}'. Valid scopes: {', '.join(s.value for s in Scope)}"
             ) from None
 
     if not body:
@@ -322,9 +320,7 @@ class TargetResolver:
                     canonical = config.provenance.canonical or f"openstack/{project_key}"
 
                     # Determine if governed by OpenStack
-                    governed = (
-                        config.release_source.type.value == "openstack_releases"
-                    )
+                    governed = config.release_source.type.value == "openstack_releases"
 
                     # Determine deliverable name
                     deliverable = config.release_source.deliverable if governed else None
@@ -528,7 +524,9 @@ class TargetResolver:
 
         if "client" in key_lower or key_lower.endswith("client"):
             return TargetKind.CLIENT
-        elif key_lower.startswith("python-") or key_lower.startswith("oslo.") or "lib" in key_lower:
+        elif (
+            key_lower.startswith("python-") or key_lower.startswith("oslo.") or "lib" in key_lower
+        ):
             return TargetKind.LIBRARY
         elif any(
             svc in key_lower

@@ -13,7 +13,7 @@ sudo sbuild-adduser $USER   # then log out/in (or `newgrp sbuild`) for group mem
 
 `git`, `gbp`, `dch`, and `dpkg-source` are required for source builds; `sbuild`/`schroot` are needed for binary builds (the default) and `gnupg` for signature verification. Missing tools are reported with install hints when you run a build.
 
-Python 3.12+ and [uv](https://docs.astral.sh/uv/) are used for the Python side:
+Python 3.14+ and [uv](https://docs.astral.sh/uv/) are used for the Python side:
 
 ```bash
 sudo snap install astral-uv --classic   # or see uv's install docs
@@ -63,6 +63,28 @@ Resume an interrupted build by reusing a previous workspace:
 packastack build cinder --resume                          # latest build
 packastack build cinder --resume-build 20260210-143022    # specific build
 ```
+
+## Development
+
+Install dependencies and run tests using `uv`:
+
+```bash
+uv sync              # Install dependencies
+uv run packastack init  # Initialize Packastack
+```
+
+Testing, formatting, linting, and type checking are automated via `tox`:
+
+```bash
+tox               # Run all default envs (pytest, fmt, mypy)
+tox -e fmt        # Auto-format and auto-fix lint issues
+tox -e pep8       # Check-only (CI gate, no modifications)
+tox -e mypy       # Type checking
+tox -e unit       # Run tests
+tox -e cover      # Tests with full coverage report
+```
+
+See `tox.ini` and `pyproject.toml` for configuration details.
 
 ## Commands
 

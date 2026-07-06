@@ -146,7 +146,9 @@ class TestMatchesPackage:
 
     def test_matches_with_version(self) -> None:
         """Should match package name with version."""
-        assert matches_package("python-nova_1.2.3-1ubuntu1_amd64.deb", "python-nova", "1.2.3-1ubuntu1")
+        assert matches_package(
+            "python-nova_1.2.3-1ubuntu1_amd64.deb", "python-nova", "1.2.3-1ubuntu1"
+        )
         assert matches_package("python-nova_1.2.3-1ubuntu1_amd64.deb", "python-nova", "1.2.3")
 
     def test_no_match_wrong_version(self) -> None:
@@ -166,19 +168,12 @@ class TestMatchesPackage:
         """Should match python3-X binary packages from python-X source."""
         # Common pattern: python-foo source produces python3-foo binary
         assert matches_package(
-            "python3-oslo.i18n_6.7.1-0ubuntu1_all.deb",
-            "python-oslo.i18n",
-            "6.7.1-0ubuntu1"
+            "python3-oslo.i18n_6.7.1-0ubuntu1_all.deb", "python-oslo.i18n", "6.7.1-0ubuntu1"
         )
-        assert matches_package(
-            "python3-nova_1.0_amd64.deb",
-            "python-nova"
-        )
+        assert matches_package("python3-nova_1.0_amd64.deb", "python-nova")
         # Doc packages should still match (they start with source name)
         assert matches_package(
-            "python-oslo.i18n-doc_6.7.1-0ubuntu1_all.deb",
-            "python-oslo.i18n",
-            "6.7.1-0ubuntu1"
+            "python-oslo.i18n-doc_6.7.1-0ubuntu1_all.deb", "python-oslo.i18n", "6.7.1-0ubuntu1"
         )
 
     def test_matches_by_version_alone(self) -> None:
@@ -186,9 +181,7 @@ class TestMatchesPackage:
         # Some source packages produce binaries with different names
         # e.g., python-keystonemiddleware -> keystonemiddleware
         assert matches_package(
-            "keystonemiddleware_1.2.3-1_all.deb",
-            "python-keystonemiddleware",
-            "1.2.3-1"
+            "keystonemiddleware_1.2.3-1_all.deb", "python-keystonemiddleware", "1.2.3-1"
         )
 
 

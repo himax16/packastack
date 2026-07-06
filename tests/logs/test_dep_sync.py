@@ -122,13 +122,15 @@ class TestRenderSyncReportText:
         """Test rendering report with version bumps."""
         report = DependencySyncReport(
             source_package="nova",
-            version_bumps=[{
-                "debian_package": "python3-oslo.config",
-                "python_package": "oslo.config",
-                "old_version": "7.0.0",
-                "new_version": "8.0.0",
-                "source": "manifest",
-            }],
+            version_bumps=[
+                {
+                    "debian_package": "python3-oslo.config",
+                    "python_package": "oslo.config",
+                    "old_version": "7.0.0",
+                    "new_version": "8.0.0",
+                    "source": "manifest",
+                }
+            ],
         )
         text = render_sync_report_text(report)
 
@@ -266,14 +268,16 @@ class TestRenderManifestReportText:
             series="dalmatian",
             cycle_stage="pre_final",
             build_order=["nova"],
-            packages=[{
-                "source_package": "nova",
-                "deliverable": "nova",
-                "upstream_version": "29.0.0",
-                "full_version": "29.0.0-0ubuntu1",
-                "build_type": "release",
-                "version_source": "openstack/releases",
-            }],
+            packages=[
+                {
+                    "source_package": "nova",
+                    "deliverable": "nova",
+                    "upstream_version": "29.0.0",
+                    "full_version": "29.0.0-0ubuntu1",
+                    "build_type": "release",
+                    "version_source": "openstack/releases",
+                }
+            ],
             release_count=1,
         )
         text = render_manifest_report_text(report)

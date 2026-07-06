@@ -164,7 +164,9 @@ def apply_min_version_policy(
             updated.append(dep)
             continue
 
-        if decision.chosen_min_version and (decision.action in {"added", "raised", "lowered", "kept"}):
+        if decision.chosen_min_version and (
+            decision.action in {"added", "raised", "lowered", "kept"}
+        ):
             updated.append(
                 ParsedDependency(
                     name=dep.name,

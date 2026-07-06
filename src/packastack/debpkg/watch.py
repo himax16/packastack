@@ -266,10 +266,7 @@ def fix_oslo_watch_pattern(watch_path: Path, project_name: str) -> bool:
 
     # Check if already updated
     flexible_pattern = project_name.replace(".", "[._]")
-    already_updated = (
-        "[._]" in content and
-        "tarballs.opendev.org" in content
-    )
+    already_updated = "[._]" in content and "tarballs.opendev.org" in content
     if already_updated:
         return False
 
@@ -293,11 +290,15 @@ def fix_oslo_watch_pattern(watch_path: Path, project_name: str) -> bool:
         # Fix domain name openstack.org -> opendev.org
         # Also add /openstack/ path if missing (new URL structure)
         if "tarballs.openstack.org" in line:
-            updated_line = updated_line.replace("tarballs.openstack.org", "tarballs.opendev.org/openstack")
+            updated_line = updated_line.replace(
+                "tarballs.openstack.org", "tarballs.opendev.org/openstack"
+            )
             modified = True
         elif "tarballs.opendev.org" in line and "/openstack/" not in line:
             # Add /openstack/ path if using opendev.org but missing the path
-            updated_line = updated_line.replace("tarballs.opendev.org/", "tarballs.opendev.org/openstack/")
+            updated_line = updated_line.replace(
+                "tarballs.opendev.org/", "tarballs.opendev.org/openstack/"
+            )
             modified = True
 
         # Check if this line contains the project name for pattern update
@@ -448,8 +449,7 @@ def check_watch_mismatch(
 
     # Generate warning message
     message = (
-        f"debian/watch suggests {watch_result.mode.value} but registry "
-        f"expects {registry_host}"
+        f"debian/watch suggests {watch_result.mode.value} but registry expects {registry_host}"
     )
 
     return WatchMismatchWarning(
@@ -525,7 +525,7 @@ def fix_malformed_watch_opts(watch_path: Path) -> bool:
     # Group 2: the closing "
     # Group 3: leaked options like ,pgpsigurlmangle=s/$/.asc/
     # Group 4: trailing whitespace (space before backslash or EOL)
-    content = _OPTS_LEAKED_RE.sub(r'\1\3\2\4', content)
+    content = _OPTS_LEAKED_RE.sub(r"\1\3\2\4", content)
 
     if content != original:
         try:
@@ -678,7 +678,7 @@ def restore_pgp_options_to_watch(watch_path: Path) -> bool:
     # Try quoted form first: insert before the closing "
     content = re.sub(
         r'(opts\s*=\s*"[^"]*)("\s*\\)\s*$',
-        r'\1,pgpsigurlmangle=s/$/.asc/\2',
+        r"\1,pgpsigurlmangle=s/$/.asc/\2",
         content,
         count=1,
         flags=re.MULTILINE,
@@ -964,11 +964,11 @@ def load_uscan_cache(cache_path: Path) -> dict[str, UscanCacheEntry]:
         for pkg_name, entry_data in data.items():
             try:
                 cache[pkg_name] = UscanCacheEntry.from_dict(entry_data)
-            except (KeyError, ValueError):
+            except KeyError, ValueError:
                 # Skip invalid entries
                 continue
         return cache
-    except (json.JSONDecodeError, OSError):
+    except json.JSONDecodeError, OSError:
         return {}
 
 
@@ -1050,7 +1050,9 @@ def _find_static_signing_key_for_series(releases_repo: Path, series: str) -> str
                 content = key_file.read_text(encoding="utf-8", errors="replace")
             except OSError:
                 continue
-            for match in re.finditer(r"OpenStack Infra \(([^)]*?) Cycle\)", content, re.IGNORECASE):
+            for match in re.finditer(
+                r"OpenStack Infra \(([^)]*?) Cycle\)", content, re.IGNORECASE
+            ):
                 cycle = match.group(1).lower()
                 if series_lower in cycle:
                     return content
@@ -1058,7 +1060,9 @@ def _find_static_signing_key_for_series(releases_repo: Path, series: str) -> str
     return None
 
 
-def update_signing_key(pkg_repo: Path, releases_repo: Path, series: str, is_snapshot: bool = False) -> bool:
+def update_signing_key(
+    pkg_repo: Path, releases_repo: Path, series: str, is_snapshot: bool = False
+) -> bool:
     """Update or remove debian/upstream/signing-key.asc based on build type.
 
     For snapshot builds, removes the signing key file since snapshots are unsigned.
@@ -1119,11 +1123,11 @@ def update_signing_key(pkg_repo: Path, releases_repo: Path, series: str, is_snap
     # 2. Fall back to the static key exports in openstack-releases. The source
     # tree uses a Sphinx directive in index.rst, so the per-cycle mapping lives
     # inside the exported key files themselves.
-    key_content = _find_static_signing_key_for_series(releases_repo, series)
-    if key_content is not None:
-        if key_content == existing_content:
+    static_key = _find_static_signing_key_for_series(releases_repo, series)
+    if static_key is not None:
+        if static_key == existing_content:
             return False
-        signing_key_path.write_text(key_content, encoding="utf-8")
+        signing_key_path.write_text(static_key, encoding="utf-8")
         return True
 
     # 3. Fall back to the older explicit index.rst key ID format
@@ -1148,7 +1152,7 @@ def update_signing_key(pkg_repo: Path, releases_repo: Path, series: str, is_snap
         if "Cycle key" in line and ("present" in line or series in line or series_lower in line):
             # The key ID is on the next line - look for it
             for j in range(i + 1, min(i + 3, len(lines))):  # Check next 2 lines
-                match = re.search(r'`key (0x[0-9a-fA-F]+)`_', lines[j])
+                match = re.search(r"`key (0x[0-9a-fA-F]+)`_", lines[j])
                 if match:
                     key_id = match.group(1)
                     break
@@ -1272,7 +1276,7 @@ def _refresh_key_from_keyserver(
             signing_key_path.parent.mkdir(parents=True, exist_ok=True)
             signing_key_path.write_bytes(result.stdout)
             return True
-    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+    except subprocess.TimeoutExpired, FileNotFoundError, OSError:
         pass
 
     return False
@@ -1337,9 +1341,7 @@ def verify_signing_key_with_uscan(
     )
 
     if not _refresh_key_from_keyserver(primary_fpr, keyserver, signing_key_path):
-        verify_result.error = (
-            "GPG verification failed and keyserver refresh also failed"
-        )
+        verify_result.error = "GPG verification failed and keyserver refresh also failed"
         return verify_result
 
     # Re-run uscan with refreshed key
@@ -1351,7 +1353,7 @@ def verify_signing_key_with_uscan(
             text=True,
             timeout=120,
         )
-    except (FileNotFoundError, subprocess.TimeoutExpired):
+    except FileNotFoundError, subprocess.TimeoutExpired:
         verify_result.error = "uscan failed during re-verification"
         return verify_result
 
@@ -1362,7 +1364,5 @@ def verify_signing_key_with_uscan(
         return verify_result
 
     output = uscan_result.stdout + uscan_result.stderr
-    verify_result.error = (
-        f"GPG verification still failed after keyserver refresh: {output[:200]}"
-    )
+    verify_result.error = f"GPG verification still failed after keyserver refresh: {output[:200]}"
     return verify_result

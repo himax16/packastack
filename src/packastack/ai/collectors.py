@@ -176,9 +176,7 @@ def sbuild_log_tail(inputs: CollectorInputs) -> str:
         getattr(sr, "stdout_log_path", None),
     ):
         if log_path and log_path.exists():
-            excerpt = extract_sbuild_failure_section(
-                log_path, max_lines=_max_log_lines(inputs)
-            )
+            excerpt = extract_sbuild_failure_section(log_path, max_lines=_max_log_lines(inputs))
             if excerpt:
                 return f"== sbuild failure log excerpt ==\n{excerpt}"
     return ""
@@ -208,9 +206,7 @@ def working_tree(inputs: CollectorInputs) -> str:
     """
     from packastack.ai.build_diagnosis import collect_working_tree_context
 
-    return collect_working_tree_context(
-        inputs.pkg_repo, max_file_lines=_max_file_lines(inputs)
-    )
+    return collect_working_tree_context(inputs.pkg_repo, max_file_lines=_max_file_lines(inputs))
 
 
 def patch_subject(inputs: CollectorInputs) -> str:
@@ -235,9 +231,7 @@ def patch_affected_files(inputs: CollectorInputs) -> str:
         parts.append("== Files targeted by patch that NO LONGER EXIST ==")
         for fpath in inputs.missing_files:
             parts.append(f"  - {fpath}")
-        parts.append(
-            "(The patch hunks for these files need retargeting or dropping.)"
-        )
+        parts.append("(The patch hunks for these files need retargeting or dropping.)")
     if inputs.affected_files:
         if parts:
             parts.append("")

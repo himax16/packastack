@@ -68,22 +68,16 @@ def load_gbp_conf(repo_path: Path) -> GbpConfig | None:
         # Parse DEFAULT section
         if parser.has_section("DEFAULT") or "DEFAULT" in parser:
             config.debian_branch = parser.get("DEFAULT", "debian-branch", fallback="")
-            config.pristine_tar = parser.getboolean(
-                "DEFAULT", "pristine-tar", fallback=False
-            )
+            config.pristine_tar = parser.getboolean("DEFAULT", "pristine-tar", fallback=False)
 
         # Parse buildpackage section
         if parser.has_section("buildpackage"):
-            config.export_dir = parser.get(
-                "buildpackage", "export-dir", fallback="../build-area/"
-            )
-            config.sign_tags = parser.getboolean(
-                "buildpackage", "sign-tags", fallback=True
-            )
+            config.export_dir = parser.get("buildpackage", "export-dir", fallback="../build-area/")
+            config.sign_tags = parser.getboolean("buildpackage", "sign-tags", fallback=True)
             config.keyid = parser.get("buildpackage", "keyid", fallback="")
 
         return config
-    except (configparser.Error, OSError):
+    except configparser.Error, OSError:
         return None
 
 
@@ -124,7 +118,7 @@ def save_gbp_conf(config: GbpConfig) -> bool:
             parser.write(f)
 
         return True
-    except (configparser.Error, OSError):
+    except configparser.Error, OSError:
         return False
 
 
@@ -187,9 +181,7 @@ def update_gbp_conf(
     if config is None:
         # Create new config if series info is provided
         if ubuntu_series and openstack_series:
-            config = create_gbp_conf(
-                repo_path, ubuntu_series, openstack_series, signing_key or ""
-            )
+            config = create_gbp_conf(repo_path, ubuntu_series, openstack_series, signing_key or "")
             if save_gbp_conf(config):
                 return True, ["created new gbp.conf"], ""
             return False, [], "Failed to create gbp.conf"
@@ -316,7 +308,7 @@ def get_components(repo_path: Path) -> list[str]:
                 value = parser.get("import-orig", "component", fallback="")
                 if value:
                     components = [c.strip() for c in value.split(",") if c.strip()]
-        except (configparser.Error, OSError):
+        except configparser.Error, OSError:
             pass
 
     # 2. Fallback: detect debian/bundle-<name>.sh scripts
@@ -389,7 +381,7 @@ class suppress_components_for_import:
                     parser.write(fh)
                 # Override gbp's config search path to use only this temp file
                 self.env = {"GBP_CONF_FILES": str(self._tmpfile)}
-        except (configparser.Error, OSError):
+        except configparser.Error, OSError:
             pass
 
         return self

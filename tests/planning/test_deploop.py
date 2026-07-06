@@ -208,11 +208,11 @@ class TestParsePyprojectTomlDeps:
     def test_simple_dependencies(self, tmp_path: Path) -> None:
         """Test parsing simple dependencies."""
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text('''
+        pyproject.write_text("""
 [project]
 name = "test"
 dependencies = ["pbr", "oslo.config"]
-''')
+""")
         result = parse_pyproject_toml_deps(pyproject)
         assert ("pbr", "") in result
         assert ("oslo.config", "") in result
@@ -220,11 +220,11 @@ dependencies = ["pbr", "oslo.config"]
     def test_versioned_dependencies(self, tmp_path: Path) -> None:
         """Test parsing versioned dependencies."""
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text('''
+        pyproject.write_text("""
 [project]
 name = "test"
 dependencies = ["pbr>=1.0", "oslo.config>=2.0,<3.0"]
-''')
+""")
         result = parse_pyproject_toml_deps(pyproject)
         assert ("pbr", ">=1.0") in result
         assert ("oslo.config", ">=2.0,<3.0") in result

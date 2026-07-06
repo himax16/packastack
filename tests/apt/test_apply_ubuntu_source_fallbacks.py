@@ -6,7 +6,11 @@ def test_fallback_prefers_plain_base():
     idx = PackageIndex()
     idx.sources = {"stevedore": ["python-stevedore"]}
 
-    t = ResolvedTarget(source_package="python-stevedore", upstream_project="stevedore", resolution_source="registry")
+    t = ResolvedTarget(
+        source_package="python-stevedore",
+        upstream_project="stevedore",
+        resolution_source="registry",
+    )
     apply_ubuntu_source_fallbacks(idx, [t], run=None)
 
     assert t.source_package == "stevedore"
@@ -17,7 +21,9 @@ def test_fallback_chooses_python3_when_only_python3_exists():
     idx = PackageIndex()
     idx.sources = {"python3-stevedore": ["python3-stevedore"]}
 
-    t = ResolvedTarget(source_package="stevedore", upstream_project="stevedore", resolution_source="registry")
+    t = ResolvedTarget(
+        source_package="stevedore", upstream_project="stevedore", resolution_source="registry"
+    )
     apply_ubuntu_source_fallbacks(idx, [t], run=None)
 
     assert t.source_package == "python3-stevedore"
@@ -28,7 +34,11 @@ def test_fallback_no_match_leaves_target_alone():
     idx = PackageIndex()
     idx.sources = {"otherpkg": ["otherpkg"]}
 
-    t = ResolvedTarget(source_package="does-not-exist", upstream_project="does-not-exist", resolution_source="registry")
+    t = ResolvedTarget(
+        source_package="does-not-exist",
+        upstream_project="does-not-exist",
+        resolution_source="registry",
+    )
     apply_ubuntu_source_fallbacks(idx, [t], run=None)
 
     assert t.source_package == "does-not-exist"
@@ -38,7 +48,11 @@ def test_fallback_no_match_leaves_target_alone():
 def test_normalize_upstream_without_index():
     # When no index is provided, upstream_project should be normalized
     # from a python- prefixed source package to the base deliverable.
-    t = ResolvedTarget(source_package="python-stevedore", upstream_project="python-stevedore", resolution_source="registry")
+    t = ResolvedTarget(
+        source_package="python-stevedore",
+        upstream_project="python-stevedore",
+        resolution_source="registry",
+    )
     apply_ubuntu_source_fallbacks(None, [t], run=None)
     assert t.upstream_project == "stevedore"
 

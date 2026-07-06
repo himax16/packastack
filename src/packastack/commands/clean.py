@@ -62,12 +62,20 @@ def activity(phase: str, message: str) -> None:
 
 
 def clean(
-    all_caches: bool = typer.Option(False, "-a", "--all", help="Remove all caches (tarballs, workspaces, apt repo)"),
-    tarballs: bool = typer.Option(False, "--tarballs", help="Remove cached tarballs and extractions"),
-    workspaces: bool = typer.Option(False, "--workspaces", help="Remove temporary build workspaces"),
+    all_caches: bool = typer.Option(
+        False, "-a", "--all", help="Remove all caches (tarballs, workspaces, apt repo)"
+    ),
+    tarballs: bool = typer.Option(
+        False, "--tarballs", help="Remove cached tarballs and extractions"
+    ),
+    workspaces: bool = typer.Option(
+        False, "--workspaces", help="Remove temporary build workspaces"
+    ),
     apt_repo: bool = typer.Option(False, "--apt-repo", help="Remove local APT repository cache"),
     expired: bool = typer.Option(False, "--expired", help="Remove only expired cache entries"),
-    dry_run: bool = typer.Option(False, "-n", "--dry-run", help="Show what would be removed without removing"),
+    dry_run: bool = typer.Option(
+        False, "-n", "--dry-run", help="Show what would be removed without removing"
+    ),
     force: bool = typer.Option(False, "-f", "--force", help="Skip confirmation prompts"),
     max_age: int = typer.Option(14, "--max-age", help="Maximum age in days for cache entries"),
 ) -> None:
@@ -101,7 +109,9 @@ def clean(
     tarball_cache_size = get_cache_size(tarball_cache_dir)
     workspace_dir = Path(paths.get("build_root", Path.home() / ".cache" / "packastack" / "build"))
     workspace_size = _get_dir_size(workspace_dir)
-    apt_repo_dir = Path(paths.get("local_apt_repo", Path.home() / ".cache" / "packastack" / "apt-repo"))
+    apt_repo_dir = Path(
+        paths.get("local_apt_repo", Path.home() / ".cache" / "packastack" / "apt-repo")
+    )
     apt_repo_size = _get_dir_size(apt_repo_dir)
 
     total_size = 0
@@ -126,10 +136,7 @@ def clean(
     if clean_expired_only:
         activity("clean", "Checking for expired cache entries...")
         cached = list_cached_projects(tarball_cache_dir)
-        expired_entries = [
-            (p, v, m) for p, v, m in cached
-            if m is None or m.is_expired(max_age)
-        ]
+        expired_entries = [(p, v, m) for p, v, m in cached if m is None or m.is_expired(max_age)]
 
         if not expired_entries:
             activity("clean", "No expired cache entries found")
@@ -206,7 +213,9 @@ def _show_cache_status(paths: dict) -> None:
     tarball_cache_dir = Path(paths.get("upstream_tarballs", DEFAULT_CACHE_DIR))
     tarball_size = get_cache_size(tarball_cache_dir)
     cached_projects = list_cached_projects(tarball_cache_dir)
-    activity("status", f"  Tarball cache: {format_size(tarball_size)} ({len(cached_projects)} entries)")
+    activity(
+        "status", f"  Tarball cache: {format_size(tarball_size)} ({len(cached_projects)} entries)"
+    )
 
     # Count expired
     expired_count = sum(1 for _, _, m in cached_projects if m is None or m.is_expired())
@@ -218,12 +227,17 @@ def _show_cache_status(paths: dict) -> None:
     if workspace_dir.exists():
         workspace_size = _get_dir_size(workspace_dir)
         workspace_count = sum(1 for p in workspace_dir.iterdir() if p.is_dir())
-        activity("status", f"  Build workspaces: {format_size(workspace_size)} ({workspace_count} entries)")
+        activity(
+            "status",
+            f"  Build workspaces: {format_size(workspace_size)} ({workspace_count} entries)",
+        )
     else:
         activity("status", "  Build workspaces: (none)")
 
     # Local APT repo
-    apt_repo_dir = Path(paths.get("local_apt_repo", Path.home() / ".cache" / "packastack" / "apt-repo"))
+    apt_repo_dir = Path(
+        paths.get("local_apt_repo", Path.home() / ".cache" / "packastack" / "apt-repo")
+    )
     if apt_repo_dir.exists():
         apt_repo_size = _get_dir_size(apt_repo_dir)
         activity("status", f"  Local APT repo: {format_size(apt_repo_size)}")
@@ -231,7 +245,11 @@ def _show_cache_status(paths: dict) -> None:
         apt_repo_size = 0
         activity("status", "  Local APT repo: (none)")
 
-    total = tarball_size + (_get_dir_size(workspace_dir) if workspace_dir.exists() else 0) + apt_repo_size
+    total = (
+        tarball_size
+        + (_get_dir_size(workspace_dir) if workspace_dir.exists() else 0)
+        + apt_repo_size
+    )
     activity("status", f"  Total: {format_size(total)}")
 
     if total >= SIZE_WARNING_THRESHOLD:

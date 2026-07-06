@@ -111,9 +111,7 @@ def build_patch_refresh_context(
         parts.append("== Files targeted by patch that NO LONGER EXIST ==")
         for fpath in missing_files:
             parts.append(f"  - {fpath}")
-        parts.append(
-            "(The patch hunks for these files need retargeting or dropping.)"
-        )
+        parts.append("(The patch hunks for these files need retargeting or dropping.)")
 
     if affected_files:
         parts.append("")

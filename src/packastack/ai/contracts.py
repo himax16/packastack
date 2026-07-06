@@ -307,9 +307,7 @@ def parse_by_contract(contract: str, content: str) -> Any:
     """
     parser = _PARSERS.get(contract)
     if parser is None:
-        raise UnknownContractError(
-            f"No parser registered for output_contract={contract!r}"
-        )
+        raise UnknownContractError(f"No parser registered for output_contract={contract!r}")
     return parser(content)
 
 

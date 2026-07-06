@@ -325,14 +325,12 @@ def create_manifest(
             build_type = type_result.chosen_type
             deliverable = type_result.deliverable
 
-        upstream_version, debian_revision, epoch, version_source = (
-            resolve_version_for_package(
-                source_package=source_package,
-                build_type=build_type,
-                releases_repo=releases_repo,
-                series=series,
-                deliverable=deliverable,
-            )
+        upstream_version, debian_revision, epoch, version_source = resolve_version_for_package(
+            source_package=source_package,
+            build_type=build_type,
+            releases_repo=releases_repo,
+            series=series,
+            deliverable=deliverable,
         )
 
         manifest.add_package(

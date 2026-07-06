@@ -48,7 +48,11 @@ def ensure_directories(paths_cfg: Mapping[str, Any] | None = None) -> dict[str, 
         base_paths.update(paths_cfg)
         provided_keys = set(paths_cfg.keys())
 
-        cache_root = Path(str(base_paths.get("cache_root", cfg["paths"]["cache_root"]))).expanduser().resolve()
+        cache_root = (
+            Path(str(base_paths.get("cache_root", cfg["paths"]["cache_root"])))
+            .expanduser()
+            .resolve()
+        )
         derived_defaults = {
             "openstack_releases_repo": cache_root / "openstack-releases",
             "openstack_project_config": cache_root / "openstack-project-config",

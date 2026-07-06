@@ -59,7 +59,9 @@ def resolve_series(name: str) -> str:
     except FileNotFoundError:
         logger.warning("distro-info not found; using fallback series '%s'", FALLBACK_DEVEL_SERIES)
     except subprocess.CalledProcessError as e:
-        logger.warning("distro-info failed: %s; using fallback series '%s'", e, FALLBACK_DEVEL_SERIES)
+        logger.warning(
+            "distro-info failed: %s; using fallback series '%s'", e, FALLBACK_DEVEL_SERIES
+        )
     except subprocess.TimeoutExpired:
         logger.warning("distro-info timed out; using fallback series '%s'", FALLBACK_DEVEL_SERIES)
 

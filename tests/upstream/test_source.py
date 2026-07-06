@@ -40,9 +40,7 @@ class TestUpstreamSource:
 
     def test_is_release(self) -> None:
         """Test is_release property."""
-        source = upstream.UpstreamSource(
-            version="29.0.0", build_type=upstream.BuildType.RELEASE
-        )
+        source = upstream.UpstreamSource(version="29.0.0", build_type=upstream.BuildType.RELEASE)
         assert source.is_release is True
         assert source.is_snapshot is False
 
@@ -106,7 +104,10 @@ class TestBuildTarballUrl:
         url = upstream.build_tarball_url("python-openstackclient", "7.1.0")
         # Directory path should keep hyphens: python-openstackclient/
         # Filename should normalize hyphens to underscores: python_openstackclient-7.1.0.tar.gz
-        assert url == "https://tarballs.opendev.org/openstack/python-openstackclient/python_openstackclient-7.1.0.tar.gz"
+        assert (
+            url
+            == "https://tarballs.opendev.org/openstack/python-openstackclient/python_openstackclient-7.1.0.tar.gz"
+        )
 
     def test_version_in_filename(self) -> None:
         """Test that version appears in filename."""
@@ -116,7 +117,10 @@ class TestBuildTarballUrl:
     def test_tarball_base_override(self) -> None:
         """Test tarball_base overrides the default filename stem."""
         url = upstream.build_tarball_url("python-aodhclient", "3.10.0", tarball_base="aodhclient")
-        assert url == "https://tarballs.opendev.org/openstack/python-aodhclient/aodhclient-3.10.0.tar.gz"
+        assert (
+            url
+            == "https://tarballs.opendev.org/openstack/python-aodhclient/aodhclient-3.10.0.tar.gz"
+        )
 
     def test_tarball_base_with_hyphen_normalized(self) -> None:
         """Test tarball_base hyphens are normalized to underscores in filename.
@@ -126,8 +130,13 @@ class TestBuildTarballUrl:
         has tarball-base: openstack-placement but the file is
         openstack_placement-15.0.0.0rc1.tar.gz.
         """
-        url = upstream.build_tarball_url("placement", "15.0.0.0rc1", tarball_base="openstack-placement")
-        assert url == "https://tarballs.opendev.org/openstack/placement/openstack_placement-15.0.0.0rc1.tar.gz"
+        url = upstream.build_tarball_url(
+            "placement", "15.0.0.0rc1", tarball_base="openstack-placement"
+        )
+        assert (
+            url
+            == "https://tarballs.opendev.org/openstack/placement/openstack_placement-15.0.0.0rc1.tar.gz"
+        )
 
     def test_tarball_base_empty_uses_default(self) -> None:
         """Test empty tarball_base uses the default normalization."""
@@ -140,10 +149,10 @@ class TestBuildTarballUrl:
         glance-store is the deliverable name but the actual repo and tarball
         directory on tarballs.opendev.org is glance_store (with underscore).
         """
-        url = upstream.build_tarball_url(
-            "glance-store", "5.4.0", tarball_dir="glance_store"
+        url = upstream.build_tarball_url("glance-store", "5.4.0", tarball_dir="glance_store")
+        assert (
+            url == "https://tarballs.opendev.org/openstack/glance_store/glance_store-5.4.0.tar.gz"
         )
-        assert url == "https://tarballs.opendev.org/openstack/glance_store/glance_store-5.4.0.tar.gz"
 
     def test_tarball_dir_empty_uses_project(self) -> None:
         """Test empty tarball_dir falls back to project name."""
@@ -625,9 +634,7 @@ class TestGetVersionFromGitDescribe:
         """Test git describe with tag and commits since."""
         with patch("subprocess.run") as mock_run:
             # git describe --tags --long HEAD
-            mock_run.return_value = MagicMock(
-                returncode=0, stdout="30.0.0-123-gabc1234\n"
-            )
+            mock_run.return_value = MagicMock(returncode=0, stdout="30.0.0-123-gabc1234\n")
 
             result = upstream.get_version_from_git_describe(tmp_path, "HEAD")
 
@@ -641,9 +648,7 @@ class TestGetVersionFromGitDescribe:
         """Test git describe when HEAD is exactly at a tag."""
         with patch("subprocess.run") as mock_run:
             # git describe --tags --long HEAD returns count=0 for exact match
-            mock_run.return_value = MagicMock(
-                returncode=0, stdout="30.0.0-0-gabc1234\n"
-            )
+            mock_run.return_value = MagicMock(returncode=0, stdout="30.0.0-0-gabc1234\n")
 
             result = upstream.get_version_from_git_describe(tmp_path, "HEAD")
 
@@ -676,9 +681,7 @@ class TestGetVersionFromGitDescribe:
         """Test handling of version tags with v prefix."""
         with patch("subprocess.run") as mock_run:
             # Some projects use v30.0.0 tags
-            mock_run.return_value = MagicMock(
-                returncode=0, stdout="v30.0.0-50-gxyz7890\n"
-            )
+            mock_run.return_value = MagicMock(returncode=0, stdout="v30.0.0-50-gxyz7890\n")
 
             result = upstream.get_version_from_git_describe(tmp_path, "HEAD")
 
@@ -710,9 +713,7 @@ class TestGetVersionFromGitDescribe:
     def test_multi_digit_commit_count(self, tmp_path: Path) -> None:
         """Test handling of large commit counts."""
         with patch("subprocess.run") as mock_run:
-            mock_run.return_value = MagicMock(
-                returncode=0, stdout="29.0.0-1234-g1234567\n"
-            )
+            mock_run.return_value = MagicMock(returncode=0, stdout="29.0.0-1234-g1234567\n")
 
             result = upstream.get_version_from_git_describe(tmp_path, "HEAD")
 
@@ -948,11 +949,12 @@ class TestAcquireUpstreamSnapshot:
         output_dir = tmp_path / "output"
         output_dir.mkdir(parents=True)
 
-        with patch.object(upstream, "clone_upstream_repo") as mock_clone, \
-             patch.object(upstream, "get_git_snapshot_info") as mock_info, \
-             patch.object(upstream, "get_version_from_git_describe") as mock_describe, \
-             patch.object(upstream, "generate_snapshot_tarball") as mock_tarball:
-
+        with (
+            patch.object(upstream, "clone_upstream_repo") as mock_clone,
+            patch.object(upstream, "get_git_snapshot_info") as mock_info,
+            patch.object(upstream, "get_version_from_git_describe") as mock_describe,
+            patch.object(upstream, "generate_snapshot_tarball") as mock_tarball,
+        ):
             mock_clone.return_value = (work_dir / "nova", True, "")
             mock_info.return_value = ("abc1234", "abc1234567890abcdef", "20241227")
             mock_describe.return_value = upstream.GitDescribeResult(
@@ -989,11 +991,12 @@ class TestAcquireUpstreamSnapshot:
         output_dir = tmp_path / "output"
         output_dir.mkdir(parents=True)
 
-        with patch.object(upstream, "clone_upstream_repo") as mock_clone, \
-             patch.object(upstream, "get_git_snapshot_info") as mock_info, \
-             patch.object(upstream, "get_version_from_git_describe") as mock_describe, \
-             patch.object(upstream, "generate_snapshot_tarball") as mock_tarball:
-
+        with (
+            patch.object(upstream, "clone_upstream_repo") as mock_clone,
+            patch.object(upstream, "get_git_snapshot_info") as mock_info,
+            patch.object(upstream, "get_version_from_git_describe") as mock_describe,
+            patch.object(upstream, "generate_snapshot_tarball") as mock_tarball,
+        ):
             mock_clone.return_value = (work_dir / "nova", True, "")
             mock_info.return_value = ("abc1234", "abc1234567890abcdef", "20241227")
             mock_describe.return_value = upstream.GitDescribeResult(
@@ -1002,7 +1005,9 @@ class TestAcquireUpstreamSnapshot:
                 short_sha="abc1234",
                 is_exact_tag=True,
             )
-            mock_tarball.return_value = upstream.TarballResult(success=True, path=output_dir / "test.tar.gz")
+            mock_tarball.return_value = upstream.TarballResult(
+                success=True, path=output_dir / "test.tar.gz"
+            )
 
             request = upstream.SnapshotRequest(
                 project="nova",
@@ -1024,15 +1029,18 @@ class TestAcquireUpstreamSnapshot:
         output_dir = tmp_path / "output"
         output_dir.mkdir(parents=True)
 
-        with patch.object(upstream, "clone_upstream_repo") as mock_clone, \
-             patch.object(upstream, "get_git_snapshot_info") as mock_info, \
-             patch.object(upstream, "get_version_from_git_describe") as mock_describe, \
-             patch.object(upstream, "generate_snapshot_tarball") as mock_tarball:
-
+        with (
+            patch.object(upstream, "clone_upstream_repo") as mock_clone,
+            patch.object(upstream, "get_git_snapshot_info") as mock_info,
+            patch.object(upstream, "get_version_from_git_describe") as mock_describe,
+            patch.object(upstream, "generate_snapshot_tarball") as mock_tarball,
+        ):
             mock_clone.return_value = (work_dir / "nova", True, "")
             mock_info.return_value = ("abc1234", "abc1234567890abcdef", "20241227")
             mock_describe.return_value = None  # git describe failed
-            mock_tarball.return_value = upstream.TarballResult(success=True, path=output_dir / "test.tar.gz")
+            mock_tarball.return_value = upstream.TarballResult(
+                success=True, path=output_dir / "test.tar.gz"
+            )
 
             request = upstream.SnapshotRequest(
                 project="nova",
@@ -1068,9 +1076,10 @@ class TestAcquireUpstreamSnapshot:
 
     def test_snapshot_info_failure(self, tmp_path: Path) -> None:
         """Test acquisition when getting snapshot info fails."""
-        with patch.object(upstream, "clone_upstream_repo") as mock_clone, \
-             patch.object(upstream, "get_git_snapshot_info") as mock_info:
-
+        with (
+            patch.object(upstream, "clone_upstream_repo") as mock_clone,
+            patch.object(upstream, "get_git_snapshot_info") as mock_info,
+        ):
             mock_clone.return_value = (tmp_path / "nova", True, "")
             mock_info.return_value = ("", "", "")  # Empty = failure
 
@@ -1089,11 +1098,12 @@ class TestAcquireUpstreamSnapshot:
 
     def test_tarball_generation_failure(self, tmp_path: Path) -> None:
         """Test acquisition when tarball generation fails."""
-        with patch.object(upstream, "clone_upstream_repo") as mock_clone, \
-             patch.object(upstream, "get_git_snapshot_info") as mock_info, \
-             patch.object(upstream, "get_version_from_git_describe") as mock_describe, \
-             patch.object(upstream, "generate_snapshot_tarball") as mock_tarball:
-
+        with (
+            patch.object(upstream, "clone_upstream_repo") as mock_clone,
+            patch.object(upstream, "get_git_snapshot_info") as mock_info,
+            patch.object(upstream, "get_version_from_git_describe") as mock_describe,
+            patch.object(upstream, "generate_snapshot_tarball") as mock_tarball,
+        ):
             mock_clone.return_value = (tmp_path / "nova", True, "")
             mock_info.return_value = ("abc1234", "abc1234567890", "20241227")
             mock_describe.return_value = upstream.GitDescribeResult(
@@ -1122,11 +1132,12 @@ class TestAcquireUpstreamSnapshot:
         output_dir = tmp_path / "output"
         output_dir.mkdir()
 
-        with patch.object(upstream, "clone_upstream_repo") as mock_clone, \
-             patch.object(upstream, "get_git_snapshot_info") as mock_info, \
-             patch.object(upstream, "get_version_from_git_describe") as mock_describe, \
-             patch.object(upstream, "generate_snapshot_tarball") as mock_tarball:
-
+        with (
+            patch.object(upstream, "clone_upstream_repo") as mock_clone,
+            patch.object(upstream, "get_git_snapshot_info") as mock_info,
+            patch.object(upstream, "get_version_from_git_describe") as mock_describe,
+            patch.object(upstream, "generate_snapshot_tarball") as mock_tarball,
+        ):
             mock_clone.return_value = (tmp_path / "nova", True, "")
             mock_info.return_value = ("abc1234", "abc1234567890", "20241227")
             mock_describe.return_value = upstream.GitDescribeResult(
@@ -1157,11 +1168,12 @@ class TestAcquireUpstreamSnapshot:
         output_dir = tmp_path / "output"
         output_dir.mkdir()
 
-        with patch.object(upstream, "clone_upstream_repo") as mock_clone, \
-             patch.object(upstream, "get_git_snapshot_info") as mock_info, \
-             patch.object(upstream, "get_version_from_git_describe") as mock_describe, \
-             patch.object(upstream, "generate_snapshot_tarball") as mock_tarball:
-
+        with (
+            patch.object(upstream, "clone_upstream_repo") as mock_clone,
+            patch.object(upstream, "get_git_snapshot_info") as mock_info,
+            patch.object(upstream, "get_version_from_git_describe") as mock_describe,
+            patch.object(upstream, "generate_snapshot_tarball") as mock_tarball,
+        ):
             mock_clone.return_value = (tmp_path / "nova", True, "")
             mock_info.return_value = ("abc1234", "abc1234567890", "20241227")
             mock_describe.return_value = upstream.GitDescribeResult(
@@ -1293,11 +1305,12 @@ class TestAcquireUpstreamSnapshotEdgeCases:
         output_dir = tmp_path / "output"
         output_dir.mkdir()
 
-        with patch.object(upstream, "clone_upstream_repo") as mock_clone, \
-             patch.object(upstream, "get_git_snapshot_info") as mock_info, \
-             patch.object(upstream, "get_version_from_git_describe") as mock_describe, \
-             patch.object(upstream, "generate_snapshot_tarball") as mock_tarball:
-
+        with (
+            patch.object(upstream, "clone_upstream_repo") as mock_clone,
+            patch.object(upstream, "get_git_snapshot_info") as mock_info,
+            patch.object(upstream, "get_version_from_git_describe") as mock_describe,
+            patch.object(upstream, "generate_snapshot_tarball") as mock_tarball,
+        ):
             mock_clone.return_value = (tmp_path / "nova", True, "")
             mock_info.return_value = ("abc1234", "abc1234567890abcdef1234", "20241227")
             mock_describe.return_value = upstream.GitDescribeResult(
@@ -1328,11 +1341,12 @@ class TestAcquireUpstreamSnapshotEdgeCases:
         output_dir = tmp_path / "output"
         output_dir.mkdir()
 
-        with patch.object(upstream, "clone_upstream_repo") as mock_clone, \
-             patch.object(upstream, "get_git_snapshot_info") as mock_info, \
-             patch.object(upstream, "get_version_from_git_describe") as mock_describe, \
-             patch.object(upstream, "generate_snapshot_tarball") as mock_tarball:
-
+        with (
+            patch.object(upstream, "clone_upstream_repo") as mock_clone,
+            patch.object(upstream, "get_git_snapshot_info") as mock_info,
+            patch.object(upstream, "get_version_from_git_describe") as mock_describe,
+            patch.object(upstream, "generate_snapshot_tarball") as mock_tarball,
+        ):
             mock_clone.return_value = (tmp_path / "keystone", True, "")
             mock_info.return_value = ("def5678", "def5678901234", "20241227")
             mock_describe.return_value = upstream.GitDescribeResult(
@@ -1362,11 +1376,12 @@ class TestAcquireUpstreamSnapshotEdgeCases:
         output_dir = tmp_path / "output"
         output_dir.mkdir()
 
-        with patch.object(upstream, "clone_upstream_repo") as mock_clone, \
-             patch.object(upstream, "get_git_snapshot_info") as mock_info, \
-             patch.object(upstream, "get_version_from_git_describe") as mock_describe, \
-             patch.object(upstream, "generate_snapshot_tarball") as mock_tarball:
-
+        with (
+            patch.object(upstream, "clone_upstream_repo") as mock_clone,
+            patch.object(upstream, "get_git_snapshot_info") as mock_info,
+            patch.object(upstream, "get_version_from_git_describe") as mock_describe,
+            patch.object(upstream, "generate_snapshot_tarball") as mock_tarball,
+        ):
             mock_clone.return_value = (tmp_path / "nova", True, "")
             mock_info.return_value = ("abc1234", "abc1234567890", "20241227")
             mock_describe.return_value = upstream.GitDescribeResult(
@@ -1398,11 +1413,12 @@ class TestAcquireUpstreamSnapshotEdgeCases:
         output_dir = tmp_path / "output"
         output_dir.mkdir()
 
-        with patch.object(upstream, "clone_upstream_repo") as mock_clone, \
-             patch.object(upstream, "get_git_snapshot_info") as mock_info, \
-             patch.object(upstream, "get_version_from_git_describe") as mock_describe, \
-             patch.object(upstream, "generate_snapshot_tarball") as mock_tarball:
-
+        with (
+            patch.object(upstream, "clone_upstream_repo") as mock_clone,
+            patch.object(upstream, "get_git_snapshot_info") as mock_info,
+            patch.object(upstream, "get_version_from_git_describe") as mock_describe,
+            patch.object(upstream, "generate_snapshot_tarball") as mock_tarball,
+        ):
             expected_repo_path = tmp_path / "nova"
             mock_clone.return_value = (expected_repo_path, True, "")
             mock_info.return_value = ("abc1234", "abc1234567890", "20241227")
@@ -1510,6 +1526,7 @@ class TestGenerateSnapshotTarballEdgeCases:
             assert "2:" not in result.path.name
             assert "1.0.0" in result.path.name
 
+
 class TestUpstreamVersionFormats:
     """Test various upstream version formats."""
 
@@ -1522,7 +1539,9 @@ class TestUpstreamVersionFormats:
 
         # Initialize git repo with initial branch 'main'
         sp.run(["git", "init", "-b", "main"], cwd=upstream_dir, capture_output=True)
-        sp.run(["git", "config", "user.email", "test@test.com"], cwd=upstream_dir, capture_output=True)
+        sp.run(
+            ["git", "config", "user.email", "test@test.com"], cwd=upstream_dir, capture_output=True
+        )
         sp.run(["git", "config", "user.name", "Test"], cwd=upstream_dir, capture_output=True)
         # Disable GPG signing for this repo
         sp.run(["git", "config", "commit.gpgsign", "false"], cwd=upstream_dir, capture_output=True)
@@ -1530,7 +1549,9 @@ class TestUpstreamVersionFormats:
         (upstream_dir / "setup.py").write_text("# test")
         sp.run(["git", "add", "."], cwd=upstream_dir, capture_output=True)
         # Create initial commit
-        commit_result = sp.run(["git", "commit", "-m", "init"], cwd=upstream_dir, capture_output=True)
+        commit_result = sp.run(
+            ["git", "commit", "-m", "init"], cwd=upstream_dir, capture_output=True
+        )
         assert commit_result.returncode == 0, f"Git commit failed: {commit_result.stderr}"
 
         output_dir = tmp_path / "output"
@@ -1565,10 +1586,18 @@ class TestUpstreamVersionFormats:
         with (
             patch.object(upstream, "clone_upstream_repo", return_value=(mock_repo_path, True, "")),
             # get_git_snapshot_info returns tuple (short_sha, full_sha, date_str)
-            patch.object(upstream, "get_git_snapshot_info", return_value=("abc123", "abc123def456", "20240101")),
-            patch.object(upstream, "get_version_from_git_describe", return_value=upstream.GitDescribeResult(
-                base_version="29.0.0", commit_count=5, short_sha="abc123", is_exact_tag=False
-            )),
+            patch.object(
+                upstream,
+                "get_git_snapshot_info",
+                return_value=("abc123", "abc123def456", "20240101"),
+            ),
+            patch.object(
+                upstream,
+                "get_version_from_git_describe",
+                return_value=upstream.GitDescribeResult(
+                    base_version="29.0.0", commit_count=5, short_sha="abc123", is_exact_tag=False
+                ),
+            ),
             patch.object(upstream, "generate_snapshot_tarball", return_value=mock_tarball),
         ):
             request = upstream.SnapshotRequest(

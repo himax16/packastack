@@ -31,12 +31,12 @@ import subprocess
 import sys
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
 
-class BuildStatus(str, Enum):
+class BuildStatus(StrEnum):
     """Status of a package build."""
 
     PENDING = "pending"
@@ -47,7 +47,7 @@ class BuildStatus(str, Enum):
     BLOCKED = "blocked"
 
 
-class FailureType(str, Enum):
+class FailureType(StrEnum):
     """Classification of build failures."""
 
     UNKNOWN = "unknown"
@@ -160,29 +160,28 @@ class BuildState:
     def get_pending(self) -> list[str]:
         """Get packages that haven't been built yet."""
         return [
-            pkg for pkg in self.build_order
-            if self.packages.get(pkg, BuildResult(pkg, BuildStatus.PENDING)).status == BuildStatus.PENDING
+            pkg
+            for pkg in self.build_order
+            if self.packages.get(pkg, BuildResult(pkg, BuildStatus.PENDING)).status
+            == BuildStatus.PENDING
         ]
 
     def get_succeeded(self) -> list[str]:
         """Get packages that built successfully."""
         return [
-            pkg for pkg, result in self.packages.items()
-            if result.status == BuildStatus.SUCCESS
+            pkg for pkg, result in self.packages.items() if result.status == BuildStatus.SUCCESS
         ]
 
     def get_failed(self) -> list[str]:
         """Get packages that failed to build."""
         return [
-            pkg for pkg, result in self.packages.items()
-            if result.status == BuildStatus.FAILED
+            pkg for pkg, result in self.packages.items() if result.status == BuildStatus.FAILED
         ]
 
     def get_blocked(self) -> list[str]:
         """Get packages blocked by failed dependencies."""
         return [
-            pkg for pkg, result in self.packages.items()
-            if result.status == BuildStatus.BLOCKED
+            pkg for pkg, result in self.packages.items() if result.status == BuildStatus.BLOCKED
         ]
 
     def mark_started(self, package: str) -> None:
@@ -256,7 +255,7 @@ def load_build_state(state_dir: Path) -> BuildState | None:
     try:
         data = json.loads(state_file.read_text())
         return BuildState.from_dict(data)
-    except (json.JSONDecodeError, KeyError):
+    except json.JSONDecodeError, KeyError:
         return None
 
 
@@ -419,10 +418,15 @@ class PackageBuildRunner:
     def _build_command(self, package: str) -> list[str]:
         """Build the subprocess command for a package."""
         cmd = [
-            sys.executable, "-m", "packastack", "build",
+            sys.executable,
+            "-m",
+            "packastack",
+            "build",
             package,
-            "--target", self.config.target,
-            "--ubuntu-series", self.config.ubuntu_series,
+            "--target",
+            self.config.target,
+            "--ubuntu-series",
+            self.config.ubuntu_series,
             "--yes",  # No prompts
             "--no-cleanup",  # Keep workspace for debugging
         ]

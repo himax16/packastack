@@ -90,9 +90,7 @@ def _parse_skill_file(path: Path) -> Skill:
     lines = text.splitlines()
 
     if not lines or lines[0].strip() != _FRONTMATTER_DELIM:
-        raise SkillFormatError(
-            f"{path}: missing opening '---' frontmatter delimiter"
-        )
+        raise SkillFormatError(f"{path}: missing opening '---' frontmatter delimiter")
 
     close_idx: int | None = None
     for idx in range(1, len(lines)):
@@ -101,9 +99,7 @@ def _parse_skill_file(path: Path) -> Skill:
             break
 
     if close_idx is None:
-        raise SkillFormatError(
-            f"{path}: missing closing '---' frontmatter delimiter"
-        )
+        raise SkillFormatError(f"{path}: missing closing '---' frontmatter delimiter")
 
     frontmatter_text = "\n".join(lines[1:close_idx])
     try:
@@ -112,16 +108,12 @@ def _parse_skill_file(path: Path) -> Skill:
         raise SkillFormatError(f"{path}: invalid YAML frontmatter: {exc}") from exc
 
     if not isinstance(metadata, dict):
-        raise SkillFormatError(
-            f"{path}: frontmatter must be a YAML mapping"
-        )
+        raise SkillFormatError(f"{path}: frontmatter must be a YAML mapping")
 
     name = metadata.get("name")
     description = metadata.get("description")
     if not name or not description:
-        raise SkillFormatError(
-            f"{path}: frontmatter must set 'name' and 'description'"
-        )
+        raise SkillFormatError(f"{path}: frontmatter must set 'name' and 'description'")
 
     body = "\n".join(lines[close_idx + 1 :]).lstrip("\n")
     if not body.strip():
@@ -166,7 +158,5 @@ def list_skills() -> list[str]:
     if not root.is_dir():
         return []
     return sorted(
-        entry.name
-        for entry in root.iterdir()
-        if entry.is_dir() and (entry / "SKILL.md").is_file()
+        entry.name for entry in root.iterdir() if entry.is_dir() and (entry / "SKILL.md").is_file()
     )

@@ -121,9 +121,7 @@ def _parse_build_response(response: AIResponse) -> BuildDiagnosisResult:
         if not result.debian_edits:
             result.needs_debian_edit = False
             if not result.explanation:
-                result.explanation = (
-                    "AI suggested debian edits but the response was incomplete"
-                )
+                result.explanation = "AI suggested debian edits but the response was incomplete"
 
     # Extract patch content between markers
     if result.needs_patch:
@@ -139,9 +137,7 @@ def _parse_build_response(response: AIResponse) -> BuildDiagnosisResult:
         if not result.patch_filename or not result.patch_content:
             result.needs_patch = False
             if not result.explanation:
-                result.explanation = (
-                    "AI suggested a patch but the response was incomplete"
-                )
+                result.explanation = "AI suggested a patch but the response was incomplete"
 
     # Fallback: use full response if no structured fields found
     if not result.explanation:
@@ -314,7 +310,7 @@ def _git_ls_tree(pkg_repo: Path) -> str:
         )
         if result.returncode == 0:
             return result.stdout.strip()
-    except (subprocess.TimeoutExpired, OSError):
+    except subprocess.TimeoutExpired, OSError:
         pass
     return ""
 
@@ -329,10 +325,22 @@ def _is_binary_path(path: Path) -> bool:
         True if the file has a known binary extension.
     """
     binary_suffixes = {
-        ".gz", ".xz", ".bz2", ".zip", ".tar",
-        ".png", ".jpg", ".gif", ".ico",
-        ".pyc", ".so", ".o", ".a",
-        ".gpg", ".asc", ".der",
+        ".gz",
+        ".xz",
+        ".bz2",
+        ".zip",
+        ".tar",
+        ".png",
+        ".jpg",
+        ".gif",
+        ".ico",
+        ".pyc",
+        ".so",
+        ".o",
+        ".a",
+        ".gpg",
+        ".asc",
+        ".der",
     }
     return path.suffix.lower() in binary_suffixes
 
@@ -369,9 +377,7 @@ def diagnose_build_failure(
         BuildDiagnosisResult with diagnosis and optional fix.
     """
     if not is_ai_available(cfg):
-        return BuildDiagnosisResult(
-            diagnosed=False, error="AI not available (no API key)"
-        )
+        return BuildDiagnosisResult(diagnosed=False, error="AI not available (no API key)")
 
     # Extract failure section from sbuild log — we need this both for
     # cheap trigger-matching and to bail out early if no log exists.
@@ -383,16 +389,12 @@ def diagnose_build_failure(
         sbuild_result.stdout_log_path,
     ):
         if log_path and log_path.exists():
-            log_excerpt = extract_sbuild_failure_section(
-                log_path, max_lines=max_log_lines
-            )
+            log_excerpt = extract_sbuild_failure_section(log_path, max_lines=max_log_lines)
             if log_excerpt:
                 break
 
     if not log_excerpt:
-        return BuildDiagnosisResult(
-            diagnosed=False, error="No build log available for analysis"
-        )
+        return BuildDiagnosisResult(diagnosed=False, error="No build log available for analysis")
 
     inputs = CollectorInputs(
         pkg_repo=pkg_repo,
@@ -434,19 +436,13 @@ def _select_specialist(
         return triggered
 
     known = {s.name for s in specialists}
-    min_confidence = float(
-        cfg.get("ai", {}).get("router_min_confidence", _DEFAULT_MIN_CONFIDENCE)
-    )
+    min_confidence = float(cfg.get("ai", {}).get("router_min_confidence", _DEFAULT_MIN_CONFIDENCE))
 
     router = run_skill(_ROUTER_SKILL, inputs, cfg)
     if router.success and isinstance(router.parsed, DispatchPayload):
         dispatch = router.parsed
         picked = dispatch.skill.strip()
-        if (
-            picked
-            and picked in known
-            and dispatch.confidence >= min_confidence
-        ):
+        if picked and picked in known and dispatch.confidence >= min_confidence:
             return picked
         for alt in dispatch.fallback_skills:
             alt_name = alt.strip()
@@ -713,9 +709,7 @@ def apply_debian_edits(
 
         run_command(["git", "add", *written_files], cwd=pkg_repo)
 
-        edited = ", ".join(
-            diagnosis.debian_edits.keys()
-        )
+        edited = ", ".join(diagnosis.debian_edits.keys())
         run_command(
             [
                 "git",

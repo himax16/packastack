@@ -31,14 +31,14 @@ project identifiers (e.g., "glance" -> "openstack/glance").
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
 import yaml
 
 
-class RetirementStatus(str, Enum):
+class RetirementStatus(StrEnum):
     """Status of a project's retirement state."""
 
     ACTIVE = "active"  # Project is actively maintained
@@ -47,7 +47,7 @@ class RetirementStatus(str, Enum):
     UNKNOWN = "unknown"  # Unable to determine retirement status
 
 
-class MappingConfidence(str, Enum):
+class MappingConfidence(StrEnum):
     """Confidence level for package-to-upstream mapping."""
 
     HIGH = "high"  # Explicit entry in upstreams.yaml
@@ -270,12 +270,39 @@ def get_series_order(releases_path: Path) -> list[str]:
     # This is a simplified approach - ideally we'd read series.yaml
     # for actual release dates
     known_order = [
-        "austin", "bexar", "cactus", "diablo", "essex", "folsom",
-        "grizzly", "havana", "icehouse", "juno", "kilo", "liberty",
-        "mitaka", "newton", "ocata", "pike", "queens", "rocky",
-        "stein", "train", "ussuri", "victoria", "wallaby", "xena",
-        "yoga", "zed", "antelope", "bobcat", "caracal", "dalmatian",
-        "epoxy", "flamingo", "gazpacho",
+        "austin",
+        "bexar",
+        "cactus",
+        "diablo",
+        "essex",
+        "folsom",
+        "grizzly",
+        "havana",
+        "icehouse",
+        "juno",
+        "kilo",
+        "liberty",
+        "mitaka",
+        "newton",
+        "ocata",
+        "pike",
+        "queens",
+        "rocky",
+        "stein",
+        "train",
+        "ussuri",
+        "victoria",
+        "wallaby",
+        "xena",
+        "yoga",
+        "zed",
+        "antelope",
+        "bobcat",
+        "caracal",
+        "dalmatian",
+        "epoxy",
+        "flamingo",
+        "gazpacho",
     ]
 
     def sort_key(s: str) -> int:
@@ -423,9 +450,7 @@ def check_retirement(
         if "/" in upstream_project:
             deliverable = upstream_project.split("/")[-1]
 
-        last_seen, cycles_since = find_last_seen_series(
-            deliverable, releases_path, target_series
-        )
+        last_seen, cycles_since = find_last_seen_series(deliverable, releases_path, target_series)
 
         info.last_seen_series = last_seen
         info.cycles_since_last_seen = cycles_since
@@ -523,7 +548,9 @@ class RetirementChecker:
         self._cache[source_package] = info
         return info
 
-    def check_retirement(self, source_package: str, *args: object, **kwargs: object) -> RetirementInfo:
+    def check_retirement(
+        self, source_package: str, *args: object, **kwargs: object
+    ) -> RetirementInfo:
         """Backward compatible wrapper.
 
         Historically callers invoked `check_retirement` on the checker instance.
@@ -553,10 +580,7 @@ class RetirementChecker:
         Returns:
             List of package names that are retired.
         """
-        return [
-            pkg for pkg in packages
-            if self.check(pkg).status == RetirementStatus.RETIRED
-        ]
+        return [pkg for pkg in packages if self.check(pkg).status == RetirementStatus.RETIRED]
 
     def get_possibly_retired_packages(self, packages: list[str]) -> list[str]:
         """Get list of possibly retired packages from a set.
@@ -568,6 +592,5 @@ class RetirementChecker:
             List of package names that are possibly retired.
         """
         return [
-            pkg for pkg in packages
-            if self.check(pkg).status == RetirementStatus.POSSIBLY_RETIRED
+            pkg for pkg in packages if self.check(pkg).status == RetirementStatus.POSSIBLY_RETIRED
         ]

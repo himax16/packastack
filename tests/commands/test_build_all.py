@@ -113,6 +113,7 @@ def _call_run_build_all(
         dry_run=dry_run,
     )
     from packastack.commands.build import _run_build_all as _actual_run_build_all
+
     return _actual_run_build_all(run=run, request=request)
 
 
@@ -199,18 +200,26 @@ Architecture: all
 """)
 
         pkg_index = PackageIndex()
-        pkg_index.add_package(BinaryPackage(
-            name="python3",
-            version="3.12",
-            source="python3-defaults",
-            architecture="amd64",
-        ), component="main", pocket="release")
-        pkg_index.add_package(BinaryPackage(
-            name="debhelper-compat",
-            version="13",
-            source="debhelper",
-            architecture="all",
-        ), component="main", pocket="release")
+        pkg_index.add_package(
+            BinaryPackage(
+                name="python3",
+                version="3.12",
+                source="python3-defaults",
+                architecture="amd64",
+            ),
+            component="main",
+            pocket="release",
+        )
+        pkg_index.add_package(
+            BinaryPackage(
+                name="debhelper-compat",
+                version="13",
+                source="debhelper",
+                architecture="all",
+            ),
+            component="main",
+            pocket="release",
+        )
 
         graph, missing = _build_dependency_graph(
             packages=["nova"],
@@ -516,11 +525,13 @@ class TestGenerateReports:
             packages=["nova"],
             build_order=["nova"],
         )
-        state.add_missing_dep(MissingDependency(
-            binary_name="python3-foo",
-            required_by=["nova", "glance", "keystone", "neutron"],
-            suggested_action="Needs packaging",
-        ))
+        state.add_missing_dep(
+            MissingDependency(
+                binary_name="python3-foo",
+                required_by=["nova", "glance", "keystone", "neutron"],
+                suggested_action="Needs packaging",
+            )
+        )
         state.completed_at = "2025-01-01T01:00:00"
 
         json_path, md_path = _generate_reports(state, tmp_path)
@@ -595,7 +606,9 @@ class TestOptionalDepsForCycle:
 class TestRunBuildAllIndexLoading:
     """Tests for build-all index loading and graph inputs."""
 
-    def test_loads_indexes_with_defaults(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_loads_indexes_with_defaults(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Ensure build-all calls index loaders with correct arguments."""
         # Import the module where _run_build_all now lives
         import packastack.build.all_runner as all_runner
@@ -608,7 +621,6 @@ class TestRunBuildAllIndexLoading:
         }
         paths = {
             "cache_root": tmp_path / "cache",
-
             "build_root": tmp_path / "build",
             "local_apt_repo": tmp_path / "apt-repo",
             "ubuntu_archive_cache": tmp_path / "ubuntu-archive",
@@ -673,6 +685,7 @@ class TestRunBuildAllIndexLoading:
         monkeypatch.setattr(all_runner, "merge_package_indexes", fake_merge_package_indexes)
         # The actual code imports plan._build_dependency_graph, so patch that module
         import packastack.commands.plan as plan_module
+
         monkeypatch.setattr(plan_module, "_build_dependency_graph", fake_build_dependency_graph)
 
         run = _make_mock_run(tmp_path)
@@ -753,7 +766,9 @@ class TestFilterRetiredPackages:
         assert retired == []
         assert possibly == []
 
-    def test_filters_retired_packages(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_filters_retired_packages(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Should filter out retired and possibly retired packages."""
         import packastack.build.all_helpers as all_helpers_module
 
@@ -785,7 +800,9 @@ class TestFilterRetiredPackages:
         assert retired == ["a"]
         assert possibly == ["b"]
 
-    def test_keeps_all_when_no_retired(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_keeps_all_when_no_retired(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Should keep all packages when none are retired."""
         import packastack.build.all_helpers as all_helpers_module
 
@@ -877,6 +894,7 @@ class TestRunSingleBuild:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Should map exit codes to failure types with descriptive messages."""
+
         def fake_run(_cmd: list[str], **_kwargs: object) -> SimpleNamespace:
             return SimpleNamespace(returncode=returncode)
 
@@ -897,8 +915,11 @@ class TestRunSingleBuild:
         assert failure_type == expected
         assert expected_msg_fragment in message
 
-    def test_timeout_returns_build_failed(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_timeout_returns_build_failed(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Should return BUILD_FAILED on timeout."""
+
         def fake_run(_cmd: list[str], **_kwargs: object) -> None:
             raise subprocess.TimeoutExpired(cmd="cmd", timeout=1)
 
@@ -919,8 +940,11 @@ class TestRunSingleBuild:
         assert failure_type == FailureType.BUILD_FAILED
         assert "timed out" in message
 
-    def test_exception_returns_unknown(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_exception_returns_unknown(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Should return UNKNOWN on unexpected exceptions."""
+
         def fake_run(_cmd: list[str], **_kwargs: object) -> None:
             raise RuntimeError("boom")
 
@@ -940,7 +964,6 @@ class TestRunSingleBuild:
         assert success is False
         assert failure_type == FailureType.UNKNOWN
         assert message == "boom"
-
 
     def test_repo_not_found_on_config_error_with_matching_log(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -1127,7 +1150,9 @@ class TestRunSequentialBuilds:
         )
         state.packages["a"].status = PackageStatus.SUCCESS
 
-        def fake_run_single_build(package: str, **_kwargs: object) -> tuple[bool, FailureType | None, str, str]:
+        def fake_run_single_build(
+            package: str, **_kwargs: object
+        ) -> tuple[bool, FailureType | None, str, str]:
             if package == "c":
                 return False, FailureType.BUILD_FAILED, "boom", "/tmp/c.log"
             return True, None, "", f"/tmp/{package}.log"
@@ -1154,7 +1179,6 @@ class TestRunSequentialBuilds:
         assert state.packages["b"].status == PackageStatus.SUCCESS
         assert state.packages["c"].status == PackageStatus.FAILED
 
-
     def test_repo_not_found_skips_package(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
@@ -1171,9 +1195,16 @@ class TestRunSequentialBuilds:
             keep_going=True,
         )
 
-        def fake_run_single_build(package: str, **_kwargs: object) -> tuple[bool, FailureType | None, str, str]:
+        def fake_run_single_build(
+            package: str, **_kwargs: object
+        ) -> tuple[bool, FailureType | None, str, str]:
             if package == "b":
-                return False, FailureType.REPO_NOT_FOUND, "No packages found matching: b", "/tmp/b.log"
+                return (
+                    False,
+                    FailureType.REPO_NOT_FOUND,
+                    "No packages found matching: b",
+                    "/tmp/b.log",
+                )
             return True, None, "", f"/tmp/{package}.log"
 
         monkeypatch.setattr(all_runner, "run_single_build", fake_run_single_build)
@@ -1224,7 +1255,9 @@ class TestRunParallelBuilds:
         graph.add_node("a")
         graph.add_node("b")
 
-        def fake_run_single_build(package: str, **_kwargs: object) -> tuple[bool, FailureType | None, str, str]:
+        def fake_run_single_build(
+            package: str, **_kwargs: object
+        ) -> tuple[bool, FailureType | None, str, str]:
             if package == "b":
                 return False, FailureType.BUILD_FAILED, "boom", "/tmp/b.log"
             return True, None, "", f"/tmp/{package}.log"
@@ -1253,7 +1286,6 @@ class TestRunParallelBuilds:
         assert state.packages["a"].status == PackageStatus.SUCCESS
         assert state.packages["b"].status == PackageStatus.FAILED
 
-
     def test_parallel_repo_not_found_skips_package(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
@@ -1274,9 +1306,16 @@ class TestRunParallelBuilds:
         graph.add_node("a")
         graph.add_node("b")
 
-        def fake_run_single_build(package: str, **_kwargs: object) -> tuple[bool, FailureType | None, str, str]:
+        def fake_run_single_build(
+            package: str, **_kwargs: object
+        ) -> tuple[bool, FailureType | None, str, str]:
             if package == "b":
-                return False, FailureType.REPO_NOT_FOUND, "No packages found matching: b", "/tmp/b.log"
+                return (
+                    False,
+                    FailureType.REPO_NOT_FOUND,
+                    "No packages found matching: b",
+                    "/tmp/b.log",
+                )
             return True, None, "", f"/tmp/{package}.log"
 
         monkeypatch.setattr(all_runner, "run_single_build", fake_run_single_build)
@@ -1463,7 +1502,6 @@ class TestRunBuildAllCycles:
         cfg = {"defaults": {"ubuntu_pockets": ["release"], "ubuntu_components": ["main"]}}
         paths = {
             "cache_root": tmp_path,
-
             "build_root": tmp_path / "build",
             "local_apt_repo": tmp_path / "apt-repo",
             "ubuntu_archive_cache": tmp_path / "ubuntu-archive",
@@ -1477,7 +1515,9 @@ class TestRunBuildAllCycles:
         graph.add_edge("a", "b")
         graph.add_edge("b", "a")
 
-        def fake_build_dependency_graph(**_kwargs: object) -> tuple[DependencyGraph, dict[str, list[str]]]:
+        def fake_build_dependency_graph(
+            **_kwargs: object,
+        ) -> tuple[DependencyGraph, dict[str, list[str]]]:
             return graph, {}
 
         suggestions = [
@@ -1503,16 +1543,28 @@ class TestRunBuildAllCycles:
         monkeypatch.setattr(all_runner, "discover_packages", fake_discover_packages)
         # Patch filter_retired_packages - it's imported from all_helpers
         import packastack.build.all_helpers as all_helpers
-        monkeypatch.setattr(all_helpers, "filter_retired_packages", lambda **_kwargs: (["a", "b"], [], []))
-        monkeypatch.setattr(all_runner, "load_package_index", lambda *_args, **_kwargs: PackageIndex())
-        monkeypatch.setattr(all_runner, "load_cloud_archive_index", lambda *_args, **_kwargs: PackageIndex())
-        monkeypatch.setattr(all_runner, "load_local_repo_index", lambda *_args, **_kwargs: PackageIndex())
+
+        monkeypatch.setattr(
+            all_helpers, "filter_retired_packages", lambda **_kwargs: (["a", "b"], [], [])
+        )
+        monkeypatch.setattr(
+            all_runner, "load_package_index", lambda *_args, **_kwargs: PackageIndex()
+        )
+        monkeypatch.setattr(
+            all_runner, "load_cloud_archive_index", lambda *_args, **_kwargs: PackageIndex()
+        )
+        monkeypatch.setattr(
+            all_runner, "load_local_repo_index", lambda *_args, **_kwargs: PackageIndex()
+        )
         monkeypatch.setattr(all_runner, "merge_package_indexes", lambda *_args: PackageIndex())
         # Patch plan module's _build_dependency_graph since that's what _run_build_all imports
         import packastack.commands.plan as plan_module
+
         monkeypatch.setattr(plan_module, "_build_dependency_graph", fake_build_dependency_graph)
         monkeypatch.setattr(all_runner, "load_openstack_packages", lambda *_args, **_kwargs: {})
-        monkeypatch.setattr(all_runner, "suggest_cycle_edge_exclusions", lambda **_kwargs: suggestions)
+        monkeypatch.setattr(
+            all_runner, "suggest_cycle_edge_exclusions", lambda **_kwargs: suggestions
+        )
         monkeypatch.setattr(all_runner, "activity", lambda *_args, **_kwargs: None)
 
         exit_code = _call_run_build_all(
@@ -1544,7 +1596,9 @@ class TestRunBuildAllCycles:
 class TestRunBuildAllMissingDeps:
     """Tests for missing dependency recording in _run_build_all."""
 
-    @pytest.mark.skip(reason="Missing deps logic changed - now uses graph.find_missing_dependencies() instead of _build_dependency_graph return")
+    @pytest.mark.skip(
+        reason="Missing deps logic changed - now uses graph.find_missing_dependencies() instead of _build_dependency_graph return"
+    )
     def test_records_missing_deps_and_dry_run_summary(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
@@ -1554,7 +1608,6 @@ class TestRunBuildAllMissingDeps:
         cfg = {"defaults": {"ubuntu_pockets": ["release"], "ubuntu_components": ["main"]}}
         paths = {
             "cache_root": tmp_path,
-
             "build_root": tmp_path / "build",
             "local_apt_repo": tmp_path / "apt-repo",
             "ubuntu_archive_cache": tmp_path / "ubuntu-archive",
@@ -1569,7 +1622,9 @@ class TestRunBuildAllMissingDeps:
         missing_deps = {"pkg0": ["python3-missing"]}
         captured: dict[str, BuildAllState] = {}
 
-        def fake_build_dependency_graph(**_kwargs: object) -> tuple[DependencyGraph, dict[str, list[str]]]:
+        def fake_build_dependency_graph(
+            **_kwargs: object,
+        ) -> tuple[DependencyGraph, dict[str, list[str]]]:
             return graph, missing_deps
 
         def capture_state(state: BuildAllState, _path: Path) -> None:
@@ -1582,14 +1637,25 @@ class TestRunBuildAllMissingDeps:
         monkeypatch.setattr(
             build_all_module,
             "discover_packages",
-            lambda **_kwargs: DiscoveryResult(packages=packages, total_repos=len(packages), source="explicit"),
+            lambda **_kwargs: DiscoveryResult(
+                packages=packages, total_repos=len(packages), source="explicit"
+            ),
         )
-        monkeypatch.setattr(build_all_module, "_filter_retired_packages", lambda **_kwargs: (packages, [], []))
-        monkeypatch.setattr(build_all_module, "load_package_index", lambda *_args, **_kwargs: PackageIndex())
-        monkeypatch.setattr(build_all_module, "load_local_repo_index", lambda *_args, **_kwargs: PackageIndex())
-        monkeypatch.setattr(build_all_module, "merge_package_indexes", lambda *_args: PackageIndex())
+        monkeypatch.setattr(
+            build_all_module, "_filter_retired_packages", lambda **_kwargs: (packages, [], [])
+        )
+        monkeypatch.setattr(
+            build_all_module, "load_package_index", lambda *_args, **_kwargs: PackageIndex()
+        )
+        monkeypatch.setattr(
+            build_all_module, "load_local_repo_index", lambda *_args, **_kwargs: PackageIndex()
+        )
+        monkeypatch.setattr(
+            build_all_module, "merge_package_indexes", lambda *_args: PackageIndex()
+        )
         # Patch plan module's _build_dependency_graph since that's what _run_build_all imports
         import packastack.commands.plan as plan_module
+
         monkeypatch.setattr(plan_module, "_build_dependency_graph", fake_build_dependency_graph)
         monkeypatch.setattr(build_all_module, "save_state", capture_state)
         monkeypatch.setattr(build_all_module, "activity", lambda *_args, **_kwargs: None)
@@ -1635,7 +1701,6 @@ class TestRunBuildAllExecution:
         cfg = {"defaults": {"ubuntu_pockets": ["release"], "ubuntu_components": ["main"]}}
         paths = {
             "cache_root": tmp_path,
-
             "build_root": tmp_path / "build",
             "local_apt_repo": tmp_path / "apt-repo",
             "ubuntu_archive_cache": tmp_path / "ubuntu-archive",
@@ -1650,7 +1715,9 @@ class TestRunBuildAllExecution:
         def fake_discover_packages(**_kwargs: object) -> DiscoveryResult:
             return DiscoveryResult(packages=packages, total_repos=2, source="explicit")
 
-        def fake_build_dependency_graph(**_kwargs: object) -> tuple[DependencyGraph, dict[str, list[str]]]:
+        def fake_build_dependency_graph(
+            **_kwargs: object,
+        ) -> tuple[DependencyGraph, dict[str, list[str]]]:
             return graph, {}
 
         def fake_run_sequential_builds(state: BuildAllState, **_kwargs: object) -> int:
@@ -1675,12 +1742,19 @@ class TestRunBuildAllExecution:
         monkeypatch.setattr(all_runner, "resolve_paths", lambda _cfg: paths)
         monkeypatch.setattr(all_runner, "resolve_series", lambda series: series)
         monkeypatch.setattr(all_runner, "discover_packages", fake_discover_packages)
-        monkeypatch.setattr(all_helpers, "filter_retired_packages", lambda **_kwargs: (packages, [], []))
-        monkeypatch.setattr(all_runner, "load_package_index", lambda *_args, **_kwargs: PackageIndex())
-        monkeypatch.setattr(all_runner, "load_local_repo_index", lambda *_args, **_kwargs: PackageIndex())
+        monkeypatch.setattr(
+            all_helpers, "filter_retired_packages", lambda **_kwargs: (packages, [], [])
+        )
+        monkeypatch.setattr(
+            all_runner, "load_package_index", lambda *_args, **_kwargs: PackageIndex()
+        )
+        monkeypatch.setattr(
+            all_runner, "load_local_repo_index", lambda *_args, **_kwargs: PackageIndex()
+        )
         monkeypatch.setattr(all_runner, "merge_package_indexes", lambda *_args: PackageIndex())
         # Patch plan module's _build_dependency_graph since that's what _run_build_all imports
         import packastack.commands.plan as plan_module
+
         monkeypatch.setattr(plan_module, "_build_dependency_graph", fake_build_dependency_graph)
         monkeypatch.setattr(all_runner, "_run_sequential_builds", fake_run_sequential_builds)
         monkeypatch.setattr(all_runner, "generate_build_all_reports", fake_generate_reports)
@@ -1747,9 +1821,15 @@ class TestRunBuildAllRetired:
             "_filter_retired_packages",
             lambda **_kwargs: (["c"], ["a"], ["b"]),
         )
-        monkeypatch.setattr(all_runner_module, "load_package_index", lambda *_args, **_kwargs: PackageIndex())
-        monkeypatch.setattr(all_runner_module, "load_local_repo_index", lambda *_args, **_kwargs: PackageIndex())
-        monkeypatch.setattr(all_runner_module, "merge_package_indexes", lambda *_args: PackageIndex())
+        monkeypatch.setattr(
+            all_runner_module, "load_package_index", lambda *_args, **_kwargs: PackageIndex()
+        )
+        monkeypatch.setattr(
+            all_runner_module, "load_local_repo_index", lambda *_args, **_kwargs: PackageIndex()
+        )
+        monkeypatch.setattr(
+            all_runner_module, "merge_package_indexes", lambda *_args: PackageIndex()
+        )
         # _build_dependency_graph is imported locally from plan module
         monkeypatch.setattr(
             plan_module,
@@ -1796,7 +1876,6 @@ class TestRunBuildAllDevelTarget:
         cfg = {"defaults": {"ubuntu_pockets": ["release"], "ubuntu_components": ["main"]}}
         paths = {
             "cache_root": tmp_path,
-
             "build_root": tmp_path / "build",
             "local_apt_repo": tmp_path / "apt-repo",
             "ubuntu_archive_cache": tmp_path / "ubuntu-archive",
@@ -1816,13 +1895,18 @@ class TestRunBuildAllDevelTarget:
         )
         # Patch plan module's _build_dependency_graph
         import packastack.commands.plan as plan_module
+
         monkeypatch.setattr(
             plan_module,
             "_build_dependency_graph",
             lambda **_kwargs: (DependencyGraph(), {}),
         )
-        monkeypatch.setattr(all_runner, "load_package_index", lambda *_args, **_kwargs: PackageIndex())
-        monkeypatch.setattr(all_runner, "load_local_repo_index", lambda *_args, **_kwargs: PackageIndex())
+        monkeypatch.setattr(
+            all_runner, "load_package_index", lambda *_args, **_kwargs: PackageIndex()
+        )
+        monkeypatch.setattr(
+            all_runner, "load_local_repo_index", lambda *_args, **_kwargs: PackageIndex()
+        )
         monkeypatch.setattr(all_runner, "merge_package_indexes", lambda *_args: PackageIndex())
         monkeypatch.setattr(all_runner, "activity", lambda _scope, msg: messages.append(msg))
 

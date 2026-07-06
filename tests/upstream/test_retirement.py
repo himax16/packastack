@@ -63,8 +63,8 @@ class TestLoadProjectConfig:
         """Should parse project entries and detect retirement."""
         _write_projects_yaml(
             tmp_path,
-            "- project: openstack/glance\n  description: \"RETIRED: archived\"\n"
-            "- project: openstack/nova\n  description: \"Active\"\n",
+            '- project: openstack/glance\n  description: "RETIRED: archived"\n'
+            '- project: openstack/nova\n  description: "Active"\n',
         )
 
         data = load_project_config(tmp_path)
@@ -81,12 +81,15 @@ class TestMapPackageToUpstream:
 
     def test_registry_opendev_url(self) -> None:
         """Should parse opendev URLs from registry entries."""
+
         class FakeRegistry:
             def has_explicit_entry(self, _pkg: str) -> bool:
                 return True
 
             def resolve(self, _pkg: str, openstack_governed: bool = True) -> object:
-                config = SimpleNamespace(upstream=SimpleNamespace(url="https://opendev.org/openstack/glance.git"))
+                config = SimpleNamespace(
+                    upstream=SimpleNamespace(url="https://opendev.org/openstack/glance.git")
+                )
                 return SimpleNamespace(project="glance", config=config)
 
         upstream, confidence = map_package_to_upstream("glance", registry=FakeRegistry())
@@ -96,12 +99,15 @@ class TestMapPackageToUpstream:
 
     def test_registry_github_url(self) -> None:
         """Should parse GitHub URLs from registry entries."""
+
         class FakeRegistry:
             def has_explicit_entry(self, _pkg: str) -> bool:
                 return True
 
             def resolve(self, _pkg: str, openstack_governed: bool = True) -> object:
-                config = SimpleNamespace(upstream=SimpleNamespace(url="https://github.com/gnocchixyz/gnocchi.git"))
+                config = SimpleNamespace(
+                    upstream=SimpleNamespace(url="https://github.com/gnocchixyz/gnocchi.git")
+                )
                 return SimpleNamespace(project="gnocchi", config=config)
 
         upstream, confidence = map_package_to_upstream("gnocchi", registry=FakeRegistry())
@@ -111,6 +117,7 @@ class TestMapPackageToUpstream:
 
     def test_registry_project_fallback(self) -> None:
         """Should fall back to openstack/<project> when URL missing."""
+
         class FakeRegistry:
             def has_explicit_entry(self, _pkg: str) -> bool:
                 return True
@@ -152,7 +159,9 @@ class TestMapPackageToUpstream:
         confidence: MappingConfidence,
     ) -> None:
         """Should apply heuristic mapping for common patterns."""
-        upstream, conf = map_package_to_upstream(source_package, registry=None, releases_deliverables=None)
+        upstream, conf = map_package_to_upstream(
+            source_package, registry=None, releases_deliverables=None
+        )
 
         assert upstream == expected
         assert conf == confidence
@@ -200,7 +209,7 @@ class TestCheckRetirement:
         """Should mark retired when project-config says RETIRED."""
         _write_projects_yaml(
             tmp_path,
-            "- project: openstack/glance\n  description: \"RETIRED: archived\"\n",
+            '- project: openstack/glance\n  description: "RETIRED: archived"\n',
         )
 
         info = check_retirement(
@@ -218,7 +227,7 @@ class TestCheckRetirement:
         """Should mark possibly retired when releases inference is stale."""
         _write_projects_yaml(
             tmp_path,
-            "- project: openstack/murano\n  description: \"Active\"\n",
+            '- project: openstack/murano\n  description: "Active"\n',
         )
         releases = tmp_path / "releases"
         deliverables = releases / "deliverables"
@@ -264,7 +273,9 @@ class TestRetirementChecker:
 
         monkeypatch.setattr(retirement_module, "check_retirement", fake_check_retirement)
 
-        checker = RetirementChecker(project_config_path=None, releases_path=None, target_series="dalmatian")
+        checker = RetirementChecker(
+            project_config_path=None, releases_path=None, target_series="dalmatian"
+        )
 
         batch = checker.check_batch(["a", "b", "c"])
         assert batch["a"].status == RetirementStatus.RETIRED

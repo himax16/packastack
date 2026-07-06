@@ -95,7 +95,9 @@ class TestCreateUbuntuArchiveFiles:
         ubuntu_cache = temp_home / "ubuntu-archive"
         ubuntu_cache.mkdir(parents=True)
 
-        init_cmd._create_ubuntu_archive_files(ubuntu_cache, mirror="http://mirror.example.com/ubuntu")
+        init_cmd._create_ubuntu_archive_files(
+            ubuntu_cache, mirror="http://mirror.example.com/ubuntu"
+        )
 
         config_data = json.loads((ubuntu_cache / "config.json").read_text())
         assert config_data["mirror"] == "http://mirror.example.com/ubuntu"
@@ -105,7 +107,10 @@ class TestCreateUbuntuArchiveFiles:
         ubuntu_cache = temp_home / "ubuntu-archive"
         ubuntu_cache.mkdir(parents=True)
 
-        existing_config = {"mirror": "http://custom.example.com/ubuntu", "last_refresh": "2026-01-01T00:00:00Z"}
+        existing_config = {
+            "mirror": "http://custom.example.com/ubuntu",
+            "last_refresh": "2026-01-01T00:00:00Z",
+        }
         (ubuntu_cache / "config.json").write_text(json.dumps(existing_config))
         (ubuntu_cache / "README.txt").write_text("custom readme\n")
 
@@ -118,9 +123,7 @@ class TestCreateUbuntuArchiveFiles:
 class TestInitCommand:
     """Tests for init command."""
 
-    def test_creates_config_file(
-        self, temp_home: Path, non_tty_stdout: None
-    ) -> None:
+    def test_creates_config_file(self, temp_home: Path, non_tty_stdout: None) -> None:
         config_file = temp_home / ".config" / "packastack" / "config.yaml"
         assert not config_file.exists()
 
@@ -133,9 +136,7 @@ class TestInitCommand:
         assert exc_info.value.code == 0
         assert config_file.exists()
 
-    def test_creates_cache_directories(
-        self, temp_home: Path, non_tty_stdout: None
-    ) -> None:
+    def test_creates_cache_directories(self, temp_home: Path, non_tty_stdout: None) -> None:
         cache_root = temp_home / ".cache" / "packastack"
 
         with mock.patch("git.Repo.clone_from"):
@@ -149,9 +150,7 @@ class TestInitCommand:
         assert (cache_root / "ubuntu-archive" / "snapshots").exists()
         assert (cache_root / "build").exists()
 
-    def test_creates_summary_json(
-        self, temp_home: Path, non_tty_stdout: None
-    ) -> None:
+    def test_creates_summary_json(self, temp_home: Path, non_tty_stdout: None) -> None:
         with mock.patch("git.Repo.clone_from"):
             with mock.patch("subprocess.run") as mock_subprocess:
                 mock_subprocess.return_value = mock.Mock(stdout="resolute\n", returncode=0)
@@ -184,9 +183,7 @@ class TestInitCommand:
         # Config should not be overwritten
         assert "my custom comment" in mock_config.read_text()
 
-    def test_exits_with_code_0_on_success(
-        self, temp_home: Path, non_tty_stdout: None
-    ) -> None:
+    def test_exits_with_code_0_on_success(self, temp_home: Path, non_tty_stdout: None) -> None:
         with mock.patch("git.Repo.clone_from"):
             with mock.patch("subprocess.run") as mock_subprocess:
                 mock_subprocess.return_value = mock.Mock(stdout="resolute\n", returncode=0)
@@ -233,9 +230,7 @@ class TestInitCommand:
         summary = json.loads((run_dirs[0] / "logs" / "summary.json").read_text())
         assert "tools_available" not in summary["steps_completed"]
 
-    def test_resolves_devel_series(
-        self, temp_home: Path, non_tty_stdout: None
-    ) -> None:
+    def test_resolves_devel_series(self, temp_home: Path, non_tty_stdout: None) -> None:
         with mock.patch("git.Repo.clone_from"):
             with mock.patch("subprocess.run") as mock_subprocess:
                 mock_subprocess.return_value = mock.Mock(stdout="resolute\n", returncode=0)

@@ -30,9 +30,7 @@ class TestFixSudoersArgs:
         result = fix_sudoers_args(sudoers)
 
         assert result is True
-        assert sudoers.read_text() == (
-            "cinder ALL = (root) NOPASSWD: /usr/bin/cinder-rootwrap\n"
-        )
+        assert sudoers.read_text() == ("cinder ALL = (root) NOPASSWD: /usr/bin/cinder-rootwrap\n")
 
     def test_strips_config_path_without_wildcard(self, tmp_path: Path) -> None:
         """Removes config path arg even when there's no trailing wildcard."""
@@ -44,23 +42,17 @@ class TestFixSudoersArgs:
         result = fix_sudoers_args(sudoers)
 
         assert result is True
-        assert sudoers.read_text() == (
-            "manila ALL = (root) NOPASSWD: /usr/bin/manila-rootwrap\n"
-        )
+        assert sudoers.read_text() == ("manila ALL = (root) NOPASSWD: /usr/bin/manila-rootwrap\n")
 
     def test_strips_wildcard_only(self, tmp_path: Path) -> None:
         """Removes bare wildcard argument."""
         sudoers = tmp_path / "nova_sudoers"
-        sudoers.write_text(
-            "nova ALL = (root) NOPASSWD: /usr/bin/nova-rootwrap *\n"
-        )
+        sudoers.write_text("nova ALL = (root) NOPASSWD: /usr/bin/nova-rootwrap *\n")
 
         result = fix_sudoers_args(sudoers)
 
         assert result is True
-        assert sudoers.read_text() == (
-            "nova ALL = (root) NOPASSWD: /usr/bin/nova-rootwrap\n"
-        )
+        assert sudoers.read_text() == ("nova ALL = (root) NOPASSWD: /usr/bin/nova-rootwrap\n")
 
     def test_no_change_when_no_args(self, tmp_path: Path) -> None:
         """No-op when command already has no arguments."""
@@ -200,9 +192,7 @@ class TestFixSudoersInDebianDir:
         debian = tmp_path / "debian"
         debian.mkdir()
         sudoers = debian / "cinder_sudoers"
-        sudoers.write_text(
-            "cinder ALL = (root) NOPASSWD: /usr/bin/cinder-rootwrap *\n"
-        )
+        sudoers.write_text("cinder ALL = (root) NOPASSWD: /usr/bin/cinder-rootwrap *\n")
         # Make the file unwritable to trigger an OSError on write
         sudoers.chmod(0o444)
         # Also make parent unwritable so we can't recreate it

@@ -230,9 +230,7 @@ class TestParseRequirementLine:
 
     def test_with_environment_marker(self) -> None:
         """Test parsing with environment marker."""
-        result = validated_plan.parse_requirement_line(
-            "oslo.config ; python_version >= '3.8'"
-        )
+        result = validated_plan.parse_requirement_line("oslo.config ; python_version >= '3.8'")
         assert result == "oslo.config"
 
     def test_empty_line(self) -> None:
@@ -300,13 +298,7 @@ class TestParseRequirementsFile:
     def test_valid_file(self, tmp_path: Path) -> None:
         """Test parsing valid requirements file."""
         req_file = tmp_path / "requirements.txt"
-        req_file.write_text(
-            "oslo.config>=1.0\n"
-            "oslo.log\n"
-            "# comment\n"
-            "\n"
-            "requests>=2.0\n"
-        )
+        req_file.write_text("oslo.config>=1.0\noslo.log\n# comment\n\nrequests>=2.0\n")
 
         result = validated_plan.parse_requirements_file(req_file)
         names = [name for name, _ in result]
@@ -384,11 +376,7 @@ class TestParsePyprojectDeps:
     def test_pyproject_no_deps(self, tmp_path: Path) -> None:
         """Test parsing pyproject.toml without dependencies section."""
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text(
-            "[project]\n"
-            "name = 'test'\n"
-            "version = '1.0'\n"
-        )
+        pyproject.write_text("[project]\nname = 'test'\nversion = '1.0'\n")
 
         result = validated_plan.parse_pyproject_deps(pyproject)
         assert result == []
@@ -432,11 +420,14 @@ class TestParseSetupCfgDeps:
     def test_setup_cfg_exception(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test parsing setup.cfg with exception."""
         import configparser
+
         setup_cfg = tmp_path / "setup.cfg"
         setup_cfg.write_text("[options]\ninstall_requires = pkg\n")
 
         # Mock configparser to raise exception
-        def mock_read(self: configparser.ConfigParser, *args: object, **kwargs: object) -> list[str]:
+        def mock_read(
+            self: configparser.ConfigParser, *args: object, **kwargs: object
+        ) -> list[str]:
             raise OSError("Parse failed")
 
         monkeypatch.setattr(configparser.ConfigParser, "read", mock_read)
@@ -602,9 +593,7 @@ class TestResolveDependency:
     def test_resolve_empty_name(self) -> None:
         """Test resolving empty dependency name."""
         mock_ubuntu = MagicMock()
-        version, source = validated_plan.resolve_dependency(
-            "", None, None, mock_ubuntu
-        )
+        version, source = validated_plan.resolve_dependency("", None, None, mock_ubuntu)
         assert version is None
         assert source == ""
 
@@ -917,7 +906,7 @@ class TestValidateDependenciesRecursive:
             dep_dir = tmp_path / f"pkg{i}"
             dep_dir.mkdir()
             if i < 14:
-                (dep_dir / "requirements.txt").write_text(f"pkg{i+1}>=1.0\n")
+                (dep_dir / "requirements.txt").write_text(f"pkg{i + 1}>=1.0\n")
 
         result = validated_plan.validate_dependencies_recursive(
             initial_packages=["pkg0"],
@@ -931,4 +920,3 @@ class TestValidateDependenciesRecursive:
 
         # Should have warning about max depth
         assert any("Max depth" in w for w in result.warnings)
-

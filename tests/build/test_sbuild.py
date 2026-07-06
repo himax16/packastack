@@ -337,8 +337,7 @@ class TestProposedPocket:
             if arg == "--chroot-setup-commands" and i + 1 < len(cmd)
         ]
         assert any(
-            "deb http://ca.archive.ubuntu.com/ubuntu noble-proposed "
-            "main universe multiverse" in s
+            "deb http://ca.archive.ubuntu.com/ubuntu noble-proposed main universe multiverse" in s
             for s in setup_args
         )
 
@@ -540,17 +539,20 @@ class TestRunSbuild:
         mock_result = MagicMock()
         mock_result.returncode = 0
 
-        with patch("packastack.build.sbuild.is_sbuild_available", return_value=True), \
-             patch("packastack.build.sbuild.subprocess.run", return_value=mock_result), \
-             patch("packastack.build.sbuild.discover_candidate_directories") as mock_discover, \
-             patch("packastack.build.sbuild.collect_artifacts") as mock_collect:
-
+        with (
+            patch("packastack.build.sbuild.is_sbuild_available", return_value=True),
+            patch("packastack.build.sbuild.subprocess.run", return_value=mock_result),
+            patch("packastack.build.sbuild.discover_candidate_directories") as mock_discover,
+            patch("packastack.build.sbuild.collect_artifacts") as mock_collect,
+        ):
             # Setup mock candidates
             from packastack.build.sbuildrc import CandidateDirectories
+
             mock_discover.return_value = CandidateDirectories()
 
             # Setup mock collection with no binaries (to test the failure path)
             from packastack.build.collector import CollectionResult
+
             mock_collect.return_value = CollectionResult(
                 success=False,
                 validation_message="No binary packages found",
@@ -583,12 +585,14 @@ class TestRunSbuild:
             )
             return mock_result
 
-        with patch("packastack.build.sbuild.is_sbuild_available", return_value=True), \
-             patch("packastack.build.sbuild.subprocess.run", side_effect=fake_run), \
-             patch("packastack.build.sbuild.discover_candidate_directories") as mock_discover, \
-             patch("packastack.build.sbuild.collect_artifacts") as mock_collect:
-
+        with (
+            patch("packastack.build.sbuild.is_sbuild_available", return_value=True),
+            patch("packastack.build.sbuild.subprocess.run", side_effect=fake_run),
+            patch("packastack.build.sbuild.discover_candidate_directories") as mock_discover,
+            patch("packastack.build.sbuild.collect_artifacts") as mock_collect,
+        ):
             from packastack.build.sbuildrc import CandidateDirectories
+
             mock_discover.return_value = CandidateDirectories()
             mock_collect.return_value = CollectionResult(
                 success=True,
@@ -616,11 +620,13 @@ class TestRunSbuild:
         mock_result = MagicMock()
         mock_result.returncode = 0
 
-        with patch("packastack.build.sbuild.is_sbuild_available", return_value=True), \
-             patch("packastack.build.sbuild.subprocess.run", return_value=mock_result), \
-             patch("packastack.build.sbuild.discover_candidate_directories") as mock_discover:
-
+        with (
+            patch("packastack.build.sbuild.is_sbuild_available", return_value=True),
+            patch("packastack.build.sbuild.subprocess.run", return_value=mock_result),
+            patch("packastack.build.sbuild.discover_candidate_directories") as mock_discover,
+        ):
             from packastack.build.sbuildrc import CandidateDirectories
+
             candidates = CandidateDirectories()
             candidates.add_build_dir(user_build_dir, "~/.sbuildrc")
             mock_discover.return_value = candidates
@@ -653,17 +659,23 @@ class TestRunSbuild:
         collected = CollectionResult(success=True)
         from packastack.build.collector import CollectedFile
 
-        collected.logs.append(CollectedFile(real_log, real_log, "hash", real_log.stat().st_size, real_log.stat().st_mtime))
+        collected.logs.append(
+            CollectedFile(
+                real_log, real_log, "hash", real_log.stat().st_size, real_log.stat().st_mtime
+            )
+        )
 
         mock_result = MagicMock()
         mock_result.returncode = 0
 
-        with patch("packastack.build.sbuild.is_sbuild_available", return_value=True), \
-             patch("packastack.build.sbuild.subprocess.run", return_value=mock_result), \
-             patch("packastack.build.sbuild.discover_candidate_directories") as mock_discover, \
-             patch("packastack.build.sbuild.collect_artifacts", return_value=collected):
-
+        with (
+            patch("packastack.build.sbuild.is_sbuild_available", return_value=True),
+            patch("packastack.build.sbuild.subprocess.run", return_value=mock_result),
+            patch("packastack.build.sbuild.discover_candidate_directories") as mock_discover,
+            patch("packastack.build.sbuild.collect_artifacts", return_value=collected),
+        ):
             from packastack.build.sbuildrc import CandidateDirectories
+
             mock_discover.return_value = CandidateDirectories()
 
             result = run_sbuild(config)
@@ -690,18 +702,22 @@ class TestRunSbuild:
         from packastack.build.collector import CollectedFile
 
         collected.logs.append(
-            CollectedFile(real_log, real_log, "hash", real_log.stat().st_size, real_log.stat().st_mtime)
+            CollectedFile(
+                real_log, real_log, "hash", real_log.stat().st_size, real_log.stat().st_mtime
+            )
         )
 
         mock_result = MagicMock()
         mock_result.returncode = 0
 
-        with patch("packastack.build.sbuild.is_sbuild_available", return_value=True), \
-             patch("packastack.build.sbuild.subprocess.run", return_value=mock_result), \
-             patch("packastack.build.sbuild.discover_candidate_directories") as mock_discover, \
-             patch("packastack.build.sbuild.collect_artifacts", return_value=collected):
-
+        with (
+            patch("packastack.build.sbuild.is_sbuild_available", return_value=True),
+            patch("packastack.build.sbuild.subprocess.run", return_value=mock_result),
+            patch("packastack.build.sbuild.discover_candidate_directories") as mock_discover,
+            patch("packastack.build.sbuild.collect_artifacts", return_value=collected),
+        ):
             from packastack.build.sbuildrc import CandidateDirectories
+
             mock_discover.return_value = CandidateDirectories()
 
             result = run_sbuild(config)
@@ -722,11 +738,13 @@ class TestRunSbuild:
         mock_result = MagicMock()
         mock_result.returncode = 0  # sbuild succeeds
 
-        with patch("packastack.build.sbuild.is_sbuild_available", return_value=True), \
-             patch("packastack.build.sbuild.subprocess.run", return_value=mock_result), \
-             patch("packastack.build.sbuild.discover_candidate_directories") as mock_discover:
-
+        with (
+            patch("packastack.build.sbuild.is_sbuild_available", return_value=True),
+            patch("packastack.build.sbuild.subprocess.run", return_value=mock_result),
+            patch("packastack.build.sbuild.discover_candidate_directories") as mock_discover,
+        ):
             from packastack.build.sbuildrc import CandidateDirectories
+
             mock_discover.return_value = CandidateDirectories()
 
             result = run_sbuild(config)
@@ -751,11 +769,13 @@ class TestRunSbuild:
         mock_result = MagicMock()
         mock_result.returncode = 0
 
-        with patch("packastack.build.sbuild.is_sbuild_available", return_value=True), \
-             patch("packastack.build.sbuild.subprocess.run", return_value=mock_result), \
-             patch("packastack.build.sbuild.discover_candidate_directories") as mock_discover:
-
+        with (
+            patch("packastack.build.sbuild.is_sbuild_available", return_value=True),
+            patch("packastack.build.sbuild.subprocess.run", return_value=mock_result),
+            patch("packastack.build.sbuild.discover_candidate_directories") as mock_discover,
+        ):
             from packastack.build.sbuildrc import CandidateDirectories
+
             candidates = CandidateDirectories()
             candidates.add_build_dir(build_dir, "test")
             mock_discover.return_value = candidates
@@ -767,6 +787,7 @@ class TestRunSbuild:
 
         # Verify report content
         import json
+
         report_data = json.loads(result.report_path.read_text())
         assert "sbuild_command" in report_data
         assert "sbuild_exit_code" in report_data
@@ -784,11 +805,13 @@ class TestRunSbuild:
         mock_result = MagicMock()
         mock_result.returncode = 0
 
-        with patch("packastack.build.sbuild.is_sbuild_available", return_value=True), \
-             patch("packastack.build.sbuild.subprocess.run", return_value=mock_result), \
-             patch("packastack.build.sbuild.discover_candidate_directories") as mock_discover:
-
+        with (
+            patch("packastack.build.sbuild.is_sbuild_available", return_value=True),
+            patch("packastack.build.sbuild.subprocess.run", return_value=mock_result),
+            patch("packastack.build.sbuild.discover_candidate_directories") as mock_discover,
+        ):
             from packastack.build.sbuildrc import CandidateDirectories
+
             mock_discover.return_value = CandidateDirectories()
 
             result = run_sbuild(config)
@@ -809,8 +832,10 @@ class TestRunSbuild:
             run_log_dir=tmp_path / "logs",
         )
 
-        with patch("packastack.build.sbuild.is_sbuild_available", return_value=True), \
-             patch("packastack.build.sbuild.subprocess.run") as mock_run:
+        with (
+            patch("packastack.build.sbuild.is_sbuild_available", return_value=True),
+            patch("packastack.build.sbuild.subprocess.run") as mock_run,
+        ):
             mock_run.side_effect = subprocess.TimeoutExpired(cmd="sbuild", timeout=3600)
 
             result = run_sbuild(config, timeout=3600)
@@ -841,11 +866,13 @@ class TestRunSbuild:
         mock_result = MagicMock()
         mock_result.returncode = 0
 
-        with patch("packastack.build.sbuild.is_sbuild_available", return_value=True), \
-             patch("packastack.build.sbuild.subprocess.run", return_value=mock_result), \
-             patch("packastack.build.sbuild.discover_candidate_directories") as mock_discover:
-
+        with (
+            patch("packastack.build.sbuild.is_sbuild_available", return_value=True),
+            patch("packastack.build.sbuild.subprocess.run", return_value=mock_result),
+            patch("packastack.build.sbuild.discover_candidate_directories") as mock_discover,
+        ):
             from packastack.build.sbuildrc import CandidateDirectories
+
             candidates = CandidateDirectories()
             candidates.add_build_dir(build_dir, "test")
             candidates.add_log_dir(log_dir, "~/.sbuildrc")

@@ -322,9 +322,7 @@ class TestLoadProjectReleases:
             "releases": [
                 {
                     "version": "3.10.0",
-                    "projects": [
-                        {"repo": "openstack/python-aodhclient", "hash": "abc123"}
-                    ],
+                    "projects": [{"repo": "openstack/python-aodhclient", "hash": "abc123"}],
                 },
             ],
             "release-model": "cycle-with-intermediary",
@@ -353,9 +351,7 @@ class TestLoadProjectReleases:
             "releases": [
                 {
                     "version": "5.4.0",
-                    "projects": [
-                        {"repo": "openstack/glance_store", "hash": "abc123"}
-                    ],
+                    "projects": [{"repo": "openstack/glance_store", "hash": "abc123"}],
                 },
             ],
             "release-model": "cycle-with-intermediary",
@@ -385,9 +381,7 @@ class TestIsSnapshotEligible:
     """
 
     def test_nonexistent_project(self, releases_repo: Path) -> None:
-        eligible, reason, preferred = is_snapshot_eligible(
-            releases_repo, "2024.1", "nonexistent"
-        )
+        eligible, reason, preferred = is_snapshot_eligible(releases_repo, "2024.1", "nonexistent")
         assert eligible is False
         assert "not found" in reason
         assert preferred is None
@@ -403,9 +397,7 @@ class TestIsSnapshotEligible:
         }
         (dalmatian_dir / "new-project.yaml").write_text(yaml.dump(no_release_data))
 
-        eligible, reason, preferred = is_snapshot_eligible(
-            releases_repo, "2024.2", "new-project"
-        )
+        eligible, reason, preferred = is_snapshot_eligible(releases_repo, "2024.2", "new-project")
         assert eligible is True
         assert "no releases" in reason.lower()
         assert preferred is None
@@ -413,9 +405,7 @@ class TestIsSnapshotEligible:
     def test_final_release_blocks(self, releases_repo: Path) -> None:
         """Final release exists, snapshot should be blocked."""
         # Nova has final releases (26.0.0, 26.1.0) in the fixture
-        eligible, reason, preferred = is_snapshot_eligible(
-            releases_repo, "2024.2", "nova"
-        )
+        eligible, reason, preferred = is_snapshot_eligible(releases_repo, "2024.2", "nova")
         assert eligible is False
         assert "26.1.0" in reason  # Latest release version
         assert preferred == "26.1.0"
@@ -434,9 +424,7 @@ class TestIsSnapshotEligible:
         }
         (dalmatian_dir / "beta-project.yaml").write_text(yaml.dump(beta_data))
 
-        eligible, reason, preferred = is_snapshot_eligible(
-            releases_repo, "2024.2", "beta-project"
-        )
+        eligible, reason, preferred = is_snapshot_eligible(releases_repo, "2024.2", "beta-project")
         assert eligible is False
         assert "1.0.0.0b2" in reason
         assert preferred == "1.0.0.0b2"
@@ -454,9 +442,7 @@ class TestIsSnapshotEligible:
         }
         (dalmatian_dir / "rc-project.yaml").write_text(yaml.dump(rc_data))
 
-        eligible, reason, preferred = is_snapshot_eligible(
-            releases_repo, "2024.2", "rc-project"
-        )
+        eligible, reason, preferred = is_snapshot_eligible(releases_repo, "2024.2", "rc-project")
         assert eligible is False
         assert "2.0.0.0rc1" in reason
         assert preferred == "2.0.0.0rc1"
@@ -489,9 +475,7 @@ class TestIsSnapshotEligible:
 
     def test_library_with_release_blocked(self, releases_repo: Path) -> None:
         """Library with a release should be blocked (has final version 9.4.0)."""
-        eligible, reason, preferred = is_snapshot_eligible(
-            releases_repo, "2024.2", "oslo.config"
-        )
+        eligible, reason, preferred = is_snapshot_eligible(releases_repo, "2024.2", "oslo.config")
         assert eligible is False
         assert "9.4.0" in reason
         assert preferred == "9.4.0"
@@ -667,9 +651,7 @@ class TestProjectToPackageName:
 
         # Create oslo-config package
         (tmp_path / "oslo-config" / "debian").mkdir(parents=True)
-        (tmp_path / "oslo-config" / "debian" / "control").write_text(
-            "Source: oslo-config\n"
-        )
+        (tmp_path / "oslo-config" / "debian" / "control").write_text("Source: oslo-config\n")
 
         result = project_to_package_name("oslo.config", tmp_path)
         assert result == "oslo-config"

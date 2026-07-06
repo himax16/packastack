@@ -104,8 +104,12 @@ class TestEnsureDirectories:
         assert result["cache_root"] == (temp_home / "custom-cache").resolve()
         assert (temp_home / "custom-cache").exists()
         # Derived paths should fall back to the custom cache root when omitted.
-        assert result["upstream_tarballs"] == (temp_home / "custom-cache" / "upstream-tarballs").resolve()
+        assert (
+            result["upstream_tarballs"]
+            == (temp_home / "custom-cache" / "upstream-tarballs").resolve()
+        )
         assert result["upstream_tarballs"].exists()
-        assert result["openstack_project_config"] == (
-            temp_home / "custom-cache" / "openstack-project-config"
-        ).resolve()
+        assert (
+            result["openstack_project_config"]
+            == (temp_home / "custom-cache" / "openstack-project-config").resolve()
+        )

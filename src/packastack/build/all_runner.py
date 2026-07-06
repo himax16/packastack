@@ -151,7 +151,9 @@ def _run_build_all(
     cycles: list[list[str]] = []
 
     if resume:
-        resume_state_dir = build_root / ".build-all" / resume_run_id / "state" if resume_run_id else state_dir
+        resume_state_dir = (
+            build_root / ".build-all" / resume_run_id / "state" if resume_run_id else state_dir
+        )
 
         state = load_state(resume_state_dir)
         if state is None:
@@ -161,7 +163,10 @@ def _run_build_all(
             # Fall through to new run
         else:
             activity("all", f"Resuming run: {state.run_id}")
-            activity("all", f"  Previous: {len(state.get_success_packages())} succeeded, {len(state.get_failed_packages())} failed")
+            activity(
+                "all",
+                f"  Previous: {len(state.get_success_packages())} succeeded, {len(state.get_failed_packages())} failed",
+            )
 
             if retry_failed:
                 # Reset failed packages to pending
@@ -201,13 +206,15 @@ def _run_build_all(
         activity("all", f"  Build targets: {len(discovery.packages)}")
         activity("all", f"  Source: {discovery.source}")
 
-        run.log_event({
-            "event": "discovery.complete",
-            "total_repos": discovery.total_repos,
-            "filtered": len(discovery.filtered_repos),
-            "packages": len(discovery.packages),
-            "source": discovery.source,
-        })
+        run.log_event(
+            {
+                "event": "discovery.complete",
+                "total_repos": discovery.total_repos,
+                "filtered": len(discovery.filtered_repos),
+                "packages": len(discovery.packages),
+                "source": discovery.source,
+            }
+        )
 
         project_config_path = paths.get("openstack_project_config")
         filtered_packages, retired, possibly_retired = _filter_retired_packages(
@@ -222,18 +229,22 @@ def _run_build_all(
             discovery.packages = filtered_packages
             if retired:
                 activity("all", f"Excluded retired packages: {len(retired)}")
-                run.log_event({
-                    "event": "build_all.retired_excluded",
-                    "count": len(retired),
-                    "packages": retired,
-                })
+                run.log_event(
+                    {
+                        "event": "build_all.retired_excluded",
+                        "count": len(retired),
+                        "packages": retired,
+                    }
+                )
             if possibly_retired:
                 activity("all", f"Excluded possibly retired packages: {len(possibly_retired)}")
-                run.log_event({
-                    "event": "build_all.possibly_retired_excluded",
-                    "count": len(possibly_retired),
-                    "packages": possibly_retired,
-                })
+                run.log_event(
+                    {
+                        "event": "build_all.possibly_retired_excluded",
+                        "count": len(possibly_retired),
+                        "packages": possibly_retired,
+                    }
+                )
             activity("all", f"  Build targets after retirement filter: {len(discovery.packages)}")
 
         # Filter by managed_packages from cached file (fetched by init/refresh)
@@ -246,14 +257,19 @@ def _run_build_all(
                 discovery.packages, managed_packages
             )
             if skipped:
-                activity("all", f"Filtered to managed packages: {len(managed_filtered)} of {len(discovery.packages)}")
+                activity(
+                    "all",
+                    f"Filtered to managed packages: {len(managed_filtered)} of {len(discovery.packages)}",
+                )
                 activity("all", f"  Skipped (not in managed_packages): {len(skipped)}")
-                run.log_event({
-                    "event": "build_all.managed_packages_filtered",
-                    "managed_count": len(managed_filtered),
-                    "skipped_count": len(skipped),
-                    "skipped": skipped[:20],  # Only log first 20 to avoid huge logs
-                })
+                run.log_event(
+                    {
+                        "event": "build_all.managed_packages_filtered",
+                        "managed_count": len(managed_filtered),
+                        "skipped_count": len(skipped),
+                        "skipped": skipped[:20],  # Only log first 20 to avoid huge logs
+                    }
+                )
                 discovery.packages = managed_filtered
 
         # Load package indexes for dependency resolution
@@ -314,30 +330,42 @@ def _run_build_all(
             openstack_series=openstack_target,
         )
 
-        run.log_event({
-            "event": "build_all.graph_built",
-            "nodes": len(graph.nodes),
-            "edges": sum(len(e) for e in graph.edges.values()),
-        })
+        run.log_event(
+            {
+                "event": "build_all.graph_built",
+                "nodes": len(graph.nodes),
+                "edges": sum(len(e) for e in graph.edges.values()),
+            }
+        )
 
-        activity("all", f"Graph: {len(graph.nodes)} packages, {sum(len(e) for e in graph.edges.values())} dependencies")
+        activity(
+            "all",
+            f"Graph: {len(graph.nodes)} packages, {sum(len(e) for e in graph.edges.values())} dependencies",
+        )
 
         # Report MIR candidates if any
         if mir_candidates:
-            activity("all", f"MIR candidates: {sum(len(d) for d in mir_candidates.values())} dependencies")
-            run.log_event({
-                "event": "build_all.mir_candidates",
-                "candidates": mir_candidates,
-            })
+            activity(
+                "all",
+                f"MIR candidates: {sum(len(d) for d in mir_candidates.values())} dependencies",
+            )
+            run.log_event(
+                {
+                    "event": "build_all.mir_candidates",
+                    "candidates": mir_candidates,
+                }
+            )
 
         # Detect cycles
         cycles = graph.detect_cycles()
         if cycles:
             cycle_edges = graph.get_cycle_edges()
-            run.log_event({
-                "event": "build_all.cycle_edges",
-                "edges": cycle_edges,
-            })
+            run.log_event(
+                {
+                    "event": "build_all.cycle_edges",
+                    "edges": cycle_edges,
+                }
+            )
             activity("all", f"Warning: {len(cycles)} dependency cycles detected")
             for cycle in cycles[:5]:
                 activity("all", f"  Cycle: {' -> '.join(cycle)}")
@@ -347,16 +375,20 @@ def _run_build_all(
             suggestions = suggest_cycle_edge_exclusions(
                 edges=cycle_edges,
                 packaging_repos={pkg: build_root / pkg for pkg in discovery.packages},
-                upstream_versions=build_upstream_versions_from_packaging(discovery.packages, build_root),
+                upstream_versions=build_upstream_versions_from_packaging(
+                    discovery.packages, build_root
+                ),
                 source_to_project=source_to_project,
                 package_index=pkg_index,
                 upstream_cache_base=paths.get("upstream_tarballs"),
             )
             if suggestions:
-                run.log_event({
-                    "event": "build_all.cycle_exclusion_suggestions",
-                    "suggestions": [suggestion.to_dict() for suggestion in suggestions],
-                })
+                run.log_event(
+                    {
+                        "event": "build_all.cycle_exclusion_suggestions",
+                        "suggestions": [suggestion.to_dict() for suggestion in suggestions],
+                    }
+                )
                 activity(
                     "all",
                     f"Suggested {len(suggestions)} edge exclusion(s) based on upstream requirements",
@@ -639,7 +671,10 @@ def _run_sequential_builds(
 
             # Progress update every 10 packages
             if built_index % 10 == 0:
-                activity("all", f"Progress: {built} ok, {len(failed_set)} fail, {total - built_index} remaining")
+                activity(
+                    "all",
+                    f"Progress: {built} ok, {len(failed_set)} fail, {total - built_index} remaining",
+                )
 
     return EXIT_SUCCESS if not failed_set else EXIT_ALL_BUILD_FAILED
 
@@ -700,7 +735,9 @@ def _run_parallel_builds(
     lock = threading.Lock()
     host_arch = get_host_arch()
 
-    def on_complete(pkg: str, success: bool, failure_type: FailureType | None, message: str, log_path: str) -> None:
+    def on_complete(
+        pkg: str, success: bool, failure_type: FailureType | None, message: str, log_path: str
+    ) -> None:
         nonlocal built
         with lock:
             if success:
@@ -758,7 +795,10 @@ def _run_parallel_builds(
                 break
             batch_num += 1
 
-            activity("all", f"Batch {batch_num}: {len(batch)} packages (parallel={min(parallel, len(batch))})")
+            activity(
+                "all",
+                f"Batch {batch_num}: {len(batch)} packages (parallel={min(parallel, len(batch))})",
+            )
 
             with concurrent.futures.ThreadPoolExecutor(max_workers=parallel) as executor:
                 futures = {}
@@ -804,7 +844,9 @@ def _run_parallel_builds(
                     if progress and task is not None:
                         in_flight.discard(pkg)
                         if in_flight:
-                            progress.update(task, description=f"Building {len(in_flight)} packages")
+                            progress.update(
+                                task, description=f"Building {len(in_flight)} packages"
+                            )
                         progress.advance(task)
 
             # Regenerate local repo indexes after each batch completes
@@ -815,7 +857,9 @@ def _run_parallel_builds(
                 activity("all", f"Stopping: failure limit reached ({len(failed_set)} failures)")
                 break
 
-            activity("all", f"Batch {batch_num} complete: {built} ok, {len(failed_set)} fail total")
+            activity(
+                "all", f"Batch {batch_num} complete: {built} ok, {len(failed_set)} fail total"
+            )
 
     return EXIT_SUCCESS if not failed_set else EXIT_ALL_BUILD_FAILED
 

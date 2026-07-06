@@ -40,6 +40,7 @@ if TYPE_CHECKING:
     # For type checking only: run_command returns a tuple in packastack.debpkg.gbp
     pass
 
+
 @dataclass
 class CommandResult:
     """Simple command result used by git helpers.
@@ -377,4 +378,3 @@ def git_commit(
     # Execute and normalize result into CommandResult
     rc, out, err = run_command(cmd, cwd=repo_path, env=env)
     return CommandResult(returncode=rc, stdout=out, stderr=err)
-

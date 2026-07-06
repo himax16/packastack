@@ -628,4 +628,3 @@ Description: Test package
             control_path = Path(tmpdir) / "control"
             result = ensure_misc_pre_depends(control_path)
             assert result is False
-

@@ -215,7 +215,9 @@ override_dh_installman:
             elif in_override and not line.startswith("\t") and line.strip():
                 # End of override, insert before next target
                 if not added and not any("sphinx-build -b man" in nl for nl in new_lines):
-                    new_lines.insert(-1, f"\tPYTHONPATH=. sphinx-build -b man {doc_source_dir} debian/man")
+                    new_lines.insert(
+                        -1, f"\tPYTHONPATH=. sphinx-build -b man {doc_source_dir} debian/man"
+                    )
                     modified = True
                     added = True
                 in_override = False
@@ -352,7 +354,9 @@ def apply_man_pages_support(workspace: Path) -> ManPagesResult:
     if control_modified:
         changelog_entries.append("d/control: Add python3-sphinx to Build-Depends for man pages")
     if rules_modified:
-        changelog_entries.append("d/rules: Build and install man pages from upstream Sphinx documentation")
+        changelog_entries.append(
+            "d/rules: Build and install man pages from upstream Sphinx documentation"
+        )
     if manpages_created:
         changelog_entries.append(f"d/{main_package}.manpages: Install generated man pages")
 

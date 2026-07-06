@@ -78,7 +78,9 @@ class TestGetBaseUrl:
     def test_env_var_takes_precedence(self) -> None:
         """Test that PACKASTACK_AI_BASE_URL takes precedence."""
         cfg = {"ai": {"base_url": "https://config.example.com/v1"}}
-        with patch.dict("os.environ", {"PACKASTACK_AI_BASE_URL": "https://env.example.com/v1"}, clear=True):
+        with patch.dict(
+            "os.environ", {"PACKASTACK_AI_BASE_URL": "https://env.example.com/v1"}, clear=True
+        ):
             assert client.get_base_url(cfg) == "https://env.example.com/v1"
 
     def test_falls_back_to_config(self) -> None:
@@ -164,7 +166,9 @@ class TestCallAi:
 
     def test_network_error(self) -> None:
         """Test handles connection errors gracefully."""
-        with patch("packastack.ai.client.requests.post", side_effect=requests.ConnectionError("refused")):
+        with patch(
+            "packastack.ai.client.requests.post", side_effect=requests.ConnectionError("refused")
+        ):
             result = client.call_ai("sys", "msg", self._make_cfg())
             assert result.success is False
             assert "Connection error" in result.error
@@ -220,7 +224,9 @@ class TestCallAi:
 
     def test_request_exception(self) -> None:
         """Test handles generic request exception."""
-        with patch("packastack.ai.client.requests.post", side_effect=requests.RequestException("generic")):
+        with patch(
+            "packastack.ai.client.requests.post", side_effect=requests.RequestException("generic")
+        ):
             result = client.call_ai("sys", "msg", self._make_cfg())
             assert result.success is False
             assert "Request failed" in result.error

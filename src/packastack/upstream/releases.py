@@ -215,9 +215,7 @@ def get_current_development_series(releases_repo: Path) -> str | None:
 _openstack_packages_cache: dict[tuple[Path, str], dict[str, str]] = {}
 
 
-def load_openstack_packages(
-    releases_repo: Path, series: str
-) -> dict[str, str]:
+def load_openstack_packages(releases_repo: Path, series: str) -> dict[str, str]:
     """Load mapping of Ubuntu source package names to OpenStack project names.
 
     Scans the deliverables directory for the given series and builds a mapping
@@ -262,7 +260,7 @@ def load_openstack_packages(
 
             packages[source_pkg] = project
 
-        except (OSError, yaml.YAMLError):
+        except OSError, yaml.YAMLError:
             # Skip files that can't be read or parsed
             continue
 
@@ -347,11 +345,13 @@ def load_project_releases(releases_repo: Path, series: str, project: str) -> Pro
 
             releases: list[ReleaseVersion] = []
             for rel in data.get("releases", []):
-                releases.append(ReleaseVersion(
-                    version=rel.get("version", ""),
-                    projects=rel.get("projects", []),
-                    diff_start=rel.get("diff-start", ""),
-                ))
+                releases.append(
+                    ReleaseVersion(
+                        version=rel.get("version", ""),
+                        projects=rel.get("projects", []),
+                        diff_start=rel.get("diff-start", ""),
+                    )
+                )
 
             # Extract tarball-base and repo name from repository-settings
             tarball_base = ""
