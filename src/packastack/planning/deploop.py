@@ -143,15 +143,7 @@ def parse_pyproject_toml_deps(path: Path) -> list[tuple[str, str]]:
     if not path.exists():
         return []
 
-    try:
-        import tomllib
-    except ImportError:
-        # Python < 3.11 fallback
-        try:
-            import tomli as tomllib  # type: ignore[import-not-found]
-        except ImportError:
-            logger.warning("tomllib/tomli not available, cannot parse pyproject.toml")
-            return []
+    import tomllib
 
     try:
         content = path.read_text()

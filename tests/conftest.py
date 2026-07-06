@@ -31,7 +31,7 @@ import responses
 
 
 @pytest.fixture
-def temp_home(monkeypatch: pytest.MonkeyPatch) -> Generator[Path, None, None]:
+def temp_home(monkeypatch: pytest.MonkeyPatch) -> Generator[Path]:
     """Create a temporary home directory and set HOME/XDG paths."""
     with tempfile.TemporaryDirectory() as tmpdir:
         home = Path(tmpdir)
@@ -114,7 +114,7 @@ Description: OpenStack Compute - Python libraries
 
 
 @pytest.fixture
-def mock_responses() -> Generator[responses.RequestsMock, None, None]:
+def mock_responses() -> Generator[responses.RequestsMock]:
     """Activate responses mock for HTTP requests."""
     with responses.RequestsMock() as rsps:
         yield rsps

@@ -372,26 +372,7 @@ def extract_tarball(
     # Extract tarball
     try:
         with tarfile.open(tarball_path, "r:*") as tar:
-            # Security: filter out unsafe members
-            def safe_extract_filter(member: tarfile.TarInfo, path: str) -> tarfile.TarInfo | None:
-                """Filter for safe extraction (Python 3.12+ style)."""
-                # Skip absolute paths
-                if member.name.startswith("/"):
-                    logger.warning(f"Skipping absolute path: {member.name}")
-                    return None
-                # Skip path traversal
-                if ".." in member.name:
-                    logger.warning(f"Skipping path traversal: {member.name}")
-                    return None
-                return member
-
-            # Use filter if available (Python 3.12+), otherwise manual filtering
-            try:
-                tar.extractall(path=cache_dir, filter="data")
-            except TypeError:
-                # Fallback for older Python
-                members = [m for m in tar.getmembers() if safe_extract_filter(m, str(cache_dir))]
-                tar.extractall(path=cache_dir, members=members)
+            tar.extractall(path=cache_dir, filter="data")
 
     except tarfile.TarError as e:
         return ExtractionResult(

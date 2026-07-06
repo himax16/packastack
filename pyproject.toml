@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "A tool for building OpenStack packages for Ubuntu"
 readme = "README.md"
 license = "GPL-3.0-only"
-requires-python = ">=3.11"
+requires-python = ">=3.14"
 authors = [
     { name = "Canonical Ltd." }
 ]
@@ -15,8 +15,7 @@ classifiers = [
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Software Development :: Build Tools",
 ]
 dependencies = [
@@ -64,7 +63,7 @@ artifacts = ["src/packastack/skills/**/*.md"]
 [tool.ruff]
 src = ["src", "tests"]
 line-length = 99
-target-version = "py311"
+target-version = "py314"
 
 [tool.ruff.lint]
 select = [
@@ -93,7 +92,7 @@ ignore = [
 known-first-party = ["packastack"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.14"
 strict = true
 warn_return_any = true
 warn_unused_ignores = true
